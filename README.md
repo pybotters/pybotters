@@ -1,8 +1,10 @@
 # [WIP] pybotters
 
-`pybotters`はよりbotプログラミングがより捗る[仮想通貨botter](https://note.com/hht/n/n61e6ecefd059)向けPythonライブラリです。
+An advanced api client for python botters.
 
-`pybotters` is advanced python library for cryptocurrency api trader.
+## 📌 Description
+
+`pybotters`は[仮想通貨botter](https://note.com/hht/n/n61e6ecefd059)向けのPythonライブラリです。複数取引所に対応した非同期APIクライアントであり、bot開発により素晴らしいDXを提供します。
 
 ## 🚀 Features
 
@@ -27,22 +29,20 @@
 | Binance | WIP | WIP |
 | bitFlyer | WIP | WIP |
 | GMO Coin | WIP | WIP |
-| bitbank | WIP | WIP |
 | Liquid | WIP | WIP |
+| bitbank | WIP | WIP |
 | FTX | WIP | WIP |
 | BitMEX | WIP | WIP |
 
-※表の順番は開発者個人の優先度順です
+※表の順番は著者個人の優先度順です
 
-## 🐍 Required
+## 🐍 Requires
 
 Python 3.7+
 
-## ⚠️ Disclaimer
+## 🗽 License
 
-- このライブラリはトレードによる利益を保証するものではありません
-- このライブラリの利用によって損失が発生しても開発者は一切責任を負いません
-- このライブラリのバグ等によって損失が発生しても開発者は一切責任を負いません
+MIT
 
 ## 💖Author
 
