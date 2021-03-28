@@ -9,7 +9,7 @@ An advanced api client for python botters.
 ## 🚀 Features
 
 - ✨HTTP / WebSocket Client
-    - 複数取引所のプライベートAPIを自動署名
+    - 複数取引所のプライベートAPIを自動認証
     - [aiohttp](https://docs.aiohttp.org/)ライブラリを基盤とした非同期通信
     - WebSocketの自動再接続、自動ハートビート
 - ✨DataStore
@@ -22,7 +22,7 @@ An advanced api client for python botters.
 
 ## 🏦 Exchanges
 
-| Name | API Client | DataStore | 
+| Name | API auth | DataStore | 
 | --- | --- | --- |
 | Bybit | ✅ | WIP |
 | BTCMEX | ✅ | WIP |
