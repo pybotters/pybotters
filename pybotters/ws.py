@@ -1,11 +1,10 @@
 import asyncio
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import aiohttp
 from aiohttp.http_websocket import json
 from aiohttp.typedefs import StrOrURL
-
 
 logger = logging.getLogger(__name__)
 
@@ -60,3 +59,34 @@ async def ws_run_forever(
         except aiohttp.WSServerHandshakeError as e:
             logger.warning(repr(e))
         await separator
+
+
+class Heartbeat:
+    @staticmethod
+    async def bybit(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('{"op":"ping"}')
+            await asyncio.sleep(30.0)
+
+    @staticmethod
+    async def btcmex(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('ping')
+            await asyncio.sleep(30.0)
+
+
+class Hosts:
+    items = {
+        'www.btcmex.com': Heartbeat.btcmex,
+        'stream.bybit.com': Heartbeat.bybit,
+        'stream.bytick.com': Heartbeat.bybit,
+        'stream-testnet.bybit.com': Heartbeat.bybit,
+        'stream-testnet.bybit.com': Heartbeat.bybit,
+    }
+
+
+class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if self._response.url.host in Hosts.items:
+            asyncio.create_task(Hosts.items[self._response.url.host](self))
