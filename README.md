@@ -1,4 +1,4 @@
-# [WIP] pybotters
+# [BETA] pybotters
 
 An advanced api client for python botters.
 
@@ -24,9 +24,9 @@ An advanced api client for python botters.
 
 | Name | API Client | DataStore | 
 | --- | --- | --- |
-| Bybit | WIP | WIP |
-| BTCMEX | WIP | WIP |
-| Binance | WIP | WIP |
+| Bybit | ✅ | WIP |
+| BTCMEX | ✅ | WIP |
+| Binance | ✅ | WIP |
 | bitFlyer | WIP | WIP |
 | GMO Coin | WIP | WIP |
 | Liquid | WIP | WIP |
@@ -39,6 +39,12 @@ An advanced api client for python botters.
 ## 🐍 Requires
 
 Python 3.7+
+
+## 🛠 Installation
+
+```sh
+pip install git+https://github.com/MtkN1/pybotters
+```
 
 ## 🗽 License
 
