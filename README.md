@@ -11,7 +11,7 @@ An advanced api client for python botters.
 - ✨HTTP / WebSocket Client
     - 複数取引所のプライベートAPIを自動署名
     - [aiohttp](https://docs.aiohttp.org/)ライブラリを基盤とした非同期通信
-    - WebSocketの自動再接続、自動ハードビート
+    - WebSocketの自動再接続、自動ハートビート
 - ✨DataStore
     - WebSocket用の自動データ保管クラス
     - 参照渡しによる高速なデータ参照
