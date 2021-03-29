@@ -1,4 +1,4 @@
-# [BETA] pybotters
+# [ALPHA] pybotters
 
 An advanced api client for python botters.
 
@@ -8,15 +8,15 @@ An advanced api client for python botters.
 
 ## 🚀 Features
 
-- ✨HTTP / WebSocket Client
+- ✨ HTTP / WebSocket Client
     - 複数取引所のプライベートAPIを自動認証
     - [aiohttp](https://docs.aiohttp.org/)ライブラリを基盤とした非同期通信
     - WebSocketの自動再接続、自動ハートビート
-- ✨DataStore
+- ✨ DataStore
     - WebSocket用の自動データ保管クラス
     - 参照渡しによる高速なデータ参照
     - 取引所別データモデルの実装
-- ✨Developer Experience
+- ✨ Developer Experience
     - `asyncio`ライブラリを利用した非同期プログラミング
     - `typing`モジュールによる型ヒントのサポート
 
@@ -50,6 +50,6 @@ pip install git+https://github.com/MtkN1/pybotters
 
 MIT
 
-## 💖Author
+## 💖 Author
 
 https://twitter.com/MtkN1XBt
