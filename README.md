@@ -46,6 +46,58 @@ Python 3.7+
 pip install git+https://github.com/MtkN1/pybotters
 ```
 
+## 🔰 Usage
+
+### Single exchange, REST API, WebSocket API
+
+```python
+import asyncio
+import pybotters
+
+apis = {
+    'bybit': ['BYBIT_API_KEY', 'BYBIT_API_SECRET'],
+}
+
+async def main():
+    async with pybotters.Client(apis=apis, base_url='https://api.bybit.com') as client:
+        # REST API
+        resp = await client.get('/v2/private/position/list', params={'symbol': 'BTCUSD'})
+        data = await resp.json()
+        print(data)
+
+        # WebSocket API (print hander)
+        ws = await client.ws_connect(
+            url='wss://stream.bybit.com/realtime',
+            send_json={'op': 'subscribe', 'args': ['trade.BTCUSD', 'order', 'position']},
+            hdlr_json=lambda msg, ws: print(msg),
+        )
+        await ws # this await is wait forever (for usage)
+
+try:
+    asyncio.run(main())
+except KeyboardInterrupt:
+    pass
+```
+
+### Multiple exchanges
+
+```python
+apis = {
+    'bybit': ['BYBIT_API_KEY', 'BYBIT_API_SECRET'],
+    'btcmex': ['BTCMEX_API_KEY', 'BTCMEX_API_SECRET'],
+    'binance': ['BINANCE_API_KEY', 'BINANCE_API_SECRET'],
+}
+
+async def main():
+    async with pybotters.Client(apis=apis) as client:
+        await client.post('https://api.bybit.com/v2/private/order/create', data={'symbol': 'BTCUSD', ...: ...})
+        ...
+        await client.post('https://www.btcmex.com/api/v1/order', data={'symbol': 'XBTUSD', ...: ...})
+        ...
+        await client.post('https://testnet.binancefuture.com/dapi/v1/order', data={'symbol': 'BTCUSD_PERP', ...: ...})
+        ...
+```
+
 ## 🗽 License
 
 MIT
