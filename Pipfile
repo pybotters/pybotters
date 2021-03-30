@@ -5,6 +5,9 @@ name = "pypi"
 
 [packages]
 aiohttp = "*"
+pytest = "*"
+pytest-mock = "*"
+pytest-aiohttp = "*"
 
 [dev-packages]
 
