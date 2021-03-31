@@ -48,7 +48,7 @@ pip install git+https://github.com/MtkN1/pybotters
 
 ## 🔰 Usage
 
-### Single exchange, REST API, WebSocket API
+### Single exchange
 
 ```python
 import asyncio
@@ -65,7 +65,7 @@ async def main():
         data = await resp.json()
         print(data)
 
-        # WebSocket API (print hander)
+        # WebSocket API (with print handler)
         ws = await client.ws_connect(
             url='wss://stream.bybit.com/realtime',
             send_json={'op': 'subscribe', 'args': ['trade.BTCUSD', 'order', 'position']},
@@ -94,7 +94,7 @@ async def main():
         ...
         await client.post('https://www.btcmex.com/api/v1/order', data={'symbol': 'XBTUSD', ...: ...})
         ...
-        await client.post('https://testnet.binancefuture.com/dapi/v1/order', data={'symbol': 'BTCUSD_PERP', ...: ...})
+        await client.post('https://dapi.binance.com/dapi/v1/order', data={'symbol': 'BTCUSD_PERP', ...: ...})
         ...
 ```
 
