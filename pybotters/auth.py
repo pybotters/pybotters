@@ -22,7 +22,7 @@ class Auth:
         key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
         secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
 
-        expires = str(int((time.time() + 1.0) * 1000))
+        expires = str(int((time.time() - 1.0) * 1000))
         if method == METH_GET:
             query = MultiDict(url.query)
             if url.scheme == 'https':
@@ -31,6 +31,7 @@ class Auth:
                 sign = hmac.new(secret, query_string.encode(), hashlib.sha256).hexdigest()
                 query.extend({'sign': sign})
             else:
+                expires = str(int((time.time() + 1.0) * 1000))
                 path = f'{method}/realtime{expires}'
                 signature = hmac.new(secret, path.encode(), hashlib.sha256).hexdigest()
                 query.extend({'api_key': key, 'expires': expires, 'signature': signature})
