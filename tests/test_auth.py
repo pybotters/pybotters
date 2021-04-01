@@ -220,16 +220,115 @@ def test_btcmex_ws(mock_session, mocker: pytest_mock.MockerFixture):
     )
     kwargs = {
         'data': None,
+        'headers': CIMultiDict(),
         'session': mock_session,
     }
     expected_args = (
         'GET',
-        URL('wss://www.btcmex.com/realtime?api_key=fSvgi9a85yDFx3efr94tmJpH&expires=2085848897000&signature=78e31b74c66fba9233d2c99ce7c4635104670b9306a481d9160fd8e4c8d1675b'),
+        URL('wss://www.btcmex.com/realtime'),
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'api-expires': '2085848901',
+            'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
+            'api-signature': '125c388f8af1e5d93146064d8aada1ccf6dc80616a3057e67ca26f5970e393ac',
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.btcmex(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_binance_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://dapi.binance.com/dapi/v1/order').with_query({
+            'symbol': 'BTCUSD_PERP',
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://dapi.binance.com/dapi/v1/order?symbol=BTCUSD_PERP&timestamp=2085848896000&signature=cfd48880dc0ceb003e5f009205a4ebd6415ddeb40addafd1c134528681d98ccf')
     )
     expected_kwargs = {
         'data': None,
+        'headers': CIMultiDict({'X-MBX-APIKEY': '9qm1u2s4GoHt9ryIm1D2fHV8'}),
         'session': mock_session,
     }
-    args = pybotters.auth.Auth.bybit(args, kwargs)
+    args = pybotters.auth.Auth.binance(args, kwargs)
     assert args == expected_args
     assert kwargs['data'] == expected_kwargs['data']
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_binance_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://dapi.binance.com/dapi/v1/order'),
+    )
+    kwargs = {
+        'data': {
+            'symbol': 'BTCUSD_PERP',
+            'side': 'BUY',
+            'type': 'MARKET',
+            'quantity': 1,
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://dapi.binance.com/dapi/v1/order')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({
+            'symbol': 'BTCUSD_PERP',
+            'side': 'BUY',
+            'type': 'MARKET',
+            'quantity': 1,
+            'timestamp': '2085848896000',
+            'signature': 'ab855d04b87a8043830ca5dfabcded89012c69ed2ddeaaa1fc1dad54a82d1675',
+        })(),
+        'headers': CIMultiDict({'X-MBX-APIKEY': '9qm1u2s4GoHt9ryIm1D2fHV8'}),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.binance(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bybit_ws(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('wss://dstream.binance.com/ws/pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1'),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('wss://dstream.binance.com/ws/pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1'),
+    )
+    expected_kwargs = {
+        'data': None,
+        'headers': CIMultiDict({'X-MBX-APIKEY': '9qm1u2s4GoHt9ryIm1D2fHV8'}),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.binance(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data'] == expected_kwargs['data']
+    assert kwargs['headers'] == expected_kwargs['headers']
