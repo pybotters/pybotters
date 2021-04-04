@@ -42,6 +42,10 @@ def mock_session(mocker: pytest_mock.MockerFixture):
 def test_hosts():
     assert hasattr(pybotters.auth.Hosts, 'items')
     assert isinstance(pybotters.auth.Hosts.items, dict)
+    for host, item in pybotters.auth.Hosts.items.items():
+        assert isinstance(host, str)
+        assert isinstance(item.name, str)
+        assert callable(item.func)
 
 
 def test_item():
