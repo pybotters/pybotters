@@ -82,7 +82,7 @@ class ByBitDataStore(DataStoreInterface):
         self.create('stoporder', datastore_class=StopOrder)
         self.create('wallet', datastore_class=Wallet)
 
-    def _on_message(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if 'topic' in msg:
             topic: str = msg['topic']
             data: Any = msg['data']

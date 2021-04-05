@@ -134,7 +134,7 @@ class DataStoreInterface:
     def __init__(self) -> None:
         self._stores: Dict[str, DataStore] = {}
         self._events: List[asyncio.Event] = []
-        self._iscorofunc = asyncio.iscoroutinefunction(self._on_message)
+        self._iscorofunc = asyncio.iscoroutinefunction(self._onmessage)
         self._init()
 
     def _init(self) -> None:
@@ -159,15 +159,15 @@ class DataStoreInterface:
     ) -> None:
         self._stores[name] = datastore_class(keys, data)
 
-    def _on_message(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         print(msg)
         self._set()
 
-    async def on_message(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+    async def onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         if self._iscorofunc:
-            await self._on_message(msg, ws)
+            await self._onmessage(msg, ws)
         else:
-            self._on_message(msg, ws)
+            self._onmessage(msg, ws)
         self._set()
 
     def _set(self) -> None:
