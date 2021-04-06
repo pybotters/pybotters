@@ -8,6 +8,7 @@ aiohttp = "*"
 pytest = "*"
 pytest-mock = "*"
 pytest-aiohttp = "*"
+pytest-asyncio = "*"
 
 [dev-packages]
 
