@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from typing import Any, Dict, Generator, Hashable, Iterator, List, Optional, Tuple, Type
+from typing import Any, Dict, Hashable, Iterator, List, Optional, Tuple, Type
 
 from .typedefs import Item
 from .ws import ClientWebSocketResponse
@@ -113,11 +113,11 @@ class DataStore:
                 if keyhash in self._index:
                     return self._data[self._index[keyhash]]
 
-    def find(self, query: Item={}) -> Generator[Item, None, None]:
+    def find(self, query: Item={}) -> List[Item]:
         if query:
-            return (item for item in self._data.values() if all(k in item and query[k] == item[k] for k in query))
+            return [item for item in self._data.values() if all(k in item and query[k] == item[k] for k in query)]
         else:
-            return (item for item in self._data.values())
+            return [item for item in self._data.values()]
 
     def _set(self) -> None:
         for event in self._events:
