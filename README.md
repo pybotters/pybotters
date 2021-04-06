@@ -4,7 +4,18 @@ An advanced api client for python botters.
 
 ## 📌 Description
 
-`pybotters`は[仮想通貨botter](https://note.com/hht/n/n61e6ecefd059)向けのPythonライブラリです。複数取引所に対応した非同期APIクライアントであり、bot開発により素晴らしいDXを提供します。
+`pybotters`は[仮想通貨botter](https://note.com/hht/n/n61e6ecefd059)向けのPythonライブラリです。
+
+複数取引所に対応した非同期APIクライアントであり、bot開発により素晴らしいDXを提供します。
+
+## 👩‍💻👨‍💻🧑‍💻 Work In Progress
+
+`pybotters` は現在 ** **開発中** ** です。
+
+`main` ブランチのバージョンは **APLHAリリース** です。
+機能は少なく、テストは充分ではないため実験的な利用のみを推奨します。
+
+BETAリリースの開発状況については [こちら](https://github.com/MtkN1/pybotters/issues/11) を参照してください。
 
 ## 🚀 Features
 
