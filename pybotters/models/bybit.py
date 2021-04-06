@@ -145,33 +145,33 @@ class OrderBook(DataStore):
         if type_ == 'snapshot':
             if isinstance(data, dict):
                 data = data['order_book']
-            self.insert(data)
+            self._insert(data)
         elif type_ == 'delta':
-            self.delete(data['delete'])
-            self.update(data['update'])
-            self.insert(data['insert'])
+            self._delete(data['delete'])
+            self._update(data['update'])
+            self._insert(data['insert'])
 
 class Trade(DataStore):
     _KEYS = ['trade_id']
     _MAXLEN = 99999
 
     def _onmessage(self, data: List[Item]) -> None:
-        self.insert(data)
+        self._insert(data)
 
 class Insurance(DataStore):
     _KEYS = ['currency']
 
     def _onmessage(self, data: List[Item]) -> None:
-        self.update(data)
+        self._update(data)
 
 class Instrument(DataStore):
     _KEYS = ['symbol']
 
     def _onmessage(self, type_: str, data: Item) -> None:
         if type_ == 'snapshot':
-            self.insert([data])
+            self._insert([data])
         elif type_ == 'delta':
-            self.update(data['update'])
+            self._update(data['update'])
 
 class Kline(DataStore):
     _KEYS = ['symbol', 'start']
@@ -180,7 +180,7 @@ class Kline(DataStore):
         symbol = topic.split('.')[2] # ex:'klineV2.1.BTCUSD'
         for item in data:
             item['symbol'] = symbol
-        self.update(data)
+        self._update(data)
 
 class PositionInverse(DataStore):
     _KEYS = ['symbol', 'position_idx']
@@ -196,16 +196,16 @@ class PositionInverse(DataStore):
 
     def _onresponse(self, data: Union[Item, List[Item]]) -> None:
         if isinstance(data, dict):
-            self.update([data])
+            self._update([data])
         elif isinstance(data, list):
             if len(data):
                 if 'data' in data[0]:
-                    self.update([item['data'] for item in data])
+                    self._update([item['data'] for item in data])
                 else:
-                    self.update(data)
+                    self._update(data)
 
     def _onmessage(self, data: List[Item]) -> None:
-        self.update(data)
+        self._update(data)
 
 class PositionUSDT(DataStore):
     _KEYS = ['symbol', 'side']
@@ -219,39 +219,39 @@ class PositionUSDT(DataStore):
     def _onresponse(self, data: List[Item]) -> None:
         if len(data):
             if 'data' in data[0]:
-                self.update([item['data'] for item in data])
+                self._update([item['data'] for item in data])
             else:
-                self.update(data)
+                self._update(data)
 
     def _onmessage(self, data: List[Item]) -> None:
-        self.update(data)
+        self._update(data)
 
 class Execution(DataStore):
     _KEYS = ['exec_id']
 
     def _onmessage(self, data: List[Item]) -> None:
-        self.update(data)
+        self._update(data)
 
 class Order(DataStore):
     _KEYS = ['order_id']
 
     def _onresponse(self, data: List[Item]) -> None:
-        self.clear()
-        self.update(data)
+        self._clear()
+        self._update(data)
 
     def _onmessage(self, data: List[Item]) -> None:
         for item in data:
             if item['order_status'] in ('Created', 'New', 'PartiallyFilled'):
-                self.update([item])
+                self._update([item])
             else:
-                self.delete([item])
+                self._delete([item])
 
 class StopOrder(DataStore):
     _KEYS = ['stop_order_id']
 
     def _onresponse(self, data: List[Item]) -> None:
-        self.clear()
-        self.update(data)
+        self._clear()
+        self._update(data)
 
     def _onmessage(self, data: List[Item]) -> None:
         for item in data:
@@ -260,9 +260,9 @@ class StopOrder(DataStore):
             if 'order_status' in item:
                 item['stop_order_status'] = item.pop('order_status')
             if item['stop_order_status'] in ('Active', 'Untriggered'):
-                self.update([item])
+                self._update([item])
             else:
-                self.delete([item])
+                self._delete([item])
 
 class Wallet(DataStore):
     _KEYS = ['coin']
@@ -273,7 +273,7 @@ class Wallet(DataStore):
             _item['coin'] = coin
             _item['wallet_balance'] = item['wallet_balance']
             _item['available_balance'] = item['available_balance']
-            self.update([_item])
+            self._update([_item])
 
     def _onposition(self, data: List[Item]) -> None:
         for item in data:
@@ -285,11 +285,11 @@ class Wallet(DataStore):
                 _item['coin'] = symbol[:-6] # ex:'BTCUSDM21'
             _item['wallet_balance'] = item['wallet_balance']
             _item['available_balance'] = item['available_balance']
-            self.update([_item])
+            self._update([_item])
 
     def _onmessage(self, data: List[Item]) -> None:
         for item in data:
             _item = {'coin': 'USDT'}
             _item['wallet_balance'] = item['wallet_balance']
             _item['available_balance'] = item['available_balance']
-            self.update([_item])
+            self._update([_item])

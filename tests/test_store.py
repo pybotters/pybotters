@@ -99,7 +99,7 @@ def test_insert():
     data = [{'foo': f'bar{i}'} for i in range(1000)]
 
     ds1 = pybotters.store.DataStore(keys=['foo'])
-    ds1.insert(data)
+    ds1._insert(data)
     assert len(ds1._data) == 1000
     assert len(ds1._index) == 1000
     assert isinstance(next(iter(ds1._data.keys())), uuid.UUID)
@@ -108,14 +108,14 @@ def test_insert():
     assert isinstance(next(iter(ds1._index.values())), uuid.UUID)
 
     ds2 = pybotters.store.DataStore()
-    ds2.insert(data)
+    ds2._insert(data)
     assert len(ds2._data) == 1000
     assert len(ds2._index) == 0
     assert isinstance(next(iter(ds2._data.keys())), uuid.UUID)
     assert isinstance(next(iter(ds2._data.values())), dict)
 
     ds3 = pybotters.store.DataStore(keys=['invalid'])
-    ds3.insert(data)
+    ds3._insert(data)
     assert len(ds3._data) == 0
     assert len(ds3._index) == 0
 
@@ -125,12 +125,12 @@ def test_update():
     newdata = [{'foo': f'bar{i}'} for i in range(1000, 2000)]
 
     ds1 = pybotters.store.DataStore(keys=['foo'], data=data)
-    ds1.update(data)
+    ds1._update(data)
     assert len(ds1._data) == 1000
     assert len(ds1._index) == 1000
 
     ds2 = pybotters.store.DataStore(keys=['foo'], data=data)
-    ds2.update(newdata)
+    ds2._update(newdata)
     assert len(ds2._data) == 2000
     assert len(ds2._index) == 2000
     assert isinstance(list(ds2._data.keys())[-1], uuid.UUID)
@@ -139,14 +139,14 @@ def test_update():
     assert isinstance(list(ds2._index.values())[-1], uuid.UUID)
 
     ds3 = pybotters.store.DataStore()
-    ds3.update(data)
+    ds3._update(data)
     assert len(ds3._data) == 1000
     assert len(ds3._index) == 0
     assert isinstance(next(iter(ds3._data.keys())), uuid.UUID)
     assert isinstance(next(iter(ds3._data.values())), dict)
 
     ds4 = pybotters.store.DataStore(keys=['invalid'])
-    ds4.update(data)
+    ds4._update(data)
     assert len(ds4._data) == 0
     assert len(ds4._index) == 0
 
@@ -157,17 +157,17 @@ def test_delete():
     invalid = [{'invalid': f'data{i}'} for i in range(1000, 2000)]
 
     ds1 = pybotters.store.DataStore(keys=['foo'], data=data)
-    ds1.delete(data)
+    ds1._delete(data)
     assert len(ds1._data) == 0
     assert len(ds1._index) == 0
 
     ds2 = pybotters.store.DataStore(keys=['foo'], data=data)
-    ds2.delete(nodata)
+    ds2._delete(nodata)
     assert len(ds2._data) == 1000
     assert len(ds2._index) == 1000
 
     ds3 = pybotters.store.DataStore(keys=['foo'], data=data)
-    ds3.delete(invalid)
+    ds3._delete(invalid)
     assert len(ds3._data) == 1000
     assert len(ds3._index) == 1000
 
@@ -175,7 +175,7 @@ def test_delete():
 def test_clear():
     data = [{'foo': f'bar{i}'} for i in range(1000)]
     ds = pybotters.store.DataStore(keys=['foo'], data=data)
-    ds.clear()
+    ds._clear()
     assert len(ds._data) == 0
     assert len(ds._index) == 0
 

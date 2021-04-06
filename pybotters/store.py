@@ -15,7 +15,7 @@ class DataStore:
         self._index: Dict[int, uuid.UUID] = {}
         self._keys: Tuple[str, ...] = tuple(keys if keys else self._KEYS)
         self._events: List[asyncio.Event] = []
-        self.insert(data)
+        self._insert(data)
 
     def __len__(self) -> int:
         return len(self._data)
@@ -44,7 +44,7 @@ class DataStore:
             for k in keys:
                 del self._data[k]
 
-    def insert(self, data: List[Item]) -> None:
+    def _insert(self, data: List[Item]) -> None:
         if self._keys:
             for item in data:
                 try:
@@ -63,7 +63,7 @@ class DataStore:
                 self._data[_id] = item
             self._sweep_without_key()
 
-    def update(self, data: List[Item]) -> None:
+    def _update(self, data: List[Item]) -> None:
         if self._keys:
             for item in data:
                 try:
@@ -85,7 +85,7 @@ class DataStore:
                 self._data[_id] = item
             self._sweep_without_key()
 
-    def delete(self, data: List[Item]) -> None:
+    def _delete(self, data: List[Item]) -> None:
         if self._keys:
             for item in data:
                 try:
@@ -98,7 +98,7 @@ class DataStore:
                         del self._data[self._index[keyhash]]
                         del self._index[keyhash]
 
-    def clear(self) -> None:
+    def _clear(self) -> None:
         self._data.clear()
         self._index.clear()
 
