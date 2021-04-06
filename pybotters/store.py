@@ -42,7 +42,7 @@ class DataStore:
             _iter = iter(self._data)
             keys = [next(_iter) for _ in range(over)]
             for k in keys:
-                del self._index[k]
+                del self._data[k]
 
     def insert(self, data: List[Item]) -> None:
         if self._keys:
@@ -138,9 +138,6 @@ class DataStoreInterface:
         self._init()
 
     def _init(self) -> None:
-        pass
-
-    def init(self) -> None:
         pass
 
     def __getitem__(self, name: str) -> Optional['DataStore']:
