@@ -27,23 +27,6 @@ class DataStore:
     def _hash(item: Dict[str, Hashable]) -> int:
         return hash(tuple(item.items()))
 
-    def _sweep_with_key(self) -> None:
-        if len(self._data) > self._MAXLEN:
-            over = len(self._data) - self._MAXLEN
-            _iter = iter(self._index)
-            keys = [next(_iter) for _ in range(over)]
-            for k in keys:
-                del self._data[self._index[k]]
-                del self._index[k]
-
-    def _sweep_without_key(self) -> None:
-        if len(self._data) > self._MAXLEN:
-            over = len(self._data) - self._MAXLEN
-            _iter = iter(self._data)
-            keys = [next(_iter) for _ in range(over)]
-            for k in keys:
-                del self._data[k]
-
     def _insert(self, data: List[Item]) -> None:
         if self._keys:
             for item in data:
@@ -62,6 +45,7 @@ class DataStore:
                 _id = uuid.uuid4()
                 self._data[_id] = item
             self._sweep_without_key()
+        self._set()
 
     def _update(self, data: List[Item]) -> None:
         if self._keys:
@@ -84,6 +68,7 @@ class DataStore:
                 _id = uuid.uuid4()
                 self._data[_id] = item
             self._sweep_without_key()
+        self._set()
 
     def _delete(self, data: List[Item]) -> None:
         if self._keys:
@@ -97,10 +82,29 @@ class DataStore:
                     if keyhash in self._index:
                         del self._data[self._index[keyhash]]
                         del self._index[keyhash]
+        self._set()
 
     def _clear(self) -> None:
         self._data.clear()
         self._index.clear()
+        self._set()
+
+    def _sweep_with_key(self) -> None:
+        if len(self._data) > self._MAXLEN:
+            over = len(self._data) - self._MAXLEN
+            _iter = iter(self._index)
+            keys = [next(_iter) for _ in range(over)]
+            for k in keys:
+                del self._data[self._index[k]]
+                del self._index[k]
+
+    def _sweep_without_key(self) -> None:
+        if len(self._data) > self._MAXLEN:
+            over = len(self._data) - self._MAXLEN
+            _iter = iter(self._data)
+            keys = [next(_iter) for _ in range(over)]
+            for k in keys:
+                del self._data[k]
 
     def get(self, item: Item) -> Optional[Item]:
         if self._keys:
@@ -158,13 +162,9 @@ class DataStoreInterface:
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         print(msg)
-        self._set()
 
-    async def onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
-        if self._iscorofunc:
-            await self._onmessage(msg, ws)
-        else:
-            self._onmessage(msg, ws)
+    def onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+        self._onmessage(msg, ws)
         self._set()
 
     def _set(self) -> None:

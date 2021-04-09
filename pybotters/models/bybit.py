@@ -5,50 +5,6 @@ from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 class ByBitDataStore(DataStoreInterface):
-    @property
-    def orderbook(self) -> 'OrderBook':
-        return self._stores.get('orderbook')
-
-    @property
-    def trade(self) -> 'Trade':
-        return self._stores.get('trade')
-
-    @property
-    def insurance(self) -> 'Insurance':
-        return self._stores.get('insurance')
-
-    @property
-    def instrument(self) -> 'Instrument':
-        return self._stores.get('instrument')
-
-    @property
-    def kline(self) -> 'Kline':
-        return self._stores.get('kline')
-
-    @property
-    def position_inverse(self) -> 'PositionInverse':
-        return self._stores.get('position_inverse')
-
-    @property
-    def position_usdt(self) -> 'PositionUSDT':
-        return self._stores.get('position_usdt')
-
-    @property
-    def execution(self) -> 'Execution':
-        return self._stores.get('execution')
-
-    @property
-    def order(self) -> 'Order':
-        return self._stores.get('order')
-
-    @property
-    def stoporder(self) -> 'StopOrder':
-        return self._stores.get('stoporder')
-
-    @property
-    def wallet(self) -> 'Wallet':
-        return self._stores.get('wallet')
-
     def __init__(
         self,
         orders: Optional[Item]=None,
@@ -116,6 +72,50 @@ class ByBitDataStore(DataStoreInterface):
                 self.stoporder._onmessage(data)
             elif topic == 'wallet':
                 self.wallet._onmessage(data)
+
+    @property
+    def orderbook(self) -> 'OrderBook':
+        return self._stores.get('orderbook')
+
+    @property
+    def trade(self) -> 'Trade':
+        return self._stores.get('trade')
+
+    @property
+    def insurance(self) -> 'Insurance':
+        return self._stores.get('insurance')
+
+    @property
+    def instrument(self) -> 'Instrument':
+        return self._stores.get('instrument')
+
+    @property
+    def kline(self) -> 'Kline':
+        return self._stores.get('kline')
+
+    @property
+    def position_inverse(self) -> 'PositionInverse':
+        return self._stores.get('position_inverse')
+
+    @property
+    def position_usdt(self) -> 'PositionUSDT':
+        return self._stores.get('position_usdt')
+
+    @property
+    def execution(self) -> 'Execution':
+        return self._stores.get('execution')
+
+    @property
+    def order(self) -> 'Order':
+        return self._stores.get('order')
+
+    @property
+    def stoporder(self) -> 'StopOrder':
+        return self._stores.get('stoporder')
+
+    @property
+    def wallet(self) -> 'Wallet':
+        return self._stores.get('wallet')
 
 
 class OrderBook(DataStore):
