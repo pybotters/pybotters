@@ -8,7 +8,7 @@ An advanced api client for python botters.
 
 複数取引所に対応した非同期APIクライアントであり、bot開発により素晴らしいDXを提供します。
 
-## 👩‍💻👨‍💻🧑‍💻 Work In Progress
+## 👩‍💻👨‍💻 Work In Progress
 
 `pybotters` は現在 ** **開発中** ** です。
 
@@ -35,8 +35,8 @@ BETAリリースの開発状況については [こちら](https://github.com/Mt
 
 | Name | API auth | DataStore | 
 | --- | --- | --- |
-| Bybit | ✅ | WIP |
-| BTCMEX | ✅ | WIP |
+| Bybit | ✅ | ✅ |
+| BTCMEX | ✅ | ✅ |
 | Binance | ✅ | WIP |
 | bitFlyer | WIP | WIP |
 | GMO Coin | WIP | WIP |
@@ -108,6 +108,10 @@ async def main():
         await client.post('https://dapi.binance.com/dapi/v1/order', data={'symbol': 'BTCUSD_PERP', ...: ...})
         ...
 ```
+
+### Wiki
+
+詳しい利用方法は👉[Wikiページへ](https://github.com/MtkN1/pybotters/wiki)
 
 ## 🗽 License
 
