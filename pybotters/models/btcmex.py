@@ -15,6 +15,8 @@ class BTCMEXDataStore(DataStoreInterface):
             data = msg['data']
             if action == 'partial':
                 self.create(table, keys=msg['keys'], data=data)
+                if table == 'trade':
+                    self['trade']._MAXLEN = 99999
             elif action == 'insert':
                 if table in self:
                     self[table]._insert(data)
