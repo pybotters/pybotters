@@ -100,6 +100,27 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def bitflyer(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: Dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+
+        path = url.raw_path_qs
+        body = FormData(data)()
+        timestamp = str(int(time.time()))
+        message = f'{timestamp}{method}{path}'.encode() + body._value
+        signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
+        kwargs.update({'data': body})
+        headers.update({'ACCESS-KEY': key, 'ACCESS-TIMESTAMP': timestamp, 'ACCESS-SIGN': signature})
+
+        return args
+
 
 @dataclass
 class Item:
@@ -134,4 +155,5 @@ class Hosts:
         'dstream.binancefuture.com': Item('binance_testnet', Auth.binance),
         'testnet.binanceops.com': Item('binance_testnet', Auth.binance),
         'testnetws.binanceops.com': Item('binance_testnet', Auth.binance),
+        'api.bitflyer.com': Item('bitflyer', Auth.bitflyer),
     }

@@ -1,5 +1,10 @@
 import asyncio
+import hashlib
+import hmac
 import logging
+import time
+from dataclasses import dataclass
+from secrets import token_hex
 from typing import Any, Optional
 
 import aiohttp
@@ -75,7 +80,31 @@ class Heartbeat:
             await asyncio.sleep(30.0)
 
 
-class Hosts:
+class Auth:
+    @staticmethod
+    async def bitflyer(ws: aiohttp.ClientWebSocketResponse):
+        key: str = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][0]
+        secret: bytes = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][1]
+
+        timestamp = int(time.time())
+        nonce = token_hex(16)
+        sign = hmac.new(secret, (str(timestamp) + nonce).encode(), digestmod=hashlib.sha256).hexdigest()
+        await ws.send_json({
+            'method': 'auth',
+            'params': {
+                'api_key': key, 'timestamp': timestamp, 'nonce': nonce, 'signature': sign
+            },
+            'id': 'auth',
+        })
+
+
+@dataclass
+class Item:
+    name: str
+    func: Any
+
+
+class HeartbeatHosts:
     items = {
         'www.btcmex.com': Heartbeat.btcmex,
         'stream.bybit.com': Heartbeat.bybit,
@@ -85,8 +114,17 @@ class Hosts:
     }
 
 
+class AuthHosts:
+    items = {
+        'ws.lightstream.bitflyer.com': Item('bitflyer', Auth.bitflyer),
+    }
+
+
 class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        if self._response.url.host in Hosts.items:
-            asyncio.create_task(Hosts.items[self._response.url.host](self))
+        if self._response.url.host in HeartbeatHosts.items:
+            asyncio.create_task(HeartbeatHosts.items[self._response.url.host](self))
+        if self._response.url.host in AuthHosts.items:
+            if AuthHosts.items[self._response.url.host].name in self._response._session.__dict__['_apis']:
+                asyncio.create_task(AuthHosts.items[self._response.url.host].func(self))
