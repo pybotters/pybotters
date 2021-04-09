@@ -33,6 +33,7 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         'btcmex': ('fSvgi9a85yDFx3efr94tmJpH', b'1GGUedysKk2s2rMMWRmMe7uAp1mKAbORgR3rUSMe15I70P1A'),
         'binance': ('9qm1u2s4GoHt9ryIm1D2fHV8', b'7pDOQJ49zyyDjrNGAvB31RcnAada8nkxkl2IWKop6b0E3tXh'),
         'binance_testnet': ('EDYH5JVoHJlhroiQkDntBHn8', b'lMFc3hibQUEOzSeG6YEvx7lMRgNBUlF07PVEm9g9U6HEWtEZ'),
+        'bitflyer': ('Pcm1rbtSRqKxTvirZDDOct1k', b'AKHZlv3PoAXZ0KXIKIVKOmS4ji3rV7ZIVIJRstwyplaw0FQ4'),
     }
     assert set(apis.keys()) == set(item.name for item in pybotters.auth.Hosts.items.values())
     m_sess.__dict__['_apis'] = apis
@@ -335,4 +336,77 @@ def test_bybit_ws(mock_session, mocker: pytest_mock.MockerFixture):
     args = pybotters.auth.Auth.binance(args, kwargs)
     assert args == expected_args
     assert kwargs['data'] == expected_kwargs['data']
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitflyer_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://api.bitflyer.com/v1/me/getchildorders').with_query({
+            'product_code': 'FX_BTC_JPY',
+            'child_order_state': 'ACTIVE',
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://api.bitflyer.com/v1/me/getchildorders?product_code=FX_BTC_JPY&child_order_state=ACTIVE')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
+            'ACCESS-TIMESTAMP': '2085848896',
+            'ACCESS-SIGN': 'd264cf935540b434b7073e0341d0d43dc1450c4c1cbcc47024931486dbd5a785'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitflyer(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitflyer_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://api.bitflyer.com/v1/me/sendchildorder'),
+    )
+    kwargs = {
+        'data': {
+            'product_code': 'FX_BTC_JPY',
+            'child_order_type': 'MARKET',
+            'side': 'BUY',
+            'size': 0.01,
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://api.bitflyer.com/v1/me/sendchildorder')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({
+            'product_code': 'FX_BTC_JPY',
+            'child_order_type': 'MARKET',
+            'side': 'BUY',
+            'size': 0.01,
+        })(),
+        'headers': CIMultiDict({
+            'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
+            'ACCESS-TIMESTAMP': '2085848896',
+            'ACCESS-SIGN': '6f7f1d1e348788362015d5b283fc97649a0f9173dc85fe7ba4668f4ab1a1f9a8'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitflyer(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']
