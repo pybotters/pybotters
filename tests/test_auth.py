@@ -1,6 +1,7 @@
 import random
 
 import aiohttp.formdata
+import aiohttp.payload
 import pytest
 import pytest_mock
 from multidict import CIMultiDict
@@ -34,6 +35,7 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         'binance': ('9qm1u2s4GoHt9ryIm1D2fHV8', b'7pDOQJ49zyyDjrNGAvB31RcnAada8nkxkl2IWKop6b0E3tXh'),
         'binance_testnet': ('EDYH5JVoHJlhroiQkDntBHn8', b'lMFc3hibQUEOzSeG6YEvx7lMRgNBUlF07PVEm9g9U6HEWtEZ'),
         'bitflyer': ('Pcm1rbtSRqKxTvirZDDOct1k', b'AKHZlv3PoAXZ0KXIKIVKOmS4ji3rV7ZIVIJRstwyplaw0FQ4'),
+        'gmocoin': ('GnHvwP7d5FbWdZinoI2hKBTR', b'jFRfAL7PiFLvYP6rS9u6TmTjTyVI1z21QXgDqxsCdPkMmN6I'),
     }
     assert set(apis.keys()) == set(item.name for item in pybotters.auth.Hosts.items.values())
     m_sess.__dict__['_apis'] = apis
@@ -407,6 +409,80 @@ def test_bitflyer_post(mock_session, mocker: pytest_mock.MockerFixture):
         'session': mock_session,
     }
     args = pybotters.auth.Auth.bitflyer(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_gmocoin_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://api.coin.z.com/private/v1/activeOrders').with_query({
+            'symbol': 'BTC_JPY',
+            'page': 1,
+            'count': 100,
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://api.coin.z.com/private/v1/activeOrders?symbol=BTC_JPY&page=1&count=100')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'API-KEY': 'GnHvwP7d5FbWdZinoI2hKBTR',
+            'API-TIMESTAMP': '2085848896000',
+            'API-SIGN': 'e6f0c55c381b08f0892daad0c5e27f69050dab787d98e45680802e340849978a'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.gmocoin(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_gmocoin_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://api.coin.z.com/private/v1/order'),
+    )
+    kwargs = {
+        'data': {
+            'symbol': 'BTC_JPY',
+            'side': 'BUY',
+            'executionType': 'MARKET',
+            'size': 0.01,
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://api.coin.z.com/private/v1/order')
+    )
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload({
+            'symbol': 'BTC_JPY',
+            'side': 'BUY',
+            'executionType': 'MARKET',
+            'size': 0.01,
+        }),
+        'headers': CIMultiDict({
+            'API-KEY': 'GnHvwP7d5FbWdZinoI2hKBTR',
+            'API-TIMESTAMP': '2085848896000',
+            'API-SIGN': 'b6e96f0fe71993d29b50dc8a9a0bebe974fb38749e2ee7aed1e4abb845b063bf'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.gmocoin(args, kwargs)
     assert args == expected_args
     assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']
