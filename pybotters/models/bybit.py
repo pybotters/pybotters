@@ -4,7 +4,7 @@ from ..store import DataStore, DataStoreInterface
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
-class ByBitDataStore(DataStoreInterface):
+class BybitDataStore(DataStoreInterface):
     def __init__(
         self,
         orders: Optional[Item]=None,
