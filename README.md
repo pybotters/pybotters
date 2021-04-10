@@ -38,8 +38,8 @@ BETAリリースの開発状況については [こちら](https://github.com/Mt
 | Bybit | ✅ | ✅ |
 | BTCMEX | ✅ | ✅ |
 | Binance | ✅ | WIP |
-| bitFlyer | WIP | WIP |
-| GMO Coin | WIP | WIP |
+| bitFlyer | ✅ | WIP |
+| GMO Coin | ✅ | WIP |
 | Liquid | WIP | WIP |
 | bitbank | WIP | WIP |
 | FTX | WIP | WIP |
