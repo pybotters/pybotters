@@ -5,12 +5,13 @@ name = "pypi"
 
 [packages]
 aiohttp = "*"
-pytest = "*"
-pytest-mock = "*"
-pytest-aiohttp = "*"
-pytest-asyncio = "*"
 
 [dev-packages]
+pytest = "*"
+pytest-aiohttp = "*"
+pytest-asyncio = "*"
+pytest-mock = "*"
+rich = "*"
 
 [requires]
 python_version = "3.7"
