@@ -18,25 +18,12 @@ def test_interface():
 
 
 @pytest.mark.asyncio
-async def test_interface_onmessage_sync(mocker: pytest_mock.MockerFixture):
+async def test_interface_onmessage(mocker: pytest_mock.MockerFixture):
     store = pybotters.store.DataStoreInterface()
     assert not store._iscorofunc
     store._events.append(asyncio.Event())
-    await store.onmessage({'foo': 'bar'}, mocker.MagicMock())
+    store.onmessage({'foo': 'bar'}, mocker.MagicMock())
     assert not len(store._events)
-
-
-@pytest.mark.asyncio
-async def test_interface_onmessage_async(mocker: pytest_mock.MockerFixture):
-    class AsyncOnmessageStore(pybotters.store.DataStoreInterface):
-        async def _onmessage(self, msg, ws) -> None:
-            self._set()
-    store = AsyncOnmessageStore()
-    assert store._iscorofunc
-    t_wait = asyncio.create_task(store.wait())
-    t_onmessage = asyncio.create_task(store.onmessage({'foo': 'bar'}, mocker.MagicMock()))
-    await asyncio.wait_for(t_wait, timeout=5.0)
-    assert t_onmessage.done()
 
 
 def test_ds():
@@ -230,6 +217,7 @@ def test_set():
     assert not len(ds._events)
 
 
+@pytest.mark.asyncio
 async def test_wait():
     class DataStoreHasDummySet(pybotters.store.DataStore):
         async def _set(self) -> None:

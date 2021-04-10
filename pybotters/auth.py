@@ -7,6 +7,7 @@ from typing import Any, Dict, Tuple
 import aiohttp
 from aiohttp.formdata import FormData
 from aiohttp.hdrs import METH_GET
+from aiohttp.payload import JsonPayload
 from multidict import CIMultiDict, MultiDict
 from yarl import URL
 
@@ -100,11 +101,52 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def bitflyer(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: Dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+
+        path = url.raw_path_qs
+        body = FormData(data)()
+        timestamp = str(int(time.time()))
+        text = f'{timestamp}{method}{path}'.encode() + body._value
+        signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
+        kwargs.update({'data': body})
+        headers.update({'ACCESS-KEY': key, 'ACCESS-TIMESTAMP': timestamp, 'ACCESS-SIGN': signature})
+
+        return args
+
+    @staticmethod
+    def gmocoin(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: Dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+
+        path = '/' + '/'.join(url.parts[2:])
+        body = JsonPayload(data) if data else FormData(data)()
+        timestamp = str(int(time.time() * 1000))
+        text = f'{timestamp}{method}{path}'.encode() + body._value
+        signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
+        kwargs.update({'data': body})
+        headers.update({'API-KEY': key, 'API-TIMESTAMP': timestamp, 'API-SIGN': signature})
+
+        return args
+
 
 @dataclass
 class Item:
     name: str
-    # func: Callable[[Tuple[str, URL], Dict[str, Any]], Tuple[str, URL]]
     func: Any
 
 
@@ -134,4 +176,6 @@ class Hosts:
         'dstream.binancefuture.com': Item('binance_testnet', Auth.binance),
         'testnet.binanceops.com': Item('binance_testnet', Auth.binance),
         'testnetws.binanceops.com': Item('binance_testnet', Auth.binance),
+        'api.bitflyer.com': Item('bitflyer', Auth.bitflyer),
+        'api.coin.z.com': Item('gmocoin', Auth.gmocoin),
     }

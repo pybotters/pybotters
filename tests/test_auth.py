@@ -1,6 +1,7 @@
 import random
 
 import aiohttp.formdata
+import aiohttp.payload
 import pytest
 import pytest_mock
 from multidict import CIMultiDict
@@ -33,6 +34,8 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         'btcmex': ('fSvgi9a85yDFx3efr94tmJpH', b'1GGUedysKk2s2rMMWRmMe7uAp1mKAbORgR3rUSMe15I70P1A'),
         'binance': ('9qm1u2s4GoHt9ryIm1D2fHV8', b'7pDOQJ49zyyDjrNGAvB31RcnAada8nkxkl2IWKop6b0E3tXh'),
         'binance_testnet': ('EDYH5JVoHJlhroiQkDntBHn8', b'lMFc3hibQUEOzSeG6YEvx7lMRgNBUlF07PVEm9g9U6HEWtEZ'),
+        'bitflyer': ('Pcm1rbtSRqKxTvirZDDOct1k', b'AKHZlv3PoAXZ0KXIKIVKOmS4ji3rV7ZIVIJRstwyplaw0FQ4'),
+        'gmocoin': ('GnHvwP7d5FbWdZinoI2hKBTR', b'jFRfAL7PiFLvYP6rS9u6TmTjTyVI1z21QXgDqxsCdPkMmN6I'),
     }
     assert set(apis.keys()) == set(item.name for item in pybotters.auth.Hosts.items.values())
     m_sess.__dict__['_apis'] = apis
@@ -335,4 +338,151 @@ def test_bybit_ws(mock_session, mocker: pytest_mock.MockerFixture):
     args = pybotters.auth.Auth.binance(args, kwargs)
     assert args == expected_args
     assert kwargs['data'] == expected_kwargs['data']
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitflyer_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://api.bitflyer.com/v1/me/getchildorders').with_query({
+            'product_code': 'FX_BTC_JPY',
+            'child_order_state': 'ACTIVE',
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://api.bitflyer.com/v1/me/getchildorders?product_code=FX_BTC_JPY&child_order_state=ACTIVE')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
+            'ACCESS-TIMESTAMP': '2085848896',
+            'ACCESS-SIGN': 'd264cf935540b434b7073e0341d0d43dc1450c4c1cbcc47024931486dbd5a785'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitflyer(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitflyer_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://api.bitflyer.com/v1/me/sendchildorder'),
+    )
+    kwargs = {
+        'data': {
+            'product_code': 'FX_BTC_JPY',
+            'child_order_type': 'MARKET',
+            'side': 'BUY',
+            'size': 0.01,
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://api.bitflyer.com/v1/me/sendchildorder')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({
+            'product_code': 'FX_BTC_JPY',
+            'child_order_type': 'MARKET',
+            'side': 'BUY',
+            'size': 0.01,
+        })(),
+        'headers': CIMultiDict({
+            'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
+            'ACCESS-TIMESTAMP': '2085848896',
+            'ACCESS-SIGN': '6f7f1d1e348788362015d5b283fc97649a0f9173dc85fe7ba4668f4ab1a1f9a8'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitflyer(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_gmocoin_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://api.coin.z.com/private/v1/activeOrders').with_query({
+            'symbol': 'BTC_JPY',
+            'page': 1,
+            'count': 100,
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://api.coin.z.com/private/v1/activeOrders?symbol=BTC_JPY&page=1&count=100')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'API-KEY': 'GnHvwP7d5FbWdZinoI2hKBTR',
+            'API-TIMESTAMP': '2085848896000',
+            'API-SIGN': 'e6f0c55c381b08f0892daad0c5e27f69050dab787d98e45680802e340849978a'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.gmocoin(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_gmocoin_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://api.coin.z.com/private/v1/order'),
+    )
+    kwargs = {
+        'data': {
+            'symbol': 'BTC_JPY',
+            'side': 'BUY',
+            'executionType': 'MARKET',
+            'size': 0.01,
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://api.coin.z.com/private/v1/order')
+    )
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload({
+            'symbol': 'BTC_JPY',
+            'side': 'BUY',
+            'executionType': 'MARKET',
+            'size': 0.01,
+        }),
+        'headers': CIMultiDict({
+            'API-KEY': 'GnHvwP7d5FbWdZinoI2hKBTR',
+            'API-TIMESTAMP': '2085848896000',
+            'API-SIGN': 'b6e96f0fe71993d29b50dc8a9a0bebe974fb38749e2ee7aed1e4abb845b063bf'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.gmocoin(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']
