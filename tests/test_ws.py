@@ -116,10 +116,10 @@ def test_wsresponse_with_auth(mocker: pytest_mock.MockerFixture):
 
 
 @pytest.mark.asyncio
-async def test_bitflyer(mocker: pytest_mock.MockerFixture):
+async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
     mocker.patch('time.time', return_value=2085848896.0)
     mocker.patch('pybotters.ws.token_hex', return_value='d73b41172d6deca2285e8e58533db082')
-    async def dummuy(msg):
+    async def dummy_send(msg):
         expected = {
             'method': 'auth',
             'params': {
@@ -131,11 +131,18 @@ async def test_bitflyer(mocker: pytest_mock.MockerFixture):
             'id': 'auth',
         }
         assert msg == expected
+    async def dummy_generator():
+        yield
     ws = MagicMock()
     ws._response.url.host = 'ws.lightstream.bitflyer.com'
-    ws._response._session.__dict__['_apis'] = {'bitflyer': ('Pcm1rbtSRqKxTvirZDDOct1k', b'AKHZlv3PoAXZ0KXIKIVKOmS4ji3rV7ZIVIJRstwyplaw0FQ4')}
-    ws.send_json.side_effect = dummuy
-    await pybotters.ws.Auth.bitflyer(ws)
+    ws._response._session.__dict__['_apis'] = {
+        'bitflyer': ('Pcm1rbtSRqKxTvirZDDOct1k', b'AKHZlv3PoAXZ0KXIKIVKOmS4ji3rV7ZIVIJRstwyplaw0FQ4'),
+    }
+    ws.send_json.side_effect = dummy_send
+    # ws.__aiter__.side_effect = dummy_generator
+    # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
+    with pytest.raises(TypeError):
+        await pybotters.ws.Auth.bitflyer(ws)
 
 
 @pytest.mark.asyncio
