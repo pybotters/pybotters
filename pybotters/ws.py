@@ -86,6 +86,12 @@ class Heartbeat:
             await ws.send_str('{"event":"pusher:ping","data":{}}')
             await asyncio.sleep(60.0)
 
+    @staticmethod
+    async def ftx(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('{"op":"ping"}')
+            await asyncio.sleep(15.0)
+
 
 class Auth:
     @staticmethod
@@ -135,6 +141,19 @@ class Auth:
                 'headers': {'X-Quoine-Auth': encoded_string},
             },
         })
+    @staticmethod
+    async def ftx(ws: aiohttp.ClientWebSocketResponse):
+        key: str = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][0]
+        secret: bytes = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][1]
+
+        ts = int(time.time() * 1000)
+        sign = hmac.new(secret, f'{ts}websocket_login'.encode(), digestmod=hashlib.sha256).hexdigest()
+        await ws.send_json({
+            'op': 'login',
+            'args': {
+                'key': key, 'sign': sign, 'time': ts
+            },
+        })
 
 
 @dataclass
@@ -151,6 +170,7 @@ class HeartbeatHosts:
         'stream-testnet.bybit.com': Heartbeat.bybit,
         'stream-testnet.bybit.com': Heartbeat.bybit,
         'tap.liquid.com': Heartbeat.liquid,
+        'ftx.com': Heartbeat.ftx,
     }
 
 
@@ -158,6 +178,7 @@ class AuthHosts:
     items = {
         'ws.lightstream.bitflyer.com': Item('bitflyer', Auth.bitflyer),
         'tap.liquid.com': Item('liquid', Auth.liquid),
+        'ftx.com': Item('ftx', Auth.ftx),
     }
 
 

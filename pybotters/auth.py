@@ -204,6 +204,28 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def ftx(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: Dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+
+        path = url.raw_path_qs
+        body = JsonPayload(data) if data else FormData(data)()
+        ts = str(int(time.time() * 1000))
+        text = f'{ts}{method}{path}'.encode() + body._value
+        signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
+        kwargs.update({'data': body})
+        headers.update({'FTX-KEY': key, 'FTX-SIGN': signature, 'FTX-TS': ts})
+
+        return args
+
+
 @dataclass
 class Item:
     name: str
@@ -240,4 +262,5 @@ class Hosts:
         'api.coin.z.com': Item('gmocoin', Auth.gmocoin),
         'api.liquid.com': Item('liquid', Auth.liquid),
         'api.bitbank.cc': Item('bitbank', Auth.bitbank),
+        'ftx.com': Item('ftx', Auth.ftx),
     }
