@@ -225,6 +225,27 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def bitmex(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: Dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+
+        path = url.raw_path_qs if url.scheme == 'https' else '/realtime'
+        body = FormData(data)()
+        expires = str(int(time.time() + 5.0))
+        message = f'{method}{path}{expires}'.encode() + body._value
+        signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
+        kwargs.update({'data': body})
+        headers.update({'api-expires': expires, 'api-key': key, 'api-signature': signature})
+
+        return args
+
 
 @dataclass
 class Item:
@@ -263,4 +284,6 @@ class Hosts:
         'api.liquid.com': Item('liquid', Auth.liquid),
         'api.bitbank.cc': Item('bitbank', Auth.bitbank),
         'ftx.com': Item('ftx', Auth.ftx),
+        'www.bitmex.com': Item('bitmex', Auth.bitmex),
+        'testnet.bitmex.com': Item('bitmex_testnet', Auth.bitmex),
     }
