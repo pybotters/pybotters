@@ -180,6 +180,29 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def bitbank(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: Dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+
+        path = url.raw_path_qs
+        body = JsonPayload(data) if data else FormData(data)()
+        nonce = str(int(time.time()))
+        if method == METH_GET:
+            text = f'{nonce}{path}'.encode()
+        else:
+            text = nonce.encode() + body._value
+        signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
+        kwargs.update({'data': body})
+        headers.update({'ACCESS-KEY': key, 'ACCESS-NONCE': nonce, 'ACCESS-SIGNATURE': signature})
+
+        return args
 
 @dataclass
 class Item:
@@ -216,4 +239,5 @@ class Hosts:
         'api.bitflyer.com': Item('bitflyer', Auth.bitflyer),
         'api.coin.z.com': Item('gmocoin', Auth.gmocoin),
         'api.liquid.com': Item('liquid', Auth.liquid),
+        'api.bitbank.cc': Item('bitbank', Auth.bitbank),
     }
