@@ -37,6 +37,7 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         'bitflyer': ('Pcm1rbtSRqKxTvirZDDOct1k', b'AKHZlv3PoAXZ0KXIKIVKOmS4ji3rV7ZIVIJRstwyplaw0FQ4'),
         'gmocoin': ('GnHvwP7d5FbWdZinoI2hKBTR', b'jFRfAL7PiFLvYP6rS9u6TmTjTyVI1z21QXgDqxsCdPkMmN6I'),
         'liquid': ('5DjzgmQXRksQNDBQ5G1rNIv7', b'WXlZDDzyjWtz1bd7MsGoXPMEohkdUuB95HHgBbKwKBaCyDrp'),
+        'bitbank': ('l5HGaEzIC3KiMqbYwtAl1r48', b'6lgYlHSYj31SAU67jCtxn6qh60pZTeekd5iRseYZNzrC2kX5'),
     }
     assert set(apis.keys()) == set(item.name for item in pybotters.auth.Hosts.items.values())
     m_sess.__dict__['_apis'] = apis
@@ -554,6 +555,78 @@ def test_liquid_post(mock_session, mocker: pytest_mock.MockerFixture):
         'session': mock_session,
     }
     args = pybotters.auth.Auth.liquid(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitbank_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://api.bitbank.cc/v1/user/spot/order').with_query({
+            'pair': 'btc_jpy',
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://api.bitbank.cc/v1/user/spot/order?pair=btc_jpy')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'ACCESS-KEY': 'l5HGaEzIC3KiMqbYwtAl1r48',
+            'ACCESS-NONCE': '2085848896',
+            'ACCESS-SIGNATURE': 'ad1de787eef27d0d3f594c33b13c6df90bef4926466d77386f39a8c951baf67a'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitbank(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://api.bitbank.cc/v1/user/spot/order'),
+    )
+    kwargs = {
+        'data': {
+            'pair': 'btc_jpy',
+            'amount': '0.01',
+            'side': 'buy',
+            'type': 'market',
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://api.bitbank.cc/v1/user/spot/order')
+    )
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload({
+            'pair': 'btc_jpy',
+            'amount': '0.01',
+            'side': 'buy',
+            'type': 'market',
+        }),
+        'headers': CIMultiDict({
+            'ACCESS-KEY': 'l5HGaEzIC3KiMqbYwtAl1r48',
+            'ACCESS-NONCE': '2085848896',
+            'ACCESS-SIGNATURE': '56cc247424153a185c53bd0c4d1614f2321b2a424c9db12ff4cd2f7b89361219'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitbank(args, kwargs)
     assert args == expected_args
     assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']
