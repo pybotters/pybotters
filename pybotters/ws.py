@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import hashlib
 import hmac
 import logging
@@ -79,6 +80,12 @@ class Heartbeat:
             await ws.send_str('ping')
             await asyncio.sleep(30.0)
 
+    @staticmethod
+    async def liquid(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('{"event":"pusher:ping","data":{}}')
+            await asyncio.sleep(60.0)
+
 
 class Auth:
     @staticmethod
@@ -97,6 +104,38 @@ class Auth:
             'id': 'auth',
         })
 
+    @staticmethod
+    async def liquid(ws: aiohttp.ClientWebSocketResponse):
+        key: str = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][0]
+        secret: bytes = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][1]
+
+        json_payload = json.dumps(
+            {'path': '/realtime', 'nonce': str(int(time.time() * 1000)), 'token_id': key},
+            separators=(',', ':'),
+        ).encode()
+        json_header = json.dumps(
+            {'typ': 'JWT', 'alg': 'HS256'},
+            separators=(',', ':'),
+        ).encode()
+        segments = [
+            base64.urlsafe_b64encode(json_header).replace(b'=', b''),
+            base64.urlsafe_b64encode(json_payload).replace(b'=', b''),
+        ]
+        signing_input = b'.'.join(segments)
+        signature = hmac.new(secret, signing_input, hashlib.sha256).digest()
+        segments.append(
+            base64.urlsafe_b64encode(signature).replace(b'=', b'')
+        )
+        encoded_string = b'.'.join(segments).decode()
+
+        await ws.send_json({
+            'event': 'quoine:auth_request',
+            'data': {
+                'path': '/realtime',
+                'headers': {'X-Quoine-Auth': encoded_string},
+            },
+        })
+
 
 @dataclass
 class Item:
@@ -111,12 +150,14 @@ class HeartbeatHosts:
         'stream.bytick.com': Heartbeat.bybit,
         'stream-testnet.bybit.com': Heartbeat.bybit,
         'stream-testnet.bybit.com': Heartbeat.bybit,
+        'tap.liquid.com': Heartbeat.liquid,
     }
 
 
 class AuthHosts:
     items = {
         'ws.lightstream.bitflyer.com': Item('bitflyer', Auth.bitflyer),
+        'tap.liquid.com': Item('liquid', Auth.liquid),
     }
 
 

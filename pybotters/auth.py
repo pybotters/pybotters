@@ -1,5 +1,7 @@
+import base64
 import hashlib
 import hmac
+import json
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, Tuple
@@ -143,6 +145,41 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def liquid(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: Dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+
+        json_payload = json.dumps(
+            {'path': url.raw_path_qs, 'nonce': str(int(time.time() * 1000)), 'token_id': key},
+            separators=(',', ':'),
+        ).encode()
+        json_header = json.dumps(
+            {'typ': 'JWT', 'alg': 'HS256'},
+            separators=(',', ':'),
+        ).encode()
+        segments = [
+            base64.urlsafe_b64encode(json_header).replace(b'=', b''),
+            base64.urlsafe_b64encode(json_payload).replace(b'=', b''),
+        ]
+        signing_input = b'.'.join(segments)
+        signature = hmac.new(secret, signing_input, hashlib.sha256).digest()
+        segments.append(
+            base64.urlsafe_b64encode(signature).replace(b'=', b'')
+        )
+        encoded_string = b'.'.join(segments).decode()
+        body = JsonPayload(data) if data else FormData(data)()
+        kwargs.update({'data': body})
+        headers.update({'X-Quoine-API-Version': '2', 'X-Quoine-Auth': encoded_string})
+
+        return args
+
 
 @dataclass
 class Item:
@@ -178,4 +215,5 @@ class Hosts:
         'testnetws.binanceops.com': Item('binance_testnet', Auth.binance),
         'api.bitflyer.com': Item('bitflyer', Auth.bitflyer),
         'api.coin.z.com': Item('gmocoin', Auth.gmocoin),
+        'api.liquid.com': Item('liquid', Auth.liquid),
     }
