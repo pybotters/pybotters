@@ -40,12 +40,10 @@ BETAリリースの開発状況については [こちら](https://github.com/Mt
 | Binance | ✅ | WIP |
 | bitFlyer | ✅ | WIP |
 | GMO Coin | ✅ | WIP |
-| Liquid | WIP | WIP |
-| bitbank | WIP | WIP |
-| FTX | WIP | WIP |
-| BitMEX | WIP | WIP |
-
-※表の順番は著者個人の優先度順です
+| Liquid | ✅ | WIP |
+| bitbank | ✅ | WIP |
+| FTX | ✅ | WIP |
+| BitMEX | ✅ | WIP |
 
 ## 🐍 Requires
 

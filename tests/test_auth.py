@@ -36,6 +36,11 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         'binance_testnet': ('EDYH5JVoHJlhroiQkDntBHn8', b'lMFc3hibQUEOzSeG6YEvx7lMRgNBUlF07PVEm9g9U6HEWtEZ'),
         'bitflyer': ('Pcm1rbtSRqKxTvirZDDOct1k', b'AKHZlv3PoAXZ0KXIKIVKOmS4ji3rV7ZIVIJRstwyplaw0FQ4'),
         'gmocoin': ('GnHvwP7d5FbWdZinoI2hKBTR', b'jFRfAL7PiFLvYP6rS9u6TmTjTyVI1z21QXgDqxsCdPkMmN6I'),
+        'liquid': ('5DjzgmQXRksQNDBQ5G1rNIv7', b'WXlZDDzyjWtz1bd7MsGoXPMEohkdUuB95HHgBbKwKBaCyDrp'),
+        'bitbank': ('l5HGaEzIC3KiMqbYwtAl1r48', b'6lgYlHSYj31SAU67jCtxn6qh60pZTeekd5iRseYZNzrC2kX5'),
+        'ftx': ('J6vXtiZunV4lsRWoLHNYNiCa', b'8ORbaZIrTNcV6Lw48x12RrEzuT0YqbCiluml7LITzG2ud2Nf'),
+        'bitmex': ('fSvgi9a85yDFx3efr94tmJpH', b'1GGUedysKk2s2rMMWRmMe7uAp1mKAbORgR3rUSMe15I70P1A'),
+        'bitmex_testnet': ('fSvgi9a85yDFx3efr94tmJpH', b'1GGUedysKk2s2rMMWRmMe7uAp1mKAbORgR3rUSMe15I70P1A'),
     }
     assert set(apis.keys()) == set(item.name for item in pybotters.auth.Hosts.items.values())
     m_sess.__dict__['_apis'] = apis
@@ -483,6 +488,322 @@ def test_gmocoin_post(mock_session, mocker: pytest_mock.MockerFixture):
         'session': mock_session,
     }
     args = pybotters.auth.Auth.gmocoin(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_liquid_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://api.liquid.com/orders').with_query({
+            'id': 5,
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://api.liquid.com/orders?id=5')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'X-Quoine-API-Version': '2',
+            'X-Quoine-Auth': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL29yZGVycz9pZD01Iiwibm9uY2UiOiIyMDg1ODQ4ODk2MDAwIiwidG9rZW5faWQiOiI1RGp6Z21RWFJrc1FOREJRNUcxck5JdjcifQ.Q8jvnnFafWJ_piQyB1GyEc1nxfil0uwnyjMvNV2icgA',
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.liquid(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_liquid_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://api.liquid.com/orders'),
+    )
+    kwargs = {
+        'data': {
+            'quantity': 0.01,
+            'order_type': 'market',
+            'product_id': 5,
+            'side': 'buy',
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://api.liquid.com/orders')
+    )
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload({
+            'quantity': 0.01,
+            'order_type': 'market',
+            'product_id': 5,
+            'side': 'buy',
+        }),
+        'headers': CIMultiDict({
+            'X-Quoine-API-Version': '2',
+            'X-Quoine-Auth': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL29yZGVycyIsIm5vbmNlIjoiMjA4NTg0ODg5NjAwMCIsInRva2VuX2lkIjoiNURqemdtUVhSa3NRTkRCUTVHMXJOSXY3In0.vS_l9BAKGTrROl2uVFlEP1SA4FaI9TL4JuRpLCyilG0',
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.liquid(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitbank_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://api.bitbank.cc/v1/user/spot/order').with_query({
+            'pair': 'btc_jpy',
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://api.bitbank.cc/v1/user/spot/order?pair=btc_jpy')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'ACCESS-KEY': 'l5HGaEzIC3KiMqbYwtAl1r48',
+            'ACCESS-NONCE': '2085848896',
+            'ACCESS-SIGNATURE': 'ad1de787eef27d0d3f594c33b13c6df90bef4926466d77386f39a8c951baf67a'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitbank(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://api.bitbank.cc/v1/user/spot/order'),
+    )
+    kwargs = {
+        'data': {
+            'pair': 'btc_jpy',
+            'amount': '0.01',
+            'side': 'buy',
+            'type': 'market',
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://api.bitbank.cc/v1/user/spot/order')
+    )
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload({
+            'pair': 'btc_jpy',
+            'amount': '0.01',
+            'side': 'buy',
+            'type': 'market',
+        }),
+        'headers': CIMultiDict({
+            'ACCESS-KEY': 'l5HGaEzIC3KiMqbYwtAl1r48',
+            'ACCESS-NONCE': '2085848896',
+            'ACCESS-SIGNATURE': '56cc247424153a185c53bd0c4d1614f2321b2a424c9db12ff4cd2f7b89361219'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitbank(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_ftx_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://ftx.com/api/orders').with_query({
+            'market': 'BTC-PERP',
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://ftx.com/api/orders?market=BTC-PERP')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'FTX-KEY': 'J6vXtiZunV4lsRWoLHNYNiCa',
+            'FTX-SIGN': '8905ce229394d1b4aa26ebb6a05476f33e5c9a553ed98f79d4b23b28e25cd18e',
+            'FTX-TS': '2085848896000'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.ftx(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://ftx.com/api/orders'),
+    )
+    kwargs = {
+        'data': {
+            'market': 'BTC-PERP',
+            'side': 'buy',
+            'type': 'market',
+            'size': '0.01',
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://ftx.com/api/orders')
+    )
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload({
+            'market': 'BTC-PERP',
+            'side': 'buy',
+            'type': 'market',
+            'size': '0.01',
+        }),
+        'headers': CIMultiDict({
+            'FTX-KEY': 'J6vXtiZunV4lsRWoLHNYNiCa',
+            'FTX-SIGN': '50d50ce69efc8e87bc8776511997544bdef4aad497c7506b26ac633f526363e3',
+            'FTX-TS': '2085848896000'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.ftx(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitmex_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://www.bitmex.com/api/v1/order').with_query({
+            'symbol': 'XBTUSD',
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://www.bitmex.com/api/v1/order?symbol=XBTUSD')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'api-expires': '2085848901',
+            'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
+            'api-signature': '7547642ac62bdda8349dc38c247c8cf96ea1cb8bbfc317aacf6713d274c36928'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitmex(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitmex_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://www.bitmex.com/api/v1/order'),
+    )
+    kwargs = {
+        'data': {
+            'symbol': 'XBTUSD',
+            'side': 'Buy',
+            'orderQty': 100,
+            'ordType': 'Market',
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://www.bitmex.com/api/v1/order')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({
+            'symbol': 'XBTUSD',
+            'side': 'Buy',
+            'orderQty': 100,
+            'ordType': 'Market',
+        })(),
+        'headers': CIMultiDict({
+            'api-expires': '2085848901',
+            'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
+            'api-signature': '245198eb7d480a695feeb3c6cc349895578738e9358e508315b6649c05ef2b33'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitmex(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitmex_ws(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('wss://www.bitmex.com/realtime'),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('wss://www.bitmex.com/realtime'),
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'api-expires': '2085848901',
+            'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
+            'api-signature': '8c3c2b72035229be2fbc5daa9a93b59a5e7dcbb96d26eeaa4a1e42d74425847b',
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitmex(args, kwargs)
     assert args == expected_args
     assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']

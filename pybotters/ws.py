@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import hashlib
 import hmac
 import logging
@@ -32,6 +33,8 @@ async def ws_run_forever(
         try:
             async with session.ws_connect(url, **kwargs) as ws:
                 event.set()
+                if '_authtask' in ws.__dict__:
+                    await ws.__dict__['_authtask']
                 if send_str is not None:
                     await ws.send_str(send_str)
                 if send_json is not None:
@@ -79,6 +82,18 @@ class Heartbeat:
             await ws.send_str('ping')
             await asyncio.sleep(30.0)
 
+    @staticmethod
+    async def liquid(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('{"event":"pusher:ping","data":{}}')
+            await asyncio.sleep(60.0)
+
+    @staticmethod
+    async def ftx(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('{"op":"ping"}')
+            await asyncio.sleep(15.0)
+
 
 class Auth:
     @staticmethod
@@ -88,13 +103,67 @@ class Auth:
 
         timestamp = int(time.time())
         nonce = token_hex(16)
-        sign = hmac.new(secret, (str(timestamp) + nonce).encode(), digestmod=hashlib.sha256).hexdigest()
+        sign = hmac.new(secret, f'{timestamp}{nonce}'.encode(), digestmod=hashlib.sha256).hexdigest()
         await ws.send_json({
             'method': 'auth',
             'params': {
                 'api_key': key, 'timestamp': timestamp, 'nonce': nonce, 'signature': sign
             },
             'id': 'auth',
+        })
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                data = msg.json()
+                if 'id' in data:
+                    if data['id'] == 'auth':
+                        break
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                break
+
+    @staticmethod
+    async def liquid(ws: aiohttp.ClientWebSocketResponse):
+        key: str = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][0]
+        secret: bytes = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][1]
+
+        json_payload = json.dumps(
+            {'path': '/realtime', 'nonce': str(int(time.time() * 1000)), 'token_id': key},
+            separators=(',', ':'),
+        ).encode()
+        json_header = json.dumps(
+            {'typ': 'JWT', 'alg': 'HS256'},
+            separators=(',', ':'),
+        ).encode()
+        segments = [
+            base64.urlsafe_b64encode(json_header).replace(b'=', b''),
+            base64.urlsafe_b64encode(json_payload).replace(b'=', b''),
+        ]
+        signing_input = b'.'.join(segments)
+        signature = hmac.new(secret, signing_input, hashlib.sha256).digest()
+        segments.append(
+            base64.urlsafe_b64encode(signature).replace(b'=', b'')
+        )
+        encoded_string = b'.'.join(segments).decode()
+
+        await ws.send_json({
+            'event': 'quoine:auth_request',
+            'data': {
+                'path': '/realtime',
+                'headers': {'X-Quoine-Auth': encoded_string},
+            },
+        })
+
+    @staticmethod
+    async def ftx(ws: aiohttp.ClientWebSocketResponse):
+        key: str = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][0]
+        secret: bytes = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][1]
+
+        ts = int(time.time() * 1000)
+        sign = hmac.new(secret, f'{ts}websocket_login'.encode(), digestmod=hashlib.sha256).hexdigest()
+        await ws.send_json({
+            'op': 'login',
+            'args': {
+                'key': key, 'sign': sign, 'time': ts
+            },
         })
 
 
@@ -111,12 +180,16 @@ class HeartbeatHosts:
         'stream.bytick.com': Heartbeat.bybit,
         'stream-testnet.bybit.com': Heartbeat.bybit,
         'stream-testnet.bybit.com': Heartbeat.bybit,
+        'tap.liquid.com': Heartbeat.liquid,
+        'ftx.com': Heartbeat.ftx,
     }
 
 
 class AuthHosts:
     items = {
         'ws.lightstream.bitflyer.com': Item('bitflyer', Auth.bitflyer),
+        'tap.liquid.com': Item('liquid', Auth.liquid),
+        'ftx.com': Item('ftx', Auth.ftx),
     }
 
 
@@ -124,7 +197,7 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if self._response.url.host in HeartbeatHosts.items:
-            asyncio.create_task(HeartbeatHosts.items[self._response.url.host](self))
+            self.__dict__['_pingtask'] = asyncio.create_task(HeartbeatHosts.items[self._response.url.host](self))
         if self._response.url.host in AuthHosts.items:
             if AuthHosts.items[self._response.url.host].name in self._response._session.__dict__['_apis']:
-                asyncio.create_task(AuthHosts.items[self._response.url.host].func(self))
+                self.__dict__['_authtask'] = asyncio.create_task(AuthHosts.items[self._response.url.host].func(self))
