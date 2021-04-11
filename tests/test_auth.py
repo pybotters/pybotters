@@ -39,6 +39,8 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         'liquid': ('5DjzgmQXRksQNDBQ5G1rNIv7', b'WXlZDDzyjWtz1bd7MsGoXPMEohkdUuB95HHgBbKwKBaCyDrp'),
         'bitbank': ('l5HGaEzIC3KiMqbYwtAl1r48', b'6lgYlHSYj31SAU67jCtxn6qh60pZTeekd5iRseYZNzrC2kX5'),
         'ftx': ('J6vXtiZunV4lsRWoLHNYNiCa', b'8ORbaZIrTNcV6Lw48x12RrEzuT0YqbCiluml7LITzG2ud2Nf'),
+        'bitmex': ('fSvgi9a85yDFx3efr94tmJpH', b'1GGUedysKk2s2rMMWRmMe7uAp1mKAbORgR3rUSMe15I70P1A'),
+        'bitmex_testnet': ('fSvgi9a85yDFx3efr94tmJpH', b'1GGUedysKk2s2rMMWRmMe7uAp1mKAbORgR3rUSMe15I70P1A'),
     }
     assert set(apis.keys()) == set(item.name for item in pybotters.auth.Hosts.items.values())
     m_sess.__dict__['_apis'] = apis
@@ -700,6 +702,108 @@ def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
         'session': mock_session,
     }
     args = pybotters.auth.Auth.ftx(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitmex_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://www.bitmex.com/api/v1/order').with_query({
+            'symbol': 'XBTUSD',
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://www.bitmex.com/api/v1/order?symbol=XBTUSD')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'api-expires': '2085848901',
+            'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
+            'api-signature': '7547642ac62bdda8349dc38c247c8cf96ea1cb8bbfc317aacf6713d274c36928'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitmex(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitmex_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://www.bitmex.com/api/v1/order'),
+    )
+    kwargs = {
+        'data': {
+            'symbol': 'XBTUSD',
+            'side': 'Buy',
+            'orderQty': 100,
+            'ordType': 'Market',
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://www.bitmex.com/api/v1/order')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({
+            'symbol': 'XBTUSD',
+            'side': 'Buy',
+            'orderQty': 100,
+            'ordType': 'Market',
+        })(),
+        'headers': CIMultiDict({
+            'api-expires': '2085848901',
+            'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
+            'api-signature': '245198eb7d480a695feeb3c6cc349895578738e9358e508315b6649c05ef2b33'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitmex(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitmex_ws(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('wss://www.bitmex.com/realtime'),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('wss://www.bitmex.com/realtime'),
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'api-expires': '2085848901',
+            'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
+            'api-signature': '8c3c2b72035229be2fbc5daa9a93b59a5e7dcbb96d26eeaa4a1e42d74425847b',
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitmex(args, kwargs)
     assert args == expected_args
     assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']
