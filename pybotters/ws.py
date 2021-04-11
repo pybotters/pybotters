@@ -33,6 +33,8 @@ async def ws_run_forever(
         try:
             async with session.ws_connect(url, **kwargs) as ws:
                 event.set()
+                if '_authtask' in ws.__dict__:
+                    await ws.__dict__['_authtask']
                 if send_str is not None:
                     await ws.send_str(send_str)
                 if send_json is not None:
@@ -101,7 +103,7 @@ class Auth:
 
         timestamp = int(time.time())
         nonce = token_hex(16)
-        sign = hmac.new(secret, (str(timestamp) + nonce).encode(), digestmod=hashlib.sha256).hexdigest()
+        sign = hmac.new(secret, f'{timestamp}{nonce}'.encode(), digestmod=hashlib.sha256).hexdigest()
         await ws.send_json({
             'method': 'auth',
             'params': {
@@ -109,6 +111,14 @@ class Auth:
             },
             'id': 'auth',
         })
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                data = msg.json()
+                if 'id' in data:
+                    if data['id'] == 'auth':
+                        break
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                break
 
     @staticmethod
     async def liquid(ws: aiohttp.ClientWebSocketResponse):
@@ -186,7 +196,7 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if self._response.url.host in HeartbeatHosts.items:
-            asyncio.create_task(HeartbeatHosts.items[self._response.url.host](self))
+            self.__dict__['_pingtask'] = asyncio.create_task(HeartbeatHosts.items[self._response.url.host](self))
         if self._response.url.host in AuthHosts.items:
             if AuthHosts.items[self._response.url.host].name in self._response._session.__dict__['_apis']:
-                asyncio.create_task(AuthHosts.items[self._response.url.host].func(self))
+                self.__dict__['_authtask'] = asyncio.create_task(AuthHosts.items[self._response.url.host].func(self))
