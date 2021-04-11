@@ -151,6 +151,7 @@ class Auth:
                 'headers': {'X-Quoine-Auth': encoded_string},
             },
         })
+
     @staticmethod
     async def ftx(ws: aiohttp.ClientWebSocketResponse):
         key: str = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][0]

@@ -38,6 +38,7 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         'gmocoin': ('GnHvwP7d5FbWdZinoI2hKBTR', b'jFRfAL7PiFLvYP6rS9u6TmTjTyVI1z21QXgDqxsCdPkMmN6I'),
         'liquid': ('5DjzgmQXRksQNDBQ5G1rNIv7', b'WXlZDDzyjWtz1bd7MsGoXPMEohkdUuB95HHgBbKwKBaCyDrp'),
         'bitbank': ('l5HGaEzIC3KiMqbYwtAl1r48', b'6lgYlHSYj31SAU67jCtxn6qh60pZTeekd5iRseYZNzrC2kX5'),
+        'ftx': ('J6vXtiZunV4lsRWoLHNYNiCa', b'8ORbaZIrTNcV6Lw48x12RrEzuT0YqbCiluml7LITzG2ud2Nf'),
     }
     assert set(apis.keys()) == set(item.name for item in pybotters.auth.Hosts.items.values())
     m_sess.__dict__['_apis'] = apis
@@ -627,6 +628,78 @@ def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
         'session': mock_session,
     }
     args = pybotters.auth.Auth.bitbank(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_ftx_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://ftx.com/api/orders').with_query({
+            'market': 'BTC-PERP',
+        }),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://ftx.com/api/orders?market=BTC-PERP')
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict({
+            'FTX-KEY': 'J6vXtiZunV4lsRWoLHNYNiCa',
+            'FTX-SIGN': '8905ce229394d1b4aa26ebb6a05476f33e5c9a553ed98f79d4b23b28e25cd18e',
+            'FTX-TS': '2085848896000'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.ftx(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://ftx.com/api/orders'),
+    )
+    kwargs = {
+        'data': {
+            'market': 'BTC-PERP',
+            'side': 'buy',
+            'type': 'market',
+            'size': '0.01',
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL('https://ftx.com/api/orders')
+    )
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload({
+            'market': 'BTC-PERP',
+            'side': 'buy',
+            'type': 'market',
+            'size': '0.01',
+        }),
+        'headers': CIMultiDict({
+            'FTX-KEY': 'J6vXtiZunV4lsRWoLHNYNiCa',
+            'FTX-SIGN': '50d50ce69efc8e87bc8776511997544bdef4aad497c7506b26ac633f526363e3',
+            'FTX-TS': '2085848896000'
+        }),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.ftx(args, kwargs)
     assert args == expected_args
     assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']
