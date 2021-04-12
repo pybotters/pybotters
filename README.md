@@ -1,4 +1,4 @@
-# [ALPHA] pybotters
+# [BETA] pybotters
 
 An advanced api client for python botters.
 
@@ -6,22 +6,20 @@ An advanced api client for python botters.
 
 `pybotters`は[仮想通貨botter](https://note.com/hht/n/n61e6ecefd059)向けのPythonライブラリです。
 
-複数取引所に対応した非同期APIクライアントであり、bot開発により素晴らしいDXを提供します。
+複数取引所に対応した非同期I/OのAPIクライアントであり、bot開発により素晴らしいDXを提供します。
 
-## 👩‍💻👨‍💻 Work In Progress
+## 👩‍💻👨‍💻 In development
 
-`pybotters` は現在 ** **開発中** ** です。
+`pybotters` は現在 ** **BETAバージョン** ** です。
+一部機能は開発中です。
 
-`main` ブランチのバージョンは **APLHAリリース** です。
-機能は少なく、テストは充分ではないため実験的な利用のみを推奨します。
-
-BETAリリースの開発状況については [こちら](https://github.com/MtkN1/pybotters/issues/11) を参照してください。
+正式バージョンの開発状況については [こちら](https://github.com/MtkN1/pybotters/issues/25) を参照してください。
 
 ## 🚀 Features
 
 - ✨ HTTP / WebSocket Client
     - 複数取引所のプライベートAPIを自動認証
-    - [aiohttp](https://docs.aiohttp.org/)ライブラリを基盤とした非同期通信
+    - [`aiohttp`](https://docs.aiohttp.org/)ライブラリを基盤とした非同期通信
     - WebSocketの自動再接続、自動ハートビート
 - ✨ DataStore
     - WebSocket用の自動データ保管クラス
@@ -36,14 +34,14 @@ BETAリリースの開発状況については [こちら](https://github.com/Mt
 | Name | API auth | DataStore | 
 | --- | --- | --- |
 | Bybit | ✅ | ✅ |
-| BTCMEX | ✅ | ✅ |
 | Binance | ✅ | WIP |
+| FTX | ✅ | WIP |
+| BTCMEX | ✅ | ✅ |
+| BitMEX | ✅ | WIP |
 | bitFlyer | ✅ | WIP |
 | GMO Coin | ✅ | WIP |
 | Liquid | ✅ | WIP |
 | bitbank | ✅ | WIP |
-| FTX | ✅ | WIP |
-| BitMEX | ✅ | WIP |
 
 ## 🐍 Requires
 
@@ -52,7 +50,7 @@ Python 3.7+
 ## 🛠 Installation
 
 ```sh
-pip install git+https://github.com/MtkN1/pybotters
+pip install pybotters
 ```
 
 ## 🔰 Usage
@@ -107,7 +105,7 @@ async def main():
         ...
 ```
 
-### Wiki
+## 📖 Wiki
 
 詳しい利用方法は👉[Wikiページへ](https://github.com/MtkN1/pybotters/wiki)
 
