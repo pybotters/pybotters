@@ -121,7 +121,7 @@ class Client:
         self,
         url: str,
         *,
-        send_str: Optional[str]=None,
+        send_str: Optional[Union[str, List[str]]]=None,
         send_json: Any=None,
         hdlr_str: Optional[WsStrHandler]=None,
         hdlr_json: Optional[WsJsonHandler]=None,
