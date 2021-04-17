@@ -70,32 +70,36 @@ class Client:
         url: str,
         *,
         params: Optional[Mapping[str, str]]=None,
+        **kwargs: Any,
     ) -> _RequestContextManager:
-        return self._request(hdrs.METH_GET, url, params=params)
+        return self._request(hdrs.METH_GET, url, params=params, **kwargs)
 
     def post(
         self,
         url: str,
         *,
         data: Any=None,
+        **kwargs: Any,
     ) -> _RequestContextManager:
-        return self._request(hdrs.METH_POST, url, data=data)
+        return self._request(hdrs.METH_POST, url, data=data, **kwargs)
 
     def put(
         self,
         url: str,
         *,
         data: Any=None,
+        **kwargs: Any,
     ) -> _RequestContextManager:
-        return self._request(hdrs.METH_PUT, url, data=data)
+        return self._request(hdrs.METH_PUT, url, data=data, **kwargs)
 
     def delete(
         self,
         url: str,
         *,
         data: Any=None,
+        **kwargs: Any,
     ) -> _RequestContextManager:
-        return self._request(hdrs.METH_DELETE, url, data=data)
+        return self._request(hdrs.METH_DELETE, url, data=data, **kwargs)
 
     async def ws_connect(
         self,
