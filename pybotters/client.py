@@ -1,5 +1,7 @@
 import asyncio
-from typing import Any, Dict, List, Mapping, Optional, Tuple
+import json
+import logging
+from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
 import aiohttp
 from aiohttp import hdrs
@@ -9,6 +11,8 @@ from .request import ClientRequest
 from .typedefs import WsJsonHandler, WsStrHandler
 from .ws import ClientWebSocketResponse, ws_run_forever
 
+logger = logging.getLogger(__name__)
+
 
 class Client:
     _session: aiohttp.ClientSession
@@ -16,10 +20,22 @@ class Client:
 
     def __init__(
         self,
-        apis: Dict[str, List[str]]={},
+        apis: Union[Dict[str, List[str]], str]={},
         base_url: str='',
         **kwargs: Any,
     ) -> None:
+        if isinstance(apis, dict):
+            pass
+        elif isinstance(apis, str):
+            with open(apis, encoding='utf-8') as fp:
+                try:
+                    apis = json.load(fp)
+                except json.JSONDecodeError as e:
+                    logger.warning('apis file format must be JSON')
+                    raise e
+        else:
+            logger.warning(f'apis must be dict or str(filepath), not {apis.__class__.__name__}')
+            apis = {}
         self._session = aiohttp.ClientSession(
             request_class=ClientRequest,
             ws_response_class=ClientWebSocketResponse,
