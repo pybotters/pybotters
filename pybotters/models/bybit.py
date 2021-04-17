@@ -12,26 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class BybitDataStore(DataStoreInterface):
-    def __init__(
-        self,
-        orders: Optional[Item]=None,
-        stoporders: Optional[Item]=None,
-        position_inverse: Optional[Item]=None,
-        position_usdt: Optional[Item]=None,
-        wallet: Optional[Item]=None,
-    ) -> None:
-        super().__init__()
-        if orders:
-            self.order._onresponse(orders)
-        if stoporders:
-            self.stoporder._onresponse(stoporders)
-        if position_inverse:
-            self.position_inverse._onresponse(position_inverse)
-        if position_usdt:
-            self.position_usdt._onresponse(position_usdt)
-        if wallet:
-            self.wallet._onresponse(wallet)
-
     def _init(self) -> None:
         self.create('orderbook', datastore_class=OrderBook)
         self.create('trade', datastore_class=Trade)
