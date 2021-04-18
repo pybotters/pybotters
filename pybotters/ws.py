@@ -6,7 +6,7 @@ import logging
 import time
 from dataclasses import dataclass
 from secrets import token_hex
-from typing import Any, Optional
+from typing import Any, List, Optional, Union
 
 import aiohttp
 from aiohttp.http_websocket import json
@@ -20,8 +20,8 @@ async def ws_run_forever(
     session: aiohttp.ClientSession,
     event: asyncio.Event,
     *,
-    send_str: Optional[str]=None,
-    send_json: Optional[Any]=None,
+    send_str: Optional[Union[str, List[str]]]=None,
+    send_json: Any=None,
     hdlr_str=None,
     hdlr_json=None,
     **kwargs: Any,
@@ -36,9 +36,15 @@ async def ws_run_forever(
                 if '_authtask' in ws.__dict__:
                     await ws.__dict__['_authtask']
                 if send_str is not None:
-                    await ws.send_str(send_str)
+                    if isinstance(send_str, list):
+                        await asyncio.gather(*[ws.send_str(item) for item in send_str])
+                    else:
+                        await ws.send_str(send_str)
                 if send_json is not None:
-                    await ws.send_json(send_json)
+                    if isinstance(send_json, list):
+                        await asyncio.gather(*[ws.send_json(item) for item in send_json])
+                    else:
+                        await ws.send_json(send_json)
                 async for msg in ws:
                     if msg.type == aiohttp.WSMsgType.TEXT:
                         if hdlr_str is not None:

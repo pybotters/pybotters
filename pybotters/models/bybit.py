@@ -1,30 +1,17 @@
-from typing import Any, Dict, List, Optional, Union
+import asyncio
+import logging
+from typing import Any, Awaitable, Dict, List, Optional, Union
+
+import aiohttp
 
 from ..store import DataStore, DataStoreInterface
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
-class BybitDataStore(DataStoreInterface):
-    def __init__(
-        self,
-        orders: Optional[Item]=None,
-        stoporders: Optional[Item]=None,
-        position_inverse: Optional[Item]=None,
-        position_usdt: Optional[Item]=None,
-        wallet: Optional[Item]=None,
-    ) -> None:
-        super().__init__()
-        if orders:
-            self.order._onresponse(orders)
-        if stoporders:
-            self.stoporder._onresponse(stoporders)
-        if position_inverse:
-            self.position_inverse._onresponse(position_inverse)
-        if position_usdt:
-            self.position_usdt._onresponse(position_usdt)
-        if wallet:
-            self.wallet._onresponse(wallet)
+logger = logging.getLogger(__name__)
 
+
+class BybitDataStore(DataStoreInterface):
     def _init(self) -> None:
         self.create('orderbook', datastore_class=OrderBook)
         self.create('trade', datastore_class=Trade)
@@ -37,6 +24,42 @@ class BybitDataStore(DataStoreInterface):
         self.create('order', datastore_class=Order)
         self.create('stoporder', datastore_class=StopOrder)
         self.create('wallet', datastore_class=Wallet)
+
+    async def initialize(self, aws: List[Awaitable[aiohttp.ClientResponse]]):
+        for f in asyncio.as_completed(aws):
+            resp = await f
+            if resp.status != 200:
+                logger.warning(f'status code != 200 ({resp.url.scheme}://{resp.url.host}{resp.url.path})')
+                continue
+            data = await resp.json()
+            if data['ret_code'] != 0:
+                logger.warning(f'ret_code != 0 ({resp.url.scheme}://{resp.url.host}{resp.url.path}) {data}')
+                continue
+            if resp.url.path in (
+                '/v2/private/order',
+                '/private/linear/order/search',
+                '/futures/private/order',
+            ):
+                self.order._onresponse(data['result'])
+            elif resp.url.path in (
+                '/v2/private/stop-order',
+                '/private/linear/stop-order/search',
+                '/futures/private/stop-order'
+            ):
+                self.stoporder._onresponse(data['result'])
+            elif resp.url.path in (
+                '/v2/private/position/list',
+                '/futures/private/position/list',
+            ):
+                self.position_inverse._onresponse(data['result'])
+            elif resp.url.path in (
+                '/private/linear/position/list',
+            ):
+                self.position_usdt._onresponse(data['result'])
+            elif resp.url.path in (
+                '/v2/private/wallet/balance',
+            ):
+                self.wallet._onresponse(data['result'])
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if 'topic' in msg:
@@ -236,8 +259,10 @@ class Order(DataStore):
     _KEYS = ['order_id']
 
     def _onresponse(self, data: List[Item]) -> None:
-        self._clear()
-        self._update(data)
+        if isinstance(data, list):
+            self._update(data)
+        elif isinstance(data, dict):
+            self._update([data])
 
     def _onmessage(self, data: List[Item]) -> None:
         for item in data:
@@ -248,6 +273,13 @@ class Order(DataStore):
 
 class StopOrder(DataStore):
     _KEYS = ['stop_order_id']
+
+    def _onresponse(self, data: List[Item]) -> None:
+        if isinstance(data, list):
+            self._clear()
+            self._update(data)
+        elif isinstance(data, dict):
+            self._update([data])
 
     def _onresponse(self, data: List[Item]) -> None:
         self._clear()
