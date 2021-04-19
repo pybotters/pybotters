@@ -31,17 +31,17 @@ An advanced api client for python botters.
 
 ## 🏦 Exchanges
 
-| Name | API auth | DataStore | 
-| --- | --- | --- |
-| Bybit | ✅ | ✅ |
-| Binance | ✅ | WIP |
-| FTX | ✅ | WIP |
-| BTCMEX | ✅ | ✅ |
-| BitMEX | ✅ | WIP |
-| bitFlyer | ✅ | WIP |
-| GMO Coin | ✅ | WIP |
-| Liquid | ✅ | WIP |
-| bitbank | ✅ | WIP |
+| Name | API auth | DataStore | API docs |
+| --- | --- | --- | --- |
+| Bybit | ✅ | ✅ | [LINK](https://bybit-exchange.github.io/docs/inverse) |
+| Binance | ✅ | WIP | [LINK](https://binance-docs.github.io/apidocs/spot/en/) |
+| FTX | ✅ | WIP | [LINK](https://docs.ftx.com/) |
+| BTCMEX | ✅ | ✅ | [LINK](https://help.btcmex.com/hc/ja/articles/360035945452-API) |
+| BitMEX | ✅ | WIP | [LINK](https://www.bitmex.com/app/apiOverview) |
+| bitFlyer | ✅ | WIP | [LINK](https://lightning.bitflyer.com/docs) |
+| GMO Coin | ✅ | WIP | [LINK](https://api.coin.z.com/docs/) |
+| Liquid | ✅ | WIP | [LINK](https://document.liquid.com/) |
+| bitbank | ✅ | WIP | [LINK](https://docs.bitbank.cc/) |
 
 ## 🐍 Requires
 
