@@ -82,10 +82,10 @@ class BybitDataStore(DataStoreInterface):
             ]):
                 self.kline._onmessage(topic, data)
             elif topic == 'position':
-                if ws._response.url.path.startswith('/realtime'):
+                if ws._response.url.path == '/realtime':
                     self.position_inverse._onmessage(data)
                     self.wallet._onposition(data)
-                elif ws._response.url.path.startswith('/realtime_private'):
+                elif ws._response.url.path == '/realtime_private':
                     self.position_usdt._onmessage(data)
             elif topic == 'execution':
                 self.execution._onmessage(data)
@@ -301,27 +301,29 @@ class Wallet(DataStore):
 
     def _onresponse(self, data: Dict[str, Item]) -> None:
         for coin, item in data.items():
-            _item = {}
-            _item['coin'] = coin
-            _item['wallet_balance'] = item['wallet_balance']
-            _item['available_balance'] = item['available_balance']
-            self._update([_item])
+            self._update([{
+                'coin': coin,
+                'wallet_balance': item['wallet_balance'],
+                'available_balance': item['available_balance'],
+            }])
 
     def _onposition(self, data: List[Item]) -> None:
         for item in data:
-            _item = {}
             symbol: str = item['symbol']
             if symbol.endswith('USD'):
-                _item['coin'] = symbol[:-3] # ex:'BTCUSD'
+                coin = symbol[:-3] # ex: BTCUSD
             else:
-                _item['coin'] = symbol[:-6] # ex:'BTCUSDM21'
-            _item['wallet_balance'] = item['wallet_balance']
-            _item['available_balance'] = item['available_balance']
-            self._update([_item])
+                coin = symbol[:-6] # ex: BTCUSDU21
+            self._update([{
+                'coin': coin,
+                'wallet_balance': item['wallet_balance'],
+                'available_balance': item['available_balance'],
+            }])
 
     def _onmessage(self, data: List[Item]) -> None:
         for item in data:
-            _item = {'coin': 'USDT'}
-            _item['wallet_balance'] = item['wallet_balance']
-            _item['available_balance'] = item['available_balance']
-            self._update([_item])
+            self._update([{
+                'coin': 'USDT',
+                'wallet_balance': item['wallet_balance'],
+                'available_balance': item['available_balance'],
+            }])
