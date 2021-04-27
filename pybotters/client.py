@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
 import aiohttp
@@ -24,23 +25,12 @@ class Client:
         base_url: str='',
         **kwargs: Any,
     ) -> None:
-        if isinstance(apis, dict):
-            pass
-        elif isinstance(apis, str):
-            with open(apis, encoding='utf-8') as fp:
-                try:
-                    apis = json.load(fp)
-                except json.JSONDecodeError as e:
-                    logger.warning('apis file format must be JSON')
-                    raise e
-        else:
-            logger.warning(f'apis must be dict or str(filepath), not {apis.__class__.__name__}')
-            apis = {}
         self._session = aiohttp.ClientSession(
             request_class=ClientRequest,
             ws_response_class=ClientWebSocketResponse,
             **kwargs,
         )
+        apis = self._load_apis(apis)
         self._session.__dict__['_apis'] = self._encode_apis(apis)
         self._base_url = base_url
 
@@ -144,9 +134,33 @@ class Client:
         return task
 
     @staticmethod
+    def _load_apis(apis: Union[Dict[str, List[str]], str]) -> Dict[str, List[str]]:
+        if isinstance(apis, dict):
+            if apis:
+                return apis
+            else:
+                current_apis = os.path.join(os.getcwd(), 'apis.json')
+                if os.path.isfile(current_apis):
+                    with open(current_apis) as fp:
+                        return json.load(fp)
+                else:
+                    env_apis = os.getenv('PYBOTTERS_APIS')
+                    if env_apis and os.path.isfile(env_apis):
+                        with open(env_apis) as fp:
+                            return json.load(fp)
+                    else:
+                        return apis
+        elif isinstance(apis, str):
+            with open(apis) as fp:
+                return json.load(fp)
+        else:
+            logger.warning(f'apis must be dict or str, not {apis.__class__.__name__}')
+            return {}
+
+    @staticmethod
     def _encode_apis(apis: Dict[str, List[str]]) -> Dict[str, Tuple[str, bytes]]:
         encoded = {}
         for name in apis:
             if len(apis[name]) == 2:
-                encoded[name] = (apis[name][0], apis[name][1].encode(), )
+                encoded[name] = (apis[name][0], apis[name][1].encode())
         return encoded
