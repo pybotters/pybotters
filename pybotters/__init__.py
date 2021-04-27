@@ -6,6 +6,7 @@ from aiohttp import hdrs
 from .client import Client
 from .models.bybit import BybitDataStore
 from .models.btcmex import BTCMEXDataStore
+from .models.ftx import FTXDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
 
 
