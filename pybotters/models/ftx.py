@@ -147,8 +147,7 @@ class Orders(DataStore):
 class Positions(DataStore):
     _KEYS = ['future']
 
-    def __init__(self, keys: List[str], data: List[Item]) -> None:
-        super().__init__(keys=keys, data=data)
+    def _init(self) -> None:
         self._fetch = False
 
     def _onresponse(self, data: List[Item]) -> None:

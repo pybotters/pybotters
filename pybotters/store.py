@@ -16,6 +16,8 @@ class DataStore:
         self._keys: Tuple[str, ...] = tuple(keys if keys else self._KEYS)
         self._events: List[asyncio.Event] = []
         self._insert(data)
+        if hasattr(self, '_init'):
+            getattr(self, '_init')()
 
     def __len__(self) -> int:
         return len(self._data)
@@ -139,10 +141,8 @@ class DataStoreInterface:
         self._stores: Dict[str, DataStore] = {}
         self._events: List[asyncio.Event] = []
         self._iscorofunc = asyncio.iscoroutinefunction(self._onmessage)
-        self._init()
-
-    def _init(self) -> None:
-        pass
+        if hasattr(self, '_init'):
+            getattr(self, '_init')()
 
     def __getitem__(self, name: str) -> Optional['DataStore']:
         return self._stores[name]
