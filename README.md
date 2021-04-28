@@ -13,7 +13,7 @@ An advanced api client for python botters.
 `pybotters` は現在 ** **BETAバージョン** ** です。
 一部機能は開発中です。
 
-正式バージョンの開発状況については [こちら](https://github.com/MtkN1/pybotters/issues/25) を参照してください。
+開発状況については [こちら(Issues)](https://github.com/MtkN1/pybotters/issues) を参照してください。
 
 ## 🚀 Features
 
