@@ -3,11 +3,17 @@ from typing import Any, Dict, List, Mapping, Optional, Union
 
 import aiohttp
 from aiohttp import hdrs
+from rich import print
+
 from .client import Client
-from .models.bybit import BybitDataStore
 from .models.btcmex import BTCMEXDataStore
+from .models.bybit import BybitDataStore
 from .models.ftx import FTXDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
+
+
+def print_handler(msg: Any, ws: aiohttp.ClientWebSocketResponse):
+    print(msg)
 
 
 async def _request(
