@@ -35,7 +35,7 @@ An advanced api client for python botters.
 | --- | --- | --- | --- |
 | Bybit | ✅ | ✅ | [LINK](https://bybit-exchange.github.io/docs/inverse) |
 | Binance | ✅ | WIP | [LINK](https://binance-docs.github.io/apidocs/spot/en/) |
-| FTX | ✅ | WIP | [LINK](https://docs.ftx.com/) |
+| FTX | ✅ | ✅ | [LINK](https://docs.ftx.com/) |
 | BTCMEX | ✅ | ✅ | [LINK](https://help.btcmex.com/hc/ja/articles/360035945452-API) |
 | BitMEX | ✅ | WIP | [LINK](https://www.bitmex.com/app/apiOverview) |
 | bitFlyer | ✅ | WIP | [LINK](https://lightning.bitflyer.com/docs) |
