@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybotters"
-version = "0.1.2"
+version = "0.2.0"
 description = "An advanced api client for python botters."
 license = "MIT"
 authors = ["MtkN1 <51289448+MtkN1@users.noreply.github.com>"]
@@ -10,13 +10,13 @@ homepage = "https://github.com/MtkN1/pybotters"
 [tool.poetry.dependencies]
 python = "^3.7"
 aiohttp = "^3.7.4"
+rich = "^10.1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.3"
 pytest-mock = "^3.5.1"
 pytest-asyncio = "^0.14.0"
 pytest-aiohttp = "^0.3.0"
-rich = "^10.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -165,12 +165,16 @@ class Auth:
 
         ts = int(time.time() * 1000)
         sign = hmac.new(secret, f'{ts}websocket_login'.encode(), digestmod=hashlib.sha256).hexdigest()
-        await ws.send_json({
+
+        msg = {
             'op': 'login',
             'args': {
                 'key': key, 'sign': sign, 'time': ts
             },
-        })
+        }
+        if 'FTX-SUBACCOUNT' in ws._response.request_info.headers:
+            msg['subaccount'] = ws._response.request_info.headers['FTX-SUBACCOUNT']
+        await ws.send_json(msg)
 
 
 @dataclass
