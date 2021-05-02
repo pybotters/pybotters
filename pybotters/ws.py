@@ -173,7 +173,7 @@ class Auth:
             },
         }
         if 'FTX-SUBACCOUNT' in ws._response.request_info.headers:
-            msg['subaccount'] = ws._response.request_info.headers['FTX-SUBACCOUNT']
+            msg['args']['subaccount'] = ws._response.request_info.headers['FTX-SUBACCOUNT']
         await ws.send_json(msg)
 
 
