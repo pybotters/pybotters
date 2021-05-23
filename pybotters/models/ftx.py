@@ -18,7 +18,7 @@ class FTXDataStore(DataStoreInterface):
         self.create('orders', datastore_class=Orders)
         self.create('positions', datastore_class=Positions)
 
-    async def initialize(self, *aws: Tuple[Awaitable[aiohttp.ClientResponse], ...]) -> None:
+    async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()

@@ -25,16 +25,10 @@ class BybitDataStore(DataStoreInterface):
         self.create('stoporder', datastore_class=StopOrder)
         self.create('wallet', datastore_class=Wallet)
 
-    async def initialize(self, aws: List[Awaitable[aiohttp.ClientResponse]]):
+    async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         for f in asyncio.as_completed(aws):
             resp = await f
-            if resp.status != 200:
-                logger.warning(f'status code != 200 ({resp.url.scheme}://{resp.url.host}{resp.url.path})')
-                continue
             data = await resp.json()
-            if data['ret_code'] != 0:
-                logger.warning(f'ret_code != 0 ({resp.url.scheme}://{resp.url.host}{resp.url.path}) {data}')
-                continue
             if resp.url.path in (
                 '/v2/private/order',
                 '/private/linear/order/search',
