@@ -121,9 +121,9 @@ class DataStore:
 
     def find(self, query: Item={}) -> List[Item]:
         if query:
-            return [item for item in self._data.values() if all(k in item and query[k] == item[k] for k in query)]
+            return [item for item in self if all(k in item and query[k] == item[k] for k in query)]
         else:
-            return [item for item in self._data.values()]
+            return list(self)
 
     def _set(self) -> None:
         for event in self._events:
