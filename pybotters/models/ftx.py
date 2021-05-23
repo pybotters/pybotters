@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Awaitable, List, Tuple
+from typing import Any, Awaitable, Dict, List
 
 import aiohttp
 
@@ -111,6 +111,16 @@ class Trades(DataStore):
 
 class OrderBook(DataStore):
     _KEYS = ['market', 'side', 'price']
+    _BDSIDE = {'sell': 'asks', 'buy': 'bids'}
+
+    def sorted(self, query: Item={}) -> Dict[str, List[float]]:
+        result = {'asks': [], 'bids': []}
+        for item in self:
+            if all(k in item and query[k] == item[k] for k in query):
+                result[self._BDSIDE[item['side']]].append([item['price'], item['size']])
+        result['asks'].sort(key=lambda x: x[0])
+        result['bids'].sort(key=lambda x: x[0], reverse=True)
+        return result
 
     def _onmessage(self, market: str, data: List[Item]) -> None:
         if data['action'] == 'partial':

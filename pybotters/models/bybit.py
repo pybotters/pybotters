@@ -138,25 +138,14 @@ class BybitDataStore(DataStoreInterface):
 class OrderBook(DataStore):
     _KEYS = ['symbol', 'id', 'side']
 
-    def getbest(self, symbol: str) -> Dict[str, Optional[Item]]:
-        result = {'Sell': {}, 'Buy': {}}
-        for item in self._data.values():
-            if item['symbol'] == symbol:
-                result[item['side']][float(item['price'])] = item
-        return {
-            'Sell': result['Sell'][min(result['Sell'])] if result['Sell'] else None,
-            'Buy': result['Buy'][max(result['Buy'])] if result['Buy'] else None
-        }
-
-    def getsorted(self, symbol: str) -> Dict[str, List[Item]]:
+    def sorted(self, query: Item={}) -> Dict[str, List[Item]]:
         result = {'Sell': [], 'Buy': []}
-        for item in self._data.values():
-            if item['symbol'] == symbol:
+        for item in self:
+            if all(k in item and query[k] == item[k] for k in query):
                 result[item['side']].append(item)
-        return {
-            'Sell': sorted(result['Sell'], key=lambda x: float(x['price'])),
-            'Buy': sorted(result['Buy'], key=lambda x: float(x['price']), reverse=True)
-        }
+        result['Sell'].sort(key=lambda x: x['id'])
+        result['Buy'].sort(key=lambda x: x['id'], reverse=True)
+        return result
 
     def _onmessage(self, type_: str, data: Union[List[Item], Item]) -> None:
         if type_ == 'snapshot':
