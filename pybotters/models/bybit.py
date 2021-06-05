@@ -63,13 +63,13 @@ class BybitDataStore(DataStoreInterface):
                 topic.startswith('orderBookL2_25'),
                 topic.startswith('orderBook_200'),
             ]):
-                self.orderbook._onmessage(msg['type'], data)
+                self.orderbook._onmessage(topic, msg['type'], data)
             elif topic.startswith('trade'):
                 self.trade._onmessage(data)
             elif topic.startswith('insurance'):
                 self.insurance._onmessage(data)
             elif topic.startswith('instrument_info'):
-                self.instrument._onmessage(msg['type'], data)
+                self.instrument._onmessage(topic, msg['type'], data)
             if any([
                 topic.startswith('klineV2'),
                 topic.startswith('candle'),
@@ -147,8 +147,11 @@ class OrderBook(DataStore):
         result['Buy'].sort(key=lambda x: x['id'], reverse=True)
         return result
 
-    def _onmessage(self, type_: str, data: Union[List[Item], Item]) -> None:
+    def _onmessage(self, topic: str, type_: str, data: Union[List[Item], Item]) -> None:
         if type_ == 'snapshot':
+            symbol = topic.split('.')[-1] # ex: 'orderBookL2_25.BTCUSD'
+            result = self.find({'symbol': symbol})
+            self._delete(result)
             if isinstance(data, dict):
                 data = data['order_book']
             self._insert(data)
@@ -173,8 +176,11 @@ class Insurance(DataStore):
 class Instrument(DataStore):
     _KEYS = ['symbol']
 
-    def _onmessage(self, type_: str, data: Item) -> None:
+    def _onmessage(self, topic: str, type_: str, data: Item) -> None:
         if type_ == 'snapshot':
+            symbol = topic.split('.')[-1] # ex: 'instrument_info.100ms.BTCUSD'
+            result = self.find({'symbol': symbol})
+            self._delete(result)
             self._insert([data])
         elif type_ == 'delta':
             self._update(data['update'])
