@@ -124,7 +124,8 @@ class OrderBook(DataStore):
 
     def _onmessage(self, market: str, data: List[Item]) -> None:
         if data['action'] == 'partial':
-            self._clear()
+            result = self.find({'market': market})
+            self._delete(result)
         for boardside, side in (('bids', 'buy'), ('asks', 'sell')):
             for item in data[boardside]:
                 if item[1]:
