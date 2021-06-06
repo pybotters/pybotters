@@ -38,9 +38,12 @@ class DataStore:
                     pass
                 else:
                     keyhash = self._hash(keyitem)
-                    _id = uuid.uuid4()
-                    self._data[_id] = item
-                    self._index[keyhash] = _id
+                    if keyhash not in self._index:
+                        _id = uuid.uuid4()
+                        self._data[_id] = item
+                        self._index[keyhash] = _id
+                    else:
+                        self._data[self._index[keyhash]] = item
             self._sweep_with_key()
         else:
             for item in data:

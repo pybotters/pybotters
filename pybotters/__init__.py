@@ -9,6 +9,7 @@ from .client import Client
 from .models.btcmex import BTCMEXDataStore
 from .models.bybit import BybitDataStore
 from .models.ftx import FTXDataStore
+from .models.binance import BinanceDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
 
 
