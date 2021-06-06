@@ -100,6 +100,12 @@ class Heartbeat:
             await ws.send_str('{"op":"ping"}')
             await asyncio.sleep(15.0)
 
+    @staticmethod
+    async def binance(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.pong()
+            await asyncio.sleep(60.0)
+
 
 class Auth:
     @staticmethod
@@ -192,6 +198,14 @@ class HeartbeatHosts:
         'stream-testnet.bybit.com': Heartbeat.bybit,
         'tap.liquid.com': Heartbeat.liquid,
         'ftx.com': Heartbeat.ftx,
+        'stream.binance.com': Heartbeat.binance,
+        'fstream.binance.com': Heartbeat.binance,
+        'dstream.binance.com': Heartbeat.binance,
+        'vstream.binance.com': Heartbeat.binance,
+        'stream.binancefuture.com': Heartbeat.binance,
+        'dstream.binancefuture.com': Heartbeat.binance,
+        'testnet.binanceops.com': Heartbeat.binance,
+        'testnetws.binanceops.com': Heartbeat.binance,
     }
 
 
