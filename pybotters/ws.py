@@ -1,6 +1,5 @@
 import asyncio
 import base64
-import collections
 import hashlib
 import hmac
 import inspect
