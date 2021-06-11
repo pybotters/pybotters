@@ -41,7 +41,7 @@ async def test_client_open(mocker: pytest_mock.MockerFixture):
         'name2': tuple(['key2', 'secret2'.encode()]),
         'name3': tuple(['key3', 'secret3'.encode()]),
     }
-    m.assert_called_once_with('/path/to/apis.json', encoding='utf-8')
+    m.assert_called_once_with(apis)
 
 
 async def test_client_warn(mocker: pytest_mock.MockerFixture):
