@@ -5,10 +5,9 @@ import hmac
 import inspect
 import logging
 import time
-from collections.abc import Callable, Awaitable
 from dataclasses import dataclass
 from secrets import token_hex
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Union, Callable, Awaitable
 
 import aiohttp
 from aiohttp.http_websocket import json
