@@ -1,9 +1,12 @@
 import asyncio
 import base64
+import collections
 import hashlib
 import hmac
+import inspect
 import logging
 import time
+from collections.abc import Callable, Awaitable
 from dataclasses import dataclass
 from secrets import token_hex
 from typing import Any, List, Optional, Union
@@ -24,6 +27,10 @@ async def ws_run_forever(
     send_json: Any=None,
     hdlr_str=None,
     hdlr_json=None,
+    on_open: Union[
+        Callable[[aiohttp.ClientWebSocketResponse], None],
+        Callable[[aiohttp.ClientWebSocketResponse], Awaitable[None]]
+        ] = None,
     **kwargs: Any,
 ) -> None:
     iscorofunc_str = asyncio.iscoroutinefunction(hdlr_str)
@@ -35,6 +42,10 @@ async def ws_run_forever(
                 event.set()
                 if '_authtask' in ws.__dict__:
                     await ws.__dict__['_authtask']
+                if on_open is not None:
+                    res = on_open(ws)
+                    if inspect.isawaitable(res):
+                        await res
                 if send_str is not None:
                     if isinstance(send_str, list):
                         await asyncio.gather(*[ws.send_str(item) for item in send_str])
