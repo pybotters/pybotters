@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from typing import Any, Dict, Hashable, Iterator, List, Optional, Tuple, Type
+from typing import Any, cast, Dict, Hashable, Iterator, List, Optional, Tuple, Type, TypeVar
 
 from .typedefs import Item
 from .ws import ClientWebSocketResponse
@@ -9,12 +9,16 @@ from .ws import ClientWebSocketResponse
 class DataStore:
     _KEYS = []
     _MAXLEN = 9999
+    _data: Dict[uuid.UUID, Item]
+    _index: Dict[int, uuid.UUID]
+    _keys: Tuple[str, ...]
+    _events: List[asyncio.Event]
 
     def __init__(self, keys: List[str]=[], data: List[Item]=[]) -> None:
-        self._data: Dict[uuid.UUID, Item] = {}
-        self._index: Dict[int, uuid.UUID] = {}
-        self._keys: Tuple[str, ...] = tuple(keys if keys else self._KEYS)
-        self._events: List[asyncio.Event] = []
+        self._data = {}
+        self._index = {}
+        self._keys = tuple(keys if keys else self._KEYS)
+        self._events = []
         self._insert(data)
         if hasattr(self, '_init'):
             getattr(self, '_init')()
@@ -138,6 +142,7 @@ class DataStore:
         self._events.append(event)
         await event.wait()
 
+TDataStore = TypeVar('TDataStore', bound=DataStore)
 
 class DataStoreInterface:
     def __init__(self) -> None:
@@ -162,6 +167,9 @@ class DataStoreInterface:
         datastore_class: Type[DataStore]=DataStore,
     ) -> None:
         self._stores[name] = datastore_class(keys, data)
+
+    def get(self, name: str, type: Type[TDataStore]) -> TDataStore:
+        return cast(type, self._stores[name])
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         print(msg)

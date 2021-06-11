@@ -37,23 +37,23 @@ class BinanceDataStore(DataStoreInterface):
 
     @property
     def trade(self) -> 'Trade':
-        return self._stores.get('trade')
+        return self.get('trade', Trade)
 
     @property
     def bookticker(self) -> 'BookTicker':
-        return self._stores.get('bookticker')
+        return self.get('bookticker', BookTicker)
 
     @property
     def balance(self) -> 'Balance':
-        return self._stores.get('balance')
+        return self.get('balance', Balance)
 
     @property
     def position(self) -> 'Position':
-        return self._stores.get('position')
+        return self.get('position', Position)
 
     @property
     def order(self) -> 'Order':
-        return self._stores.get('order')
+        return self.get('order', Order)
 
 
 class Trade(DataStore):
