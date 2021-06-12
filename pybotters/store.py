@@ -165,7 +165,7 @@ class DataStoreInterface:
         self._stores[name] = datastore_class(keys, data)
 
     def get(self, name: str, type: Type[TDataStore]) -> TDataStore:
-        return cast(type, self._stores[name])
+        return cast(type, self._stores.get(name))
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         print(msg)
