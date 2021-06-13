@@ -30,4 +30,5 @@ class ClientRequest(aiohttp.ClientRequest):
     async def send(self, *args, **kwargs) -> aiohttp.ClientResponse:
         resp = await super().send(*args, **kwargs)
         resp.__dict__['_auth'] = self.__dict__['_auth']
+        resp.__dict__['_raw_session'] = self._session
         return resp
