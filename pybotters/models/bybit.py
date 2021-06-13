@@ -24,6 +24,7 @@ class BybitDataStore(DataStoreInterface):
         self.create('order', datastore_class=Order)
         self.create('stoporder', datastore_class=StopOrder)
         self.create('wallet', datastore_class=Wallet)
+        self.timestamp_e6: Optional[int] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         for f in asyncio.as_completed(aws):
@@ -89,6 +90,8 @@ class BybitDataStore(DataStoreInterface):
                 self.stoporder._onmessage(data)
             elif topic == 'wallet':
                 self.wallet._onmessage(data)
+        if 'timestamp_e6' in msg:
+            self.timestamp_e6 = int(msg['timestamp_e6'])
 
     @property
     def orderbook(self) -> 'OrderBook':
