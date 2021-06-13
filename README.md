@@ -36,7 +36,7 @@ An advanced api client for python botters.
 | Name | API auth | DataStore | API docs |
 | --- | --- | --- | --- |
 | Bybit | ✅ | ✅ | [LINK](https://bybit-exchange.github.io/docs/inverse) |
-| Binance | ✅ | WIP | [LINK](https://binance-docs.github.io/apidocs/spot/en/) |
+| Binance | ✅ | ✅(USDⓈ-M) | [LINK](https://binance-docs.github.io/apidocs/spot/en/) |
 | FTX | ✅ | ✅ | [LINK](https://docs.ftx.com/) |
 | BTCMEX | ✅ | ✅ | [LINK](https://help.btcmex.com/hc/ja/articles/360035945452-API) |
 | BitMEX | ✅ | WIP | [LINK](https://www.bitmex.com/app/apiOverview) |
