@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import datetime
 import hashlib
 import hmac
 import logging
@@ -11,6 +12,10 @@ from typing import Any, List, Optional, Union
 import aiohttp
 from aiohttp.http_websocket import json
 from aiohttp.typedefs import StrOrURL
+
+import pybotters
+
+from .auth import Auth as _Auth
 
 logger = logging.getLogger(__name__)
 
@@ -24,14 +29,17 @@ async def ws_run_forever(
     send_json: Any=None,
     hdlr_str=None,
     hdlr_json=None,
+    auth=_Auth,
     **kwargs: Any,
 ) -> None:
+    if all([hdlr_str is None, hdlr_json is None]):
+        hdlr_json = pybotters.print_handler
     iscorofunc_str = asyncio.iscoroutinefunction(hdlr_str)
     iscorofunc_json = asyncio.iscoroutinefunction(hdlr_json)
     while not session.closed:
         separator = asyncio.create_task(asyncio.sleep(60.0))
         try:
-            async with session.ws_connect(url, **kwargs) as ws:
+            async with session.ws_connect(url, auth=auth, **kwargs) as ws:
                 event.set()
                 if '_authtask' in ws.__dict__:
                     await ws.__dict__['_authtask']
@@ -222,6 +230,39 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
         super().__init__(*args, **kwargs)
         if self._response.url.host in HeartbeatHosts.items:
             self.__dict__['_pingtask'] = asyncio.create_task(HeartbeatHosts.items[self._response.url.host](self))
-        if self._response.url.host in AuthHosts.items:
-            if AuthHosts.items[self._response.url.host].name in self._response._session.__dict__['_apis']:
-                self.__dict__['_authtask'] = asyncio.create_task(AuthHosts.items[self._response.url.host].func(self))
+        if self._response.__dict__['_auth'] is _Auth:
+            if self._response.url.host in AuthHosts.items:
+                if AuthHosts.items[self._response.url.host].name in self._response._session.__dict__['_apis']:
+                    self.__dict__['_authtask'] = asyncio.create_task(AuthHosts.items[self._response.url.host].func(self))
+        self._lock = asyncio.Lock()
+
+    async def send_str(self, *args, **kwargs) -> None:
+        if self._response.url.host not in RequestLimitHosts.items:
+            await super().send_str(*args, **kwargs)
+        else:
+            super_send_str = super().send_str(*args, **kwargs)
+            await RequestLimitHosts.items[self._response.url.host](self, super_send_str)
+
+
+class RequestLimit:
+    @staticmethod
+    async def gmocoin(ws: ClientWebSocketResponse, send_str):
+        async with ws._lock:
+            await send_str
+            r = await ws._response._session.get('https://api.coin.z.com/public/v1/status', auth=_Auth)
+            data = await r.json()
+            before = datetime.datetime.fromisoformat(data['responsetime'][:-1])
+            while True:
+                await asyncio.sleep(1.0)
+                r = await ws._response._session.get('https://api.coin.z.com/public/v1/status', auth=_Auth)
+                data = await r.json()
+                after = datetime.datetime.fromisoformat(data['responsetime'][:-1])
+                delta = after - before
+                if delta.total_seconds() >= 1.0:
+                    break
+
+
+class RequestLimitHosts:
+    items = {
+        'api.coin.z.com': RequestLimit.gmocoin,
+    }

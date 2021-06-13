@@ -1,3 +1,5 @@
+[![pytest](https://github.com/MtkN1/pybotters/actions/workflows/pytest.yml/badge.svg)](https://github.com/MtkN1/pybotters/actions/workflows/pytest.yml)
+
 # [BETA] pybotters
 
 An advanced api client for python botters.

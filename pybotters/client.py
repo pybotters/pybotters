@@ -8,6 +8,7 @@ import aiohttp
 from aiohttp import hdrs
 from aiohttp.client import _RequestContextManager
 
+from .auth import Auth
 from .request import ClientRequest
 from .typedefs import WsJsonHandler, WsStrHandler
 from .ws import ClientWebSocketResponse, ws_run_forever
@@ -50,13 +51,19 @@ class Client:
         *,
         params: Optional[Dict[str, Any]]=None,
         data: Optional[Dict[str, Any]]=None,
+        auth: Optional[Auth]=Auth,
         **kwargs: Any,
     ) -> _RequestContextManager:
+        if method == hdrs.METH_GET and data:
+            logger.warning('Send a GET request, but data argument is set')
+        elif method != hdrs.METH_GET and params:
+            logger.warning(f'Send a {method} request, but params argument is set')
         return self._session.request(
             method=method,
             url=self._base_url + url,
             params=params,
             data=data,
+            auth=auth,
             **kwargs,
         )
 

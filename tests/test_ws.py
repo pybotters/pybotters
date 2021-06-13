@@ -4,6 +4,7 @@ import pytest
 import pytest_mock
 from yarl import URL
 
+import pybotters.auth
 import pybotters.ws
 
 
@@ -23,6 +24,7 @@ def test_wsresponse_without_heartbeat(mocker: pytest_mock.MockerFixture):
     mocker.patch.object(pybotters.ws.HeartbeatHosts, 'items', items)
     m_response = MagicMock()
     m_response.url = URL('ws://not-example.com')
+    m_response.__dict__['_auth'] = None
     ws = pybotters.ws.ClientWebSocketResponse(
         MagicMock(),
         MagicMock(),
@@ -44,6 +46,7 @@ def test_wsresponse_with_heartbeat(mocker: pytest_mock.MockerFixture):
     mocker.patch.object(pybotters.ws.HeartbeatHosts, 'items', items)
     m_response = MagicMock()
     m_response.url = URL('ws://example.com')
+    m_response.__dict__['_auth'] = None
     ws = pybotters.ws.ClientWebSocketResponse(
         MagicMock(),
         MagicMock(),
@@ -75,6 +78,7 @@ def test_wsresponse_without_auth(mocker: pytest_mock.MockerFixture):
     mocker.patch.object(pybotters.ws.AuthHosts, 'items', items)
     m_response = MagicMock()
     m_response.url = URL('ws://example.com')
+    m_response.__dict__['_auth'] = None
     m_session = MagicMock()
     m_session.__dict__['_apis'] = {}
     m_response._session = m_session
@@ -99,6 +103,7 @@ def test_wsresponse_with_auth(mocker: pytest_mock.MockerFixture):
     mocker.patch.object(pybotters.ws.AuthHosts, 'items', items)
     m_response = MagicMock()
     m_response.url = URL('ws://example.com')
+    m_response.__dict__['_auth'] = pybotters.auth.Auth
     m_session = MagicMock()
     m_session.__dict__['_apis'] = {'example': ('key', 'secret'.encode())}
     m_response._session = m_session

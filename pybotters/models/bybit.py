@@ -24,6 +24,7 @@ class BybitDataStore(DataStoreInterface):
         self.create('order', datastore_class=Order)
         self.create('stoporder', datastore_class=StopOrder)
         self.create('wallet', datastore_class=Wallet)
+        self.timestamp_e6: Optional[int] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         for f in asyncio.as_completed(aws):
@@ -89,50 +90,52 @@ class BybitDataStore(DataStoreInterface):
                 self.stoporder._onmessage(data)
             elif topic == 'wallet':
                 self.wallet._onmessage(data)
+        if 'timestamp_e6' in msg:
+            self.timestamp_e6 = int(msg['timestamp_e6'])
 
     @property
     def orderbook(self) -> 'OrderBook':
-        return self._stores.get('orderbook')
+        return self.get('orderbook', OrderBook)
 
     @property
     def trade(self) -> 'Trade':
-        return self._stores.get('trade')
+        return self.get('trade', Trade)
 
     @property
     def insurance(self) -> 'Insurance':
-        return self._stores.get('insurance')
+        return self.get('insurance', Insurance)
 
     @property
     def instrument(self) -> 'Instrument':
-        return self._stores.get('instrument')
+        return self.get('instrument', Instrument)
 
     @property
     def kline(self) -> 'Kline':
-        return self._stores.get('kline')
+        return self.get('kline', Kline)
 
     @property
     def position_inverse(self) -> 'PositionInverse':
-        return self._stores.get('position_inverse')
+        return self.get('position_inverse', PositionInverse)
 
     @property
     def position_usdt(self) -> 'PositionUSDT':
-        return self._stores.get('position_usdt')
+        return self.get('position_usdt', PositionUSDT)
 
     @property
     def execution(self) -> 'Execution':
-        return self._stores.get('execution')
+        return self.get('execution', Execution)
 
     @property
     def order(self) -> 'Order':
-        return self._stores.get('order')
+        return self.get('order', Order)
 
     @property
     def stoporder(self) -> 'StopOrder':
-        return self._stores.get('stoporder')
+        return self.get('stoporder', StopOrder)
 
     @property
     def wallet(self) -> 'Wallet':
-        return self._stores.get('wallet')
+        return self.get('wallet', Wallet)
 
 
 class OrderBook(DataStore):

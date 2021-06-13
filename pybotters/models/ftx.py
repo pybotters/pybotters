@@ -3,6 +3,7 @@ from typing import Any, Awaitable, Dict, List
 
 import aiohttp
 
+from ..auth import Auth
 from ..store import DataStore, DataStoreInterface
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
@@ -58,31 +59,31 @@ class FTXDataStore(DataStoreInterface):
 
     @property
     def ticker(self) -> 'Ticker':
-        return self._stores.get('ticker')
+        return self.get('ticker', Ticker)
 
     @property
     def markets(self) -> 'Markets':
-        return self._stores.get('markets')
+        return self.get('markets', Markets)
 
     @property
     def trades(self) -> 'Trades':
-        return self._stores.get('trades')
+        return self.get('trades', Trades)
 
     @property
     def orderbook(self) -> 'OrderBook':
-        return self._stores.get('orderbook')
+        return self.get('orderbook', OrderBook)
 
     @property
     def fills(self) -> 'Fills':
-        return self._stores.get('fills')
+        return self.get('fills', Fills)
 
     @property
     def orders(self) -> 'Orders':
-        return self._stores.get('orders')
+        return self.get('orders', Orders)
 
     @property
     def positions(self) -> 'Positions':
-        return self._stores.get('positions')
+        return self.get('positions', Positions)
 
 
 class Ticker(DataStore):
@@ -165,6 +166,6 @@ class Positions(DataStore):
         self._update(data)
     
     async def _onfills(self, session: aiohttp.ClientSession) -> None:
-        async with session.get('https://ftx.com/api/positions', params={'showAvgPrice': 'true'}) as resp:
+        async with session.get('https://ftx.com/api/positions?showAvgPrice=true', auth=Auth) as resp:
             data = await resp.json()
         self._onresponse(data['result'])

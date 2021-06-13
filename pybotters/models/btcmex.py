@@ -32,52 +32,52 @@ class BTCMEXDataStore(DataStoreInterface):
 
     @property
     def orderbook(self) -> DataStore:
-        return self._stores.get('orderBookL2')  
+        return self.get('orderBookL2', DataStore)
 
     @property
     def trade(self) -> DataStore:
-        return self._stores.get('trade')
+        return self.get('trade', DataStore)
 
     @property
     def instrument(self) -> DataStore:
-        return self._stores.get('instrument')
+        return self.get('instrument', DataStore)
 
     @property
     def liquidation(self) -> DataStore:
-        return self._stores.get('liquidation')
+        return self.get('liquidation', DataStore)
 
     @property
     def quote(self) -> DataStore:
-        return self._stores.get('quote')
+        return self.get('quote', DataStore)
 
     @property
     def order(self) -> DataStore:
-        return self._stores.get('order')
+        return self.get('order', DataStore)
 
     @property
     def execution(self) -> DataStore:
-        return self._stores.get('execution')
+        return self.get('execution', DataStore)
 
     @property
     def position(self) -> DataStore:
-        return self._stores.get('position')
+        return self.get('position', DataStore)
 
     @property
     def margin(self) -> DataStore:
-        return self._stores.get('margin')
+        return self.get('margin', DataStore)
 
     @property
     def positionparam(self) -> DataStore:
-        return self._stores.get('positionParam')
+        return self.get('positionParam', DataStore)
 
     @property
     def clientrisklimit(self) -> DataStore:
-        return self._stores.get('clientRiskLimit')
+        return self.get('clientRiskLimit', DataStore)
 
     @property
     def fundsandbonus(self) -> DataStore:
-        return self._stores.get('fundsAndBonus')
+        return self.get('fundsAndBonus', DataStore)
 
     @property
     def positionautocloseinfo(self) -> DataStore:
-        return self._stores.get('positionAutoCloseInfo')
+        return self.get('positionAutoCloseInfo', DataStore)
