@@ -3,6 +3,7 @@ from typing import Any, Awaitable, Dict, List
 
 import aiohttp
 
+from ..auth import Auth
 from ..store import DataStore, DataStoreInterface
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
@@ -165,6 +166,6 @@ class Positions(DataStore):
         self._update(data)
     
     async def _onfills(self, session: aiohttp.ClientSession) -> None:
-        async with session.get('https://ftx.com/api/positions', params={'showAvgPrice': 'true'}) as resp:
+        async with session.get('https://ftx.com/api/positions?showAvgPrice=true', auth=Auth) as resp:
             data = await resp.json()
         self._onresponse(data['result'])

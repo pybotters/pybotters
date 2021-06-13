@@ -8,6 +8,7 @@ import aiohttp
 from aiohttp import hdrs
 from aiohttp.client import _RequestContextManager
 
+from .auth import Auth
 from .request import ClientRequest
 from .typedefs import WsJsonHandler, WsStrHandler
 from .ws import ClientWebSocketResponse, ws_run_forever
@@ -50,6 +51,7 @@ class Client:
         *,
         params: Optional[Dict[str, Any]]=None,
         data: Optional[Dict[str, Any]]=None,
+        auth: Optional[Auth]=Auth,
         **kwargs: Any,
     ) -> _RequestContextManager:
         return self._session.request(
@@ -57,6 +59,7 @@ class Client:
             url=self._base_url + url,
             params=params,
             data=data,
+            auth=auth,
             **kwargs,
         )
 
