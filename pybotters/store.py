@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from typing import Any, Dict, Hashable, Iterator, List, Optional, Tuple, Type
+from typing import Any, cast, Dict, Hashable, Iterator, List, Optional, Tuple, Type, TypeVar
 
 from .typedefs import Item
 from .ws import ClientWebSocketResponse
@@ -138,6 +138,7 @@ class DataStore:
         self._events.append(event)
         await event.wait()
 
+TDataStore = TypeVar('TDataStore', bound=DataStore)
 
 class DataStoreInterface:
     def __init__(self) -> None:
@@ -162,6 +163,9 @@ class DataStoreInterface:
         datastore_class: Type[DataStore]=DataStore,
     ) -> None:
         self._stores[name] = datastore_class(keys, data)
+
+    def get(self, name: str, type: Type[TDataStore]) -> TDataStore:
+        return cast(type, self._stores.get(name))
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         print(msg)

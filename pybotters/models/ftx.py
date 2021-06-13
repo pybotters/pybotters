@@ -58,31 +58,31 @@ class FTXDataStore(DataStoreInterface):
 
     @property
     def ticker(self) -> 'Ticker':
-        return self._stores.get('ticker')
+        return self.get('ticker', Ticker)
 
     @property
     def markets(self) -> 'Markets':
-        return self._stores.get('markets')
+        return self.get('markets', Markets)
 
     @property
     def trades(self) -> 'Trades':
-        return self._stores.get('trades')
+        return self.get('trades', Trades)
 
     @property
     def orderbook(self) -> 'OrderBook':
-        return self._stores.get('orderbook')
+        return self.get('orderbook', OrderBook)
 
     @property
     def fills(self) -> 'Fills':
-        return self._stores.get('fills')
+        return self.get('fills', Fills)
 
     @property
     def orders(self) -> 'Orders':
-        return self._stores.get('orders')
+        return self.get('orders', Orders)
 
     @property
     def positions(self) -> 'Positions':
-        return self._stores.get('positions')
+        return self.get('positions', Positions)
 
 
 class Ticker(DataStore):
