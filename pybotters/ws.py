@@ -13,6 +13,8 @@ import aiohttp
 from aiohttp.http_websocket import json
 from aiohttp.typedefs import StrOrURL
 
+import pybotters
+
 from .auth import Auth as _Auth
 
 logger = logging.getLogger(__name__)
@@ -30,6 +32,8 @@ async def ws_run_forever(
     auth=_Auth,
     **kwargs: Any,
 ) -> None:
+    if all([hdlr_str is None, hdlr_json is None]):
+        hdlr_json = pybotters.print_handler
     iscorofunc_str = asyncio.iscoroutinefunction(hdlr_str)
     iscorofunc_json = asyncio.iscoroutinefunction(hdlr_json)
     while not session.closed:
