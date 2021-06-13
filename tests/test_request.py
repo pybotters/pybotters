@@ -18,6 +18,7 @@ async def test_request_without_auth(mocker: pytest_mock.MockerFixture):
         URL('http://example.com'),
         params={'foo': 'bar'},
         session=m_sesison,
+        auth=None
     )
 
     assert req.url == URL('http://example.com?foo=bar')
@@ -37,6 +38,7 @@ async def test_request_with_auth(mocker: pytest_mock.MockerFixture):
         URL('http://example.com'),
         params={'foo': 'bar'},
         session=m_sesison,
+        auth=pybotters.auth.Auth
     )
 
     assert req.url == URL('http://example.com?foo=bar')
