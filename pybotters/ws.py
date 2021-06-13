@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import datetime
 import hashlib
 import hmac
 import logging
@@ -225,3 +226,35 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
         if self._response.url.host in AuthHosts.items:
             if AuthHosts.items[self._response.url.host].name in self._response._session.__dict__['_apis']:
                 self.__dict__['_authtask'] = asyncio.create_task(AuthHosts.items[self._response.url.host].func(self))
+        self._lock = asyncio.Lock()
+
+    async def send_str(self, *args, **kwargs) -> None:
+        if self._response.url.host not in RequestLimitHosts.items:
+            await super().send_str(*args, **kwargs)
+        else:
+            super_send_str = super().send_str(*args, **kwargs)
+            await RequestLimitHosts.items[self._response.url.host](self, super_send_str)
+
+
+class RequestLimit:
+    @staticmethod
+    async def gmocoin(ws: ClientWebSocketResponse, send_str):
+        async with ws._lock:
+            await send_str
+            r = await ws._response._session.get('https://api.coin.z.com/public/v1/status')
+            data = await r.json()
+            before = datetime.datetime.fromisoformat(data['responsetime'][:-1])
+            while True:
+                await asyncio.sleep(1.0)
+                r = await ws._response._session.get('https://api.coin.z.com/public/v1/status')
+                data = await r.json()
+                after = datetime.datetime.fromisoformat(data['responsetime'][:-1])
+                delta = after - before
+                if delta.total_seconds() >= 1.0:
+                    break
+
+
+class RequestLimitHosts:
+    items = {
+        'api.coin.z.com': RequestLimit.gmocoin,
+    }
