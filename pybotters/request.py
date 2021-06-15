@@ -15,7 +15,10 @@ class ClientRequest(aiohttp.ClientRequest):
             url2 = url.with_query(kwargs['params'])
             q.extend(url2.query)
             url = url.with_query(q)
-            args = (method, url, )
+            args = (
+                method,
+                url,
+            )
             kwargs['params'] = None
 
         self.__dict__['_auth'] = kwargs['auth']

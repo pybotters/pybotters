@@ -54,6 +54,7 @@ async def test_client_warn(mocker: pytest_mock.MockerFixture):
     assert client._session.closed
     assert client._session.__dict__['_apis'] == {}
 
+
 async def test_client_open_error(mocker: pytest_mock.MockerFixture):
     read_data = 'name1:\- key1\n- secret1'
     m = mocker.patch('pybotters.client.open', mock_open(read_data=read_data))

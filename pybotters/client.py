@@ -22,8 +22,8 @@ class Client:
 
     def __init__(
         self,
-        apis: Union[Dict[str, List[str]], str]={},
-        base_url: str='',
+        apis: Union[Dict[str, List[str]], str] = {},
+        base_url: str = '',
         **kwargs: Any,
     ) -> None:
         self._session = aiohttp.ClientSession(
@@ -43,15 +43,15 @@ class Client:
 
     async def close(self) -> None:
         await self._session.close()
-    
+
     def _request(
         self,
         method: str,
         url: str,
         *,
-        params: Optional[Dict[str, Any]]=None,
-        data: Optional[Dict[str, Any]]=None,
-        auth: Optional[Auth]=Auth,
+        params: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
+        auth: Optional[Auth] = Auth,
         **kwargs: Any,
     ) -> _RequestContextManager:
         if method == hdrs.METH_GET and data:
@@ -72,8 +72,8 @@ class Client:
         method: str,
         url: str,
         *,
-        params: Optional[Mapping[str, str]]=None,
-        data: Any=None,
+        params: Optional[Mapping[str, str]] = None,
+        data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
         return self._request(method, url, params=params, data=data, **kwargs)
@@ -82,7 +82,7 @@ class Client:
         self,
         url: str,
         *,
-        params: Optional[Mapping[str, str]]=None,
+        params: Optional[Mapping[str, str]] = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
         return self._request(hdrs.METH_GET, url, params=params, **kwargs)
@@ -91,7 +91,7 @@ class Client:
         self,
         url: str,
         *,
-        data: Any=None,
+        data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
         return self._request(hdrs.METH_POST, url, data=data, **kwargs)
@@ -100,7 +100,7 @@ class Client:
         self,
         url: str,
         *,
-        data: Any=None,
+        data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
         return self._request(hdrs.METH_PUT, url, data=data, **kwargs)
@@ -109,7 +109,7 @@ class Client:
         self,
         url: str,
         *,
-        data: Any=None,
+        data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
         return self._request(hdrs.METH_DELETE, url, data=data, **kwargs)
@@ -118,10 +118,10 @@ class Client:
         self,
         url: str,
         *,
-        send_str: Optional[Union[str, List[str]]]=None,
-        send_json: Any=None,
-        hdlr_str: Optional[WsStrHandler]=None,
-        hdlr_json: Optional[WsJsonHandler]=None,
+        send_str: Optional[Union[str, List[str]]] = None,
+        send_json: Any = None,
+        hdlr_str: Optional[WsStrHandler] = None,
+        hdlr_json: Optional[WsJsonHandler] = None,
         **kwargs: Any,
     ) -> asyncio.Task:
         event = asyncio.Event()

@@ -31,15 +31,22 @@ class Auth:
             if url.scheme == 'https':
                 query.extend({'api_key': key, 'timestamp': expires})
                 query_string = '&'.join(f'{k}={v}' for k, v in sorted(query.items()))
-                sign = hmac.new(secret, query_string.encode(), hashlib.sha256).hexdigest()
+                sign = hmac.new(
+                    secret, query_string.encode(), hashlib.sha256
+                ).hexdigest()
                 query.extend({'sign': sign})
             else:
                 expires = str(int((time.time() + 1.0) * 1000))
                 path = f'{method}/realtime{expires}'
                 signature = hmac.new(secret, path.encode(), hashlib.sha256).hexdigest()
-                query.extend({'api_key': key, 'expires': expires, 'signature': signature})
+                query.extend(
+                    {'api_key': key, 'expires': expires, 'signature': signature}
+                )
             url = url.with_query(query)
-            args = (method, url, )
+            args = (
+                method,
+                url,
+            )
         else:
             data.update({'api_key': key, 'timestamp': expires})
             body = FormData(sorted(data.items()))()
@@ -67,7 +74,9 @@ class Auth:
         message = f'{method}{path}{expires}'.encode() + body._value
         signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
-        headers.update({'api-expires': expires, 'api-key': key, 'api-signature': signature})
+        headers.update(
+            {'api-expires': expires, 'api-key': key, 'api-signature': signature}
+        )
 
         return args
 
@@ -88,10 +97,15 @@ class Auth:
                 query = MultiDict(url.query)
                 query.extend({'timestamp': expires})
                 query_string = '&'.join(f'{k}={v}' for k, v in query.items())
-                signature = hmac.new(secret, query_string.encode(), hashlib.sha256).hexdigest()
+                signature = hmac.new(
+                    secret, query_string.encode(), hashlib.sha256
+                ).hexdigest()
                 query.extend({'signature': signature})
                 url = url.with_query(query)
-                args = (method, url, )
+                args = (
+                    method,
+                    url,
+                )
         else:
             data.update({'timestamp': expires})
             body = FormData(data)()
@@ -120,7 +134,9 @@ class Auth:
         text = f'{timestamp}{method}{path}'.encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
-        headers.update({'ACCESS-KEY': key, 'ACCESS-TIMESTAMP': timestamp, 'ACCESS-SIGN': signature})
+        headers.update(
+            {'ACCESS-KEY': key, 'ACCESS-TIMESTAMP': timestamp, 'ACCESS-SIGN': signature}
+        )
 
         return args
 
@@ -141,7 +157,9 @@ class Auth:
         text = f'{timestamp}{method}{path}'.encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
-        headers.update({'API-KEY': key, 'API-TIMESTAMP': timestamp, 'API-SIGN': signature})
+        headers.update(
+            {'API-KEY': key, 'API-TIMESTAMP': timestamp, 'API-SIGN': signature}
+        )
 
         return args
 
@@ -157,7 +175,11 @@ class Auth:
         secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
 
         json_payload = json.dumps(
-            {'path': url.raw_path_qs, 'nonce': str(int(time.time() * 1000)), 'token_id': key},
+            {
+                'path': url.raw_path_qs,
+                'nonce': str(int(time.time() * 1000)),
+                'token_id': key,
+            },
             separators=(',', ':'),
         ).encode()
         json_header = json.dumps(
@@ -170,9 +192,7 @@ class Auth:
         ]
         signing_input = b'.'.join(segments)
         signature = hmac.new(secret, signing_input, hashlib.sha256).digest()
-        segments.append(
-            base64.urlsafe_b64encode(signature).replace(b'=', b'')
-        )
+        segments.append(base64.urlsafe_b64encode(signature).replace(b'=', b''))
         encoded_string = b'.'.join(segments).decode()
         body = JsonPayload(data) if data else FormData(data)()
         kwargs.update({'data': body})
@@ -200,7 +220,9 @@ class Auth:
             text = nonce.encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
-        headers.update({'ACCESS-KEY': key, 'ACCESS-NONCE': nonce, 'ACCESS-SIGNATURE': signature})
+        headers.update(
+            {'ACCESS-KEY': key, 'ACCESS-NONCE': nonce, 'ACCESS-SIGNATURE': signature}
+        )
 
         return args
 
@@ -242,7 +264,9 @@ class Auth:
         message = f'{method}{path}{expires}'.encode() + body._value
         signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
-        headers.update({'api-expires': expires, 'api-key': key, 'api-signature': signature})
+        headers.update(
+            {'api-expires': expires, 'api-key': key, 'api-signature': signature}
+        )
 
         return args
 

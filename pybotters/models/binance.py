@@ -29,27 +29,19 @@ class BinanceDataStore(DataStoreInterface):
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
-            if resp.url.path in (
-                '/fapi/v1/depth',
-            ):
+            if resp.url.path in ('/fapi/v1/depth',):
                 if 'symbol' in resp.url.query:
                     self.orderbook._onresponse(resp.url.query['symbol'], data)
-            elif resp.url.path in (
-                '/fapi/v2/balance',
-            ):
+            elif resp.url.path in ('/fapi/v2/balance',):
                 self.balance._onresponse(data)
-            elif resp.url.path in (
-                '/fapi/v2/positionRisk',
-            ):
+            elif resp.url.path in ('/fapi/v2/positionRisk',):
                 self.position._onresponse(data)
-            elif resp.url.path in (
-                '/fapi/v1/openOrders',
-            ):
-                symbol = resp.url.query['symbol'] if 'symbol' in resp.url.query else None
+            elif resp.url.path in ('/fapi/v1/openOrders',):
+                symbol = (
+                    resp.url.query['symbol'] if 'symbol' in resp.url.query else None
+                )
                 self.order._onresponse(symbol, data)
-            elif resp.url.path in (
-                '/fapi/v1/listenKey',
-            ):
+            elif resp.url.path in ('/fapi/v1/listenKey',):
                 self.listenkey = data['listenKey']
                 asyncio.create_task(self._listenkey(resp.__dict__['_raw_session']))
 
@@ -83,7 +75,7 @@ class BinanceDataStore(DataStoreInterface):
     async def _listenkey(session: aiohttp.ClientSession):
         while not session.closed:
             await session.put('https://fapi.binance.com/fapi/v1/listenKey', auth=Auth)
-            await asyncio.sleep(1800.0) # 30 minutes
+            await asyncio.sleep(1800.0)  # 30 minutes
 
     @property
     def trade(self) -> 'Trade':
@@ -191,7 +183,7 @@ class OrderBook(DataStore):
         self.initialized = False
         self._buff = deque(maxlen=200)
 
-    def sorted(self, query: Item={}) -> Dict[str, List[float]]:
+    def sorted(self, query: Item = {}) -> Dict[str, List[float]]:
         result = {self._MAPSIDE[k]: [] for k in self._MAPSIDE}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
@@ -230,11 +222,15 @@ class Balance(DataStore):
 
     def _onresponse(self, data: List[Item]) -> None:
         for item in data:
-            self._update([{
-                'a': item['asset'],
-                'wb': item['balance'],
-                'cw': item['crossWalletBalance'],
-            }])
+            self._update(
+                [
+                    {
+                        'a': item['asset'],
+                        'wb': item['balance'],
+                        'cw': item['crossWalletBalance'],
+                    }
+                ]
+            )
 
 
 class Position(DataStore):
@@ -245,14 +241,18 @@ class Position(DataStore):
 
     def _onresponse(self, data: List[Item]) -> None:
         for item in data:
-            self._update([{
-                's': item['symbol'],
-                'pa': item['positionAmt'],
-                'ep': item['entryPrice'],
-                'mt': item['marginType'],
-                'iw': item['isolatedWallet'],
-                'ps': item['positionSide'],
-            }])
+            self._update(
+                [
+                    {
+                        's': item['symbol'],
+                        'pa': item['positionAmt'],
+                        'ep': item['entryPrice'],
+                        'mt': item['marginType'],
+                        'iw': item['isolatedWallet'],
+                        'ps': item['positionSide'],
+                    }
+                ]
+            )
 
 
 class Order(DataStore):
@@ -270,24 +270,28 @@ class Order(DataStore):
         else:
             self._clear()
         for item in data:
-            self._insert([{
-                's': item['symbol'],
-                'c': item['clientOrderId'],
-                'S': item['side'],
-                'o': item['type'],
-                'f': item['timeInForce'],
-                'q': item['origQty'],
-                'p': item['price'],
-                'ap': item['avgPrice'],
-                'sp': item['stopPrice'],
-                'X': item['status'],
-                'i': item['orderId'],
-                'z': item['executedQty'],
-                'T': item['updateTime'],
-                'R': item['reduceOnly'],
-                'wt': item['workingType'],
-                'ot': item['origType'],
-                'ps': item['positionSide'],
-                'cp': item['closePosition'],
-                'pP': item['priceProtect'],
-            }])
+            self._insert(
+                [
+                    {
+                        's': item['symbol'],
+                        'c': item['clientOrderId'],
+                        'S': item['side'],
+                        'o': item['type'],
+                        'f': item['timeInForce'],
+                        'q': item['origQty'],
+                        'p': item['price'],
+                        'ap': item['avgPrice'],
+                        'sp': item['stopPrice'],
+                        'X': item['status'],
+                        'i': item['orderId'],
+                        'z': item['executedQty'],
+                        'T': item['updateTime'],
+                        'R': item['reduceOnly'],
+                        'wt': item['workingType'],
+                        'ot': item['origType'],
+                        'ps': item['positionSide'],
+                        'cp': item['closePosition'],
+                        'pP': item['priceProtect'],
+                    }
+                ]
+            )
