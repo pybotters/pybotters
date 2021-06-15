@@ -45,7 +45,8 @@ class BinanceDataStore(DataStoreInterface):
             elif resp.url.path in (
                 '/fapi/v1/openOrders',
             ):
-                self.order._onresponse(data)
+                symbol = resp.url.query['symbol'] if 'symbol' in resp.url.query else None
+                self.order._onresponse(symbol, data)
             elif resp.url.path in (
                 '/fapi/v1/listenKey',
             ):
@@ -53,34 +54,30 @@ class BinanceDataStore(DataStoreInterface):
                 asyncio.create_task(self._listenkey(resp.__dict__['_raw_session']))
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
-        if 'stream' in msg:
-            data = msg['data']
-        else:
-            data = msg
-        event: str = data['e'] if not isinstance(data, list) else data[0]['e']
-        if event in ('trade', 'aggTrade'):
-            self.trade._onmessage(data)
-        elif event == 'markPriceUpdate':
-            self.markprice._onmessage(data)
-        elif event == 'bookTicker':
-            self.bookticker._onmessage(data)
-        elif event == 'kline':
-            self.kline._onmessage(data)
-        elif event == 'continuous_kline':
-            self.continuouskline._onmessage(data)
-        elif event in ('24hrMiniTicker', '24hrTicker'):
-            self.ticker._onmessage(data)
-        elif event == 'bookTicker':
-            self.bookticker._onmessage(data)
-        elif event == 'forceOrder':
-            self.liquidation._onmessage(data)
-        elif event == 'depthUpdate':
-            self.orderbook._onmessage(data)
-        elif event == 'ACCOUNT_UPDATE':
-            self.balance._onmessage(data)
-            self.position._onmessage(data)
-        elif event == 'ORDER_TRADE_UPDATE':
-            self.order._onmessage(data)
+        if 'result' not in msg:
+            data = msg['data'] if 'data' in msg else msg
+            event = data['e'] if isinstance(data, dict) else data[0]['e']
+            if event in ('trade', 'aggTrade'):
+                self.trade._onmessage(data)
+            elif event == 'markPriceUpdate':
+                self.markprice._onmessage(data)
+            elif event == 'kline':
+                self.kline._onmessage(data)
+            elif event == 'continuous_kline':
+                self.continuouskline._onmessage(data)
+            elif event in ('24hrMiniTicker', '24hrTicker'):
+                self.ticker._onmessage(data)
+            elif event == 'bookTicker':
+                self.bookticker._onmessage(data)
+            elif event == 'forceOrder':
+                self.liquidation._onmessage(data)
+            elif event == 'depthUpdate':
+                self.orderbook._onmessage(data)
+            elif event == 'ACCOUNT_UPDATE':
+                self.balance._onmessage(data)
+                self.position._onmessage(data)
+            elif event == 'ORDER_TRADE_UPDATE':
+                self.order._onmessage(data)
 
     @staticmethod
     async def _listenkey(session: aiohttp.ClientSession):
@@ -232,14 +229,12 @@ class Balance(DataStore):
         self._update(item['a']['B'])
 
     def _onresponse(self, data: List[Item]) -> None:
-        data_short = []
         for item in data:
-            data_short.append({
+            self._update([{
                 'a': item['asset'],
                 'wb': item['balance'],
                 'cw': item['crossWalletBalance'],
-            })
-        self._update(data_short)
+            }])
 
 
 class Position(DataStore):
@@ -269,10 +264,13 @@ class Order(DataStore):
         else:
             self._delete([item['o']])
 
-    def _onresponse(self, data: List[Item]) -> None:
-        data_short = []
+    def _onresponse(self, symbol: Optional[str], data: List[Item]) -> None:
+        if symbol is not None:
+            self._delete(self.find({'symbol': symbol}))
+        else:
+            self._clear()
         for item in data:
-            data_short.append({
+            self._insert([{
                 's': item['symbol'],
                 'c': item['clientOrderId'],
                 'S': item['side'],
@@ -292,5 +290,4 @@ class Order(DataStore):
                 'ps': item['positionSide'],
                 'cp': item['closePosition'],
                 'pP': item['priceProtect'],
-            })
-        self._update(data_short)
+            }])
