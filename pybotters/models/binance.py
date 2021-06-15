@@ -1,4 +1,5 @@
 import asyncio
+from collections import deque
 from typing import Any, Awaitable, Dict, List, Optional, Union
 
 import aiohttp
@@ -31,7 +32,8 @@ class BinanceDataStore(DataStoreInterface):
             if resp.url.path in (
                 '/fapi/v1/depth',
             ):
-                self.orderbook._onresponse(resp.url.query['symbol'], data)
+                if 'symbol' in resp.url.query:
+                    self.orderbook._onresponse(resp.url.query['symbol'], data)
             elif resp.url.path in (
                 '/fapi/v2/balance',
             ):
@@ -188,6 +190,10 @@ class OrderBook(DataStore):
     _KEYS = ['s', 'S', 'p']
     _MAPSIDE = {'BUY': 'b', 'SELL': 'a'}
 
+    def _init(self) -> None:
+        self.initialized = False
+        self._buff = deque(maxlen=200)
+
     def sorted(self, query: Item={}) -> Dict[str, List[float]]:
         result = {self._MAPSIDE[k]: [] for k in self._MAPSIDE}
         for item in self:
@@ -198,6 +204,8 @@ class OrderBook(DataStore):
         return result
 
     def _onmessage(self, item: Item) -> None:
+        if not self.initialized:
+            self._buff.append(item)
         for s, bs in self._MAPSIDE.items():
             for row in item[bs]:
                 if float(row[1]) != 0.0:
@@ -206,9 +214,15 @@ class OrderBook(DataStore):
                     self._delete([{'s': item['s'], 'S': s, 'p': row[0]}])
 
     def _onresponse(self, symbol: str, item: Item) -> None:
+        self.initialized = True
+        self._delete(self.find({'s': symbol}))
         for s, bs in (('BUY', 'bids'), ('SELL', 'asks')):
             for row in item[bs]:
-                self._update([{'s': symbol, 'S': s, 'p': row[0], 'q': row[1]}])
+                self._insert([{'s': symbol, 'S': s, 'p': row[0], 'q': row[1]}])
+        for msg in self._buff:
+            if msg['U'] <= item['lastUpdateId'] and msg['u'] >= item['lastUpdateId']:
+                self._onmessage(msg)
+        self._buff.clear()
 
 
 class Balance(DataStore):
