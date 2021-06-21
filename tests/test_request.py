@@ -1,3 +1,4 @@
+import pytest
 import pytest_mock
 from yarl import URL
 
@@ -5,6 +6,7 @@ import pybotters.auth
 from pybotters.request import ClientRequest
 
 
+@pytest.mark.asyncio
 async def test_request_without_auth(mocker: pytest_mock.MockerFixture):
     m_auth = mocker.MagicMock(side_effect=lambda args, kwargs: args)
     items = {
@@ -18,13 +20,14 @@ async def test_request_without_auth(mocker: pytest_mock.MockerFixture):
         URL('http://example.com'),
         params={'foo': 'bar'},
         session=m_sesison,
-        auth=None
+        auth=None,
     )
 
     assert req.url == URL('http://example.com?foo=bar')
     assert not m_auth.called
 
 
+@pytest.mark.asyncio
 async def test_request_with_auth(mocker: pytest_mock.MockerFixture):
     m_auth = mocker.MagicMock(side_effect=lambda args, kwargs: args)
     items = {
@@ -38,7 +41,7 @@ async def test_request_with_auth(mocker: pytest_mock.MockerFixture):
         URL('http://example.com'),
         params={'foo': 'bar'},
         session=m_sesison,
-        auth=pybotters.auth.Auth
+        auth=pybotters.auth.Auth,
     )
 
     assert req.url == URL('http://example.com?foo=bar')

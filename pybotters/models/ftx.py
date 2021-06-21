@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import Any, Awaitable, Dict, List
 
 import aiohttp
@@ -7,6 +8,8 @@ from ..auth import Auth
 from ..store import DataStore, DataStoreInterface
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
+
+logger = logging.getLogger(__name__)
 
 
 class FTXDataStore(DataStoreInterface):
@@ -28,13 +31,14 @@ class FTXDataStore(DataStoreInterface):
                 '/api/conditional_orders',
             ):
                 self.orders._onresponse(data['result'])
-            elif resp.url.path in (
-                '/api/positions',
-            ):
+            elif resp.url.path in ('/api/positions',):
                 self.positions._onresponse(data['result'])
                 self.positions._fetch = True
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+        if 'type' in msg:
+            if msg['type'] == 'error':
+                logger.warning(msg)
         if 'data' in msg:
             channel: str = msg['channel']
             market: str = msg['market'] if 'market' in msg else ''
@@ -114,7 +118,7 @@ class OrderBook(DataStore):
     _KEYS = ['market', 'side', 'price']
     _BDSIDE = {'sell': 'asks', 'buy': 'bids'}
 
-    def sorted(self, query: Item={}) -> Dict[str, List[float]]:
+    def sorted(self, query: Item = {}) -> Dict[str, List[float]]:
         result = {'asks': [], 'bids': []}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
@@ -130,7 +134,16 @@ class OrderBook(DataStore):
         for boardside, side in (('bids', 'buy'), ('asks', 'sell')):
             for item in data[boardside]:
                 if item[1]:
-                    self._update([{'market': market, 'side': side, 'price': item[0], 'size': item[1]}])
+                    self._update(
+                        [
+                            {
+                                'market': market,
+                                'side': side,
+                                'price': item[0],
+                                'size': item[1],
+                            }
+                        ]
+                    )
                 else:
                     self._delete([{'market': market, 'side': side, 'price': item[0]}])
 
@@ -164,8 +177,10 @@ class Positions(DataStore):
 
     def _onresponse(self, data: List[Item]) -> None:
         self._update(data)
-    
+
     async def _onfills(self, session: aiohttp.ClientSession) -> None:
-        async with session.get('https://ftx.com/api/positions?showAvgPrice=true', auth=Auth) as resp:
+        async with session.get(
+            'https://ftx.com/api/positions?showAvgPrice=true', auth=Auth
+        ) as resp:
             data = await resp.json()
         self._onresponse(data['result'])

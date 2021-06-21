@@ -1,6 +1,17 @@
 import asyncio
 import uuid
-from typing import Any, cast, Dict, Hashable, Iterator, List, Optional, Tuple, Type, TypeVar
+from typing import (
+    Any,
+    cast,
+    Dict,
+    Hashable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+)
 
 from .typedefs import Item
 from .ws import ClientWebSocketResponse
@@ -10,7 +21,7 @@ class DataStore:
     _KEYS = []
     _MAXLEN = 9999
 
-    def __init__(self, keys: List[str]=[], data: List[Item]=[]) -> None:
+    def __init__(self, keys: List[str] = [], data: List[Item] = []) -> None:
         self._data: Dict[uuid.UUID, Item] = {}
         self._index: Dict[int, uuid.UUID] = {}
         self._keys: Tuple[str, ...] = tuple(keys if keys else self._KEYS)
@@ -122,9 +133,13 @@ class DataStore:
                 if keyhash in self._index:
                     return self._data[self._index[keyhash]]
 
-    def find(self, query: Item={}) -> List[Item]:
+    def find(self, query: Item = {}) -> List[Item]:
         if query:
-            return [item for item in self if all(k in item and query[k] == item[k] for k in query)]
+            return [
+                item
+                for item in self
+                if all(k in item and query[k] == item[k] for k in query)
+            ]
         else:
             return list(self)
 
@@ -138,7 +153,9 @@ class DataStore:
         self._events.append(event)
         await event.wait()
 
+
 TDataStore = TypeVar('TDataStore', bound=DataStore)
+
 
 class DataStoreInterface:
     def __init__(self) -> None:
@@ -158,9 +175,9 @@ class DataStoreInterface:
         self,
         name: str,
         *,
-        keys: List[str]=[],
-        data: List[Item]=[],
-        datastore_class: Type[DataStore]=DataStore,
+        keys: List[str] = [],
+        data: List[Item] = [],
+        datastore_class: Type[DataStore] = DataStore,
     ) -> None:
         self._stores[name] = datastore_class(keys, data)
 

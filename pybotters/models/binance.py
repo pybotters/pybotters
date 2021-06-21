@@ -1,4 +1,5 @@
 import asyncio
+from collections import deque
 from typing import Any, Awaitable, Dict, List, Optional, Union
 
 import aiohttp
@@ -28,63 +29,53 @@ class BinanceDataStore(DataStoreInterface):
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
-            if resp.url.path in (
-                '/fapi/v1/depth',
-            ):
-                self.orderbook._onresponse(resp.url.query['symbol'], data)
-            elif resp.url.path in (
-                '/fapi/v2/balance',
-            ):
+            if resp.url.path in ('/fapi/v1/depth',):
+                if 'symbol' in resp.url.query:
+                    self.orderbook._onresponse(resp.url.query['symbol'], data)
+            elif resp.url.path in ('/fapi/v2/balance',):
                 self.balance._onresponse(data)
-            elif resp.url.path in (
-                '/fapi/v2/positionRisk',
-            ):
+            elif resp.url.path in ('/fapi/v2/positionRisk',):
                 self.position._onresponse(data)
-            elif resp.url.path in (
-                '/fapi/v1/openOrders',
-            ):
-                self.order._onresponse(data)
-            elif resp.url.path in (
-                '/fapi/v1/listenKey',
-            ):
+            elif resp.url.path in ('/fapi/v1/openOrders',):
+                symbol = (
+                    resp.url.query['symbol'] if 'symbol' in resp.url.query else None
+                )
+                self.order._onresponse(symbol, data)
+            elif resp.url.path in ('/fapi/v1/listenKey',):
                 self.listenkey = data['listenKey']
                 asyncio.create_task(self._listenkey(resp.__dict__['_raw_session']))
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
-        if 'stream' in msg:
-            data = msg['data']
-        else:
-            data = msg
-        event: str = data['e'] if not isinstance(data, list) else data[0]['e']
-        if event in ('trade', 'aggTrade'):
-            self.trade._onmessage(data)
-        elif event == 'markPriceUpdate':
-            self.markprice._onmessage(data)
-        elif event == 'bookTicker':
-            self.bookticker._onmessage(data)
-        elif event == 'kline':
-            self.kline._onmessage(data)
-        elif event == 'continuous_kline':
-            self.continuouskline._onmessage(data)
-        elif event in ('24hrMiniTicker', '24hrTicker'):
-            self.ticker._onmessage(data)
-        elif event == 'bookTicker':
-            self.bookticker._onmessage(data)
-        elif event == 'forceOrder':
-            self.liquidation._onmessage(data)
-        elif event == 'depthUpdate':
-            self.orderbook._onmessage(data)
-        elif event == 'ACCOUNT_UPDATE':
-            self.balance._onmessage(data)
-            self.position._onmessage(data)
-        elif event == 'ORDER_TRADE_UPDATE':
-            self.order._onmessage(data)
+        if 'result' not in msg:
+            data = msg['data'] if 'data' in msg else msg
+            event = data['e'] if isinstance(data, dict) else data[0]['e']
+            if event in ('trade', 'aggTrade'):
+                self.trade._onmessage(data)
+            elif event == 'markPriceUpdate':
+                self.markprice._onmessage(data)
+            elif event == 'kline':
+                self.kline._onmessage(data)
+            elif event == 'continuous_kline':
+                self.continuouskline._onmessage(data)
+            elif event in ('24hrMiniTicker', '24hrTicker'):
+                self.ticker._onmessage(data)
+            elif event == 'bookTicker':
+                self.bookticker._onmessage(data)
+            elif event == 'forceOrder':
+                self.liquidation._onmessage(data)
+            elif event == 'depthUpdate':
+                self.orderbook._onmessage(data)
+            elif event == 'ACCOUNT_UPDATE':
+                self.balance._onmessage(data)
+                self.position._onmessage(data)
+            elif event == 'ORDER_TRADE_UPDATE':
+                self.order._onmessage(data)
 
     @staticmethod
     async def _listenkey(session: aiohttp.ClientSession):
         while not session.closed:
             await session.put('https://fapi.binance.com/fapi/v1/listenKey', auth=Auth)
-            await asyncio.sleep(1800.0) # 30 minutes
+            await asyncio.sleep(1800.0)  # 30 minutes
 
     @property
     def trade(self) -> 'Trade':
@@ -188,7 +179,11 @@ class OrderBook(DataStore):
     _KEYS = ['s', 'S', 'p']
     _MAPSIDE = {'BUY': 'b', 'SELL': 'a'}
 
-    def sorted(self, query: Item={}) -> Dict[str, List[float]]:
+    def _init(self) -> None:
+        self.initialized = False
+        self._buff = deque(maxlen=200)
+
+    def sorted(self, query: Item = {}) -> Dict[str, List[float]]:
         result = {self._MAPSIDE[k]: [] for k in self._MAPSIDE}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
@@ -198,6 +193,8 @@ class OrderBook(DataStore):
         return result
 
     def _onmessage(self, item: Item) -> None:
+        if not self.initialized:
+            self._buff.append(item)
         for s, bs in self._MAPSIDE.items():
             for row in item[bs]:
                 if float(row[1]) != 0.0:
@@ -206,9 +203,15 @@ class OrderBook(DataStore):
                     self._delete([{'s': item['s'], 'S': s, 'p': row[0]}])
 
     def _onresponse(self, symbol: str, item: Item) -> None:
+        self.initialized = True
+        self._delete(self.find({'s': symbol}))
         for s, bs in (('BUY', 'bids'), ('SELL', 'asks')):
             for row in item[bs]:
-                self._update([{'s': symbol, 'S': s, 'p': row[0], 'q': row[1]}])
+                self._insert([{'s': symbol, 'S': s, 'p': row[0], 'q': row[1]}])
+        for msg in self._buff:
+            if msg['U'] <= item['lastUpdateId'] and msg['u'] >= item['lastUpdateId']:
+                self._onmessage(msg)
+        self._buff.clear()
 
 
 class Balance(DataStore):
@@ -218,14 +221,16 @@ class Balance(DataStore):
         self._update(item['a']['B'])
 
     def _onresponse(self, data: List[Item]) -> None:
-        data_short = []
         for item in data:
-            data_short.append({
-                'a': item['asset'],
-                'wb': item['balance'],
-                'cw': item['crossWalletBalance'],
-            })
-        self._update(data_short)
+            self._update(
+                [
+                    {
+                        'a': item['asset'],
+                        'wb': item['balance'],
+                        'cw': item['crossWalletBalance'],
+                    }
+                ]
+            )
 
 
 class Position(DataStore):
@@ -236,14 +241,18 @@ class Position(DataStore):
 
     def _onresponse(self, data: List[Item]) -> None:
         for item in data:
-            self._update([{
-                's': item['symbol'],
-                'pa': item['positionAmt'],
-                'ep': item['entryPrice'],
-                'mt': item['marginType'],
-                'iw': item['isolatedWallet'],
-                'ps': item['positionSide'],
-            }])
+            self._update(
+                [
+                    {
+                        's': item['symbol'],
+                        'pa': item['positionAmt'],
+                        'ep': item['entryPrice'],
+                        'mt': item['marginType'],
+                        'iw': item['isolatedWallet'],
+                        'ps': item['positionSide'],
+                    }
+                ]
+            )
 
 
 class Order(DataStore):
@@ -255,28 +264,34 @@ class Order(DataStore):
         else:
             self._delete([item['o']])
 
-    def _onresponse(self, data: List[Item]) -> None:
-        data_short = []
+    def _onresponse(self, symbol: Optional[str], data: List[Item]) -> None:
+        if symbol is not None:
+            self._delete(self.find({'symbol': symbol}))
+        else:
+            self._clear()
         for item in data:
-            data_short.append({
-                's': item['symbol'],
-                'c': item['clientOrderId'],
-                'S': item['side'],
-                'o': item['type'],
-                'f': item['timeInForce'],
-                'q': item['origQty'],
-                'p': item['price'],
-                'ap': item['avgPrice'],
-                'sp': item['stopPrice'],
-                'X': item['status'],
-                'i': item['orderId'],
-                'z': item['executedQty'],
-                'T': item['updateTime'],
-                'R': item['reduceOnly'],
-                'wt': item['workingType'],
-                'ot': item['origType'],
-                'ps': item['positionSide'],
-                'cp': item['closePosition'],
-                'pP': item['priceProtect'],
-            })
-        self._update(data_short)
+            self._insert(
+                [
+                    {
+                        's': item['symbol'],
+                        'c': item['clientOrderId'],
+                        'S': item['side'],
+                        'o': item['type'],
+                        'f': item['timeInForce'],
+                        'q': item['origQty'],
+                        'p': item['price'],
+                        'ap': item['avgPrice'],
+                        'sp': item['stopPrice'],
+                        'X': item['status'],
+                        'i': item['orderId'],
+                        'z': item['executedQty'],
+                        'T': item['updateTime'],
+                        'R': item['reduceOnly'],
+                        'wt': item['workingType'],
+                        'ot': item['origType'],
+                        'ps': item['positionSide'],
+                        'cp': item['closePosition'],
+                        'pP': item['priceProtect'],
+                    }
+                ]
+            )

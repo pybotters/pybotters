@@ -37,22 +37,24 @@ def test_ds():
     assert len(ds2._index) == 0
     assert len(ds2._keys) == 2
 
-    ds3 = pybotters.store.DataStore(data=[
-        {'foo': 'value1', 'bar': 'value1'}, {'foo': 'value2', 'bar': 'value2'}
-    ])
+    ds3 = pybotters.store.DataStore(
+        data=[{'foo': 'value1', 'bar': 'value1'}, {'foo': 'value2', 'bar': 'value2'}]
+    )
     assert len(ds3._data) == 2
     assert len(ds3._index) == 0
     assert len(ds3._keys) == 0
 
-    ds4 = pybotters.store.DataStore(keys=['foo', 'bar'], data=[
-        {'foo': 'value1', 'bar': 'value1'}, {'foo': 'value2', 'bar': 'value2'}
-    ])
+    ds4 = pybotters.store.DataStore(
+        keys=['foo', 'bar'],
+        data=[{'foo': 'value1', 'bar': 'value1'}, {'foo': 'value2', 'bar': 'value2'}],
+    )
     assert len(ds4._data) == 2
     assert len(ds4._index) == 2
     assert len(ds4._keys) == 2
 
     class DataStoreWithKeys(pybotters.store.DataStore):
         _KEYS = ['foo', 'bar']
+
     ds5 = DataStoreWithKeys()
     assert len(ds5._data) == 0
     assert len(ds5._index) == 0
@@ -222,6 +224,7 @@ async def test_wait():
     class DataStoreHasDummySet(pybotters.store.DataStore):
         async def _set(self) -> None:
             return super()._set()
+
     ds = DataStoreHasDummySet()
     t_wait = asyncio.create_task(ds.wait())
     t_set = asyncio.create_task(ds._set())

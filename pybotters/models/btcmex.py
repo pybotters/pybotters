@@ -1,12 +1,15 @@
-from typing import Any, Dict, List, Optional, Union
-
+import logging
 from ..store import DataStore, DataStoreInterface
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
+logger = logging.getLogger(__name__)
+
 
 class BTCMEXDataStore(DataStoreInterface):
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+        if 'error' in msg:
+            logger.warning(msg)
         if 'table' in msg:
             table = msg['table']
             if table == 'orderBookL2_25':
@@ -28,7 +31,13 @@ class BTCMEXDataStore(DataStoreInterface):
                     self[table]._delete(data)
             if table == 'order':
                 if 'order' in self:
-                    self['order']._delete([order for order in self['order'].find() if order['ordStatus'] in ('Filled', 'Canceled')])
+                    self['order']._delete(
+                        [
+                            order
+                            for order in self['order'].find()
+                            if order['ordStatus'] in ('Filled', 'Canceled')
+                        ]
+                    )
 
     @property
     def orderbook(self) -> DataStore:
