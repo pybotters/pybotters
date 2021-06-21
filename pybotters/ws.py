@@ -230,7 +230,6 @@ class HeartbeatHosts:
         'stream.bybit.com': Heartbeat.bybit,
         'stream.bytick.com': Heartbeat.bybit,
         'stream-testnet.bybit.com': Heartbeat.bybit,
-        'stream-testnet.bybit.com': Heartbeat.bybit,
         'tap.liquid.com': Heartbeat.liquid,
         'ftx.com': Heartbeat.ftx,
         'stream.binance.com': Heartbeat.binance,

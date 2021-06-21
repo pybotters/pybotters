@@ -115,7 +115,9 @@ def test_bybit_get(mock_session, mocker: pytest_mock.MockerFixture):
         URL('https://api.bybit.com/v2/private/order/list').with_query(
             {
                 'symbol': 'BTCUSD',
-                'cursor': 'w01XFyyZc8lhtCLl6NgAaYBRfsN9Qtpp1f2AUy3AS4+fFDzNSlVKa0od8DKCqgAn',
+                'cursor': (
+                    'w01XFyyZc8lhtCLl6NgAaYBRfsN9Qtpp1f2AUy3AS4+fFDzNSlVKa0od8DKCqgAn'
+                ),
             }
         ),
     )
@@ -126,7 +128,10 @@ def test_bybit_get(mock_session, mocker: pytest_mock.MockerFixture):
     expected_args = (
         'GET',
         URL(
-            'https://api.bybit.com/v2/private/order/list?symbol=BTCUSD&cursor=w01XFyyZc8lhtCLl6NgAaYBRfsN9Qtpp1f2AUy3AS4%2BfFDzNSlVKa0od8DKCqgAn&api_key=77SQfUG7X33JhYZ3Jswpx5To&timestamp=2085848895000&sign=885c1dcbbcb5a0edb5f6298e0aa40e23b7c6bc7f1acab600739962cfd7e7c0ac'
+            'https://api.bybit.com/v2/private/order/list?symbol=BTCUSD&cursor=w01XFyyZc'
+            '8lhtCLl6NgAaYBRfsN9Qtpp1f2AUy3AS4%2BfFDzNSlVKa0od8DKCqgAn&api_key=77SQfUG7'
+            'X33JhYZ3Jswpx5To&timestamp=2085848895000&sign=885c1dcbbcb5a0edb5f6298e0aa4'
+            '0e23b7c6bc7f1acab600739962cfd7e7c0ac'
         ),
     )
     expected_kwargs = {
@@ -165,7 +170,9 @@ def test_bybit_post(mock_session, mocker: pytest_mock.MockerFixture):
                 'symbol': 'BTCUSD',
                 'time_in_force': 'GoodTillCancel',
                 'timestamp': '2085848895000',
-                'sign': 'c377e178195d2e4b9316cf085e21e2881cc1b413c9a23873ea0c9d57d8e2b685',
+                'sign': (
+                    'c377e178195d2e4b9316cf085e21e2881cc1b413c9a23873ea0c9d57d8e2b685'
+                ),
             }
         )(),
         'session': mock_session,
@@ -188,7 +195,9 @@ def test_bybit_ws(mock_session, mocker: pytest_mock.MockerFixture):
     expected_args = (
         'GET',
         URL(
-            'wss://stream.bybit.com/realtime?api_key=77SQfUG7X33JhYZ3Jswpx5To&expires=2085848897000&signature=ea0eb717f560e0ad7a6104e3e9a6dd6ae8e3cdd96b43f0a449d35aff16e1fdf6'
+            'wss://stream.bybit.com/realtime?api_key=77SQfUG7X33JhYZ3Jswpx5To&expires=2'
+            '085848897000&signature=ea0eb717f560e0ad7a6104e3e9a6dd6ae8e3cdd96b43f0a449d'
+            '35aff16e1fdf6'
         ),
     )
     expected_kwargs = {
@@ -222,7 +231,9 @@ def test_btcmex_get(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'api-expires': '2085848901',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
-                'api-signature': '7547642ac62bdda8349dc38c247c8cf96ea1cb8bbfc317aacf6713d274c36928',
+                'api-signature': (
+                    '7547642ac62bdda8349dc38c247c8cf96ea1cb8bbfc317aacf6713d274c36928'
+                ),
             }
         ),
         'session': mock_session,
@@ -263,7 +274,9 @@ def test_btcmex_post(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'api-expires': '2085848901',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
-                'api-signature': '245198eb7d480a695feeb3c6cc349895578738e9358e508315b6649c05ef2b33',
+                'api-signature': (
+                    '245198eb7d480a695feeb3c6cc349895578738e9358e508315b6649c05ef2b33'
+                ),
             }
         ),
         'session': mock_session,
@@ -295,7 +308,9 @@ def test_btcmex_ws(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'api-expires': '2085848901',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
-                'api-signature': '125c388f8af1e5d93146064d8aada1ccf6dc80616a3057e67ca26f5970e393ac',
+                'api-signature': (
+                    '125c388f8af1e5d93146064d8aada1ccf6dc80616a3057e67ca26f5970e393ac'
+                ),
             }
         ),
         'session': mock_session,
@@ -324,7 +339,9 @@ def test_binance_get(mock_session, mocker: pytest_mock.MockerFixture):
     expected_args = (
         'GET',
         URL(
-            'https://dapi.binance.com/dapi/v1/order?symbol=BTCUSD_PERP&timestamp=2085848896000&signature=cfd48880dc0ceb003e5f009205a4ebd6415ddeb40addafd1c134528681d98ccf'
+            'https://dapi.binance.com/dapi/v1/order?symbol=BTCUSD_PERP&timestamp=208584'
+            '8896000&signature=cfd48880dc0ceb003e5f009205a4ebd6415ddeb40addafd1c1345286'
+            '81d98ccf'
         ),
     )
     expected_kwargs = {
@@ -363,7 +380,9 @@ def test_binance_post(mock_session, mocker: pytest_mock.MockerFixture):
                 'type': 'MARKET',
                 'quantity': 1,
                 'timestamp': '2085848896000',
-                'signature': 'ab855d04b87a8043830ca5dfabcded89012c69ed2ddeaaa1fc1dad54a82d1675',
+                'signature': (
+                    'ab855d04b87a8043830ca5dfabcded89012c69ed2ddeaaa1fc1dad54a82d1675'
+                ),
             }
         )(),
         'headers': CIMultiDict({'X-MBX-APIKEY': '9qm1u2s4GoHt9ryIm1D2fHV8'}),
@@ -375,12 +394,13 @@ def test_binance_post(mock_session, mocker: pytest_mock.MockerFixture):
     assert kwargs['headers'] == expected_kwargs['headers']
 
 
-def test_bybit_ws(mock_session, mocker: pytest_mock.MockerFixture):
+def test_binance_ws(mock_session, mocker: pytest_mock.MockerFixture):
     mocker.patch('time.time', return_value=2085848896.0)
     args = (
         'GET',
         URL(
-            'wss://dstream.binance.com/ws/pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1'
+            'wss://dstream.binance.com/ws/pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6'
+            'a81va65sdf19v8a65a1'
         ),
     )
     kwargs = {
@@ -391,7 +411,8 @@ def test_bybit_ws(mock_session, mocker: pytest_mock.MockerFixture):
     expected_args = (
         'GET',
         URL(
-            'wss://dstream.binance.com/ws/pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1'
+            'wss://dstream.binance.com/ws/pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6'
+            'a81va65sdf19v8a65a1'
         ),
     )
     expected_kwargs = {
@@ -424,7 +445,8 @@ def test_bitflyer_get(mock_session, mocker: pytest_mock.MockerFixture):
     expected_args = (
         'GET',
         URL(
-            'https://api.bitflyer.com/v1/me/getchildorders?product_code=FX_BTC_JPY&child_order_state=ACTIVE'
+            'https://api.bitflyer.com/v1/me/getchildorders?product_code=FX_BTC_JPY&chil'
+            'd_order_state=ACTIVE'
         ),
     )
     expected_kwargs = {
@@ -433,7 +455,9 @@ def test_bitflyer_get(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
                 'ACCESS-TIMESTAMP': '2085848896',
-                'ACCESS-SIGN': 'd264cf935540b434b7073e0341d0d43dc1450c4c1cbcc47024931486dbd5a785',
+                'ACCESS-SIGN': (
+                    'd264cf935540b434b7073e0341d0d43dc1450c4c1cbcc47024931486dbd5a785'
+                ),
             }
         ),
         'session': mock_session,
@@ -474,7 +498,9 @@ def test_bitflyer_post(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
                 'ACCESS-TIMESTAMP': '2085848896',
-                'ACCESS-SIGN': '6f7f1d1e348788362015d5b283fc97649a0f9173dc85fe7ba4668f4ab1a1f9a8',
+                'ACCESS-SIGN': (
+                    '6f7f1d1e348788362015d5b283fc97649a0f9173dc85fe7ba4668f4ab1a1f9a8'
+                ),
             }
         ),
         'session': mock_session,
@@ -505,7 +531,8 @@ def test_gmocoin_get(mock_session, mocker: pytest_mock.MockerFixture):
     expected_args = (
         'GET',
         URL(
-            'https://api.coin.z.com/private/v1/activeOrders?symbol=BTC_JPY&page=1&count=100'
+            'https://api.coin.z.com/private/v1/activeOrders?symbol=BTC_JPY&page=1&count'
+            '=100'
         ),
     )
     expected_kwargs = {
@@ -514,7 +541,9 @@ def test_gmocoin_get(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'API-KEY': 'GnHvwP7d5FbWdZinoI2hKBTR',
                 'API-TIMESTAMP': '2085848896000',
-                'API-SIGN': 'e6f0c55c381b08f0892daad0c5e27f69050dab787d98e45680802e340849978a',
+                'API-SIGN': (
+                    'e6f0c55c381b08f0892daad0c5e27f69050dab787d98e45680802e340849978a'
+                ),
             }
         ),
         'session': mock_session,
@@ -555,7 +584,9 @@ def test_gmocoin_post(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'API-KEY': 'GnHvwP7d5FbWdZinoI2hKBTR',
                 'API-TIMESTAMP': '2085848896000',
-                'API-SIGN': 'b6e96f0fe71993d29b50dc8a9a0bebe974fb38749e2ee7aed1e4abb845b063bf',
+                'API-SIGN': (
+                    'b6e96f0fe71993d29b50dc8a9a0bebe974fb38749e2ee7aed1e4abb845b063bf'
+                ),
             }
         ),
         'session': mock_session,
@@ -587,7 +618,11 @@ def test_liquid_get(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'X-Quoine-API-Version': '2',
-                'X-Quoine-Auth': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL29yZGVycz9pZD01Iiwibm9uY2UiOiIyMDg1ODQ4ODk2MDAwIiwidG9rZW5faWQiOiI1RGp6Z21RWFJrc1FOREJRNUcxck5JdjcifQ.Q8jvnnFafWJ_piQyB1GyEc1nxfil0uwnyjMvNV2icgA',
+                'X-Quoine-Auth': (
+                    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL29yZGVycz9pZD01I'
+                    'iwibm9uY2UiOiIyMDg1ODQ4ODk2MDAwIiwidG9rZW5faWQiOiI1RGp6Z21RWFJrc1F'
+                    'OREJRNUcxck5JdjcifQ.Q8jvnnFafWJ_piQyB1GyEc1nxfil0uwnyjMvNV2icgA'
+                ),
             }
         ),
         'session': mock_session,
@@ -627,7 +662,11 @@ def test_liquid_post(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'X-Quoine-API-Version': '2',
-                'X-Quoine-Auth': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL29yZGVycyIsIm5vbmNlIjoiMjA4NTg0ODg5NjAwMCIsInRva2VuX2lkIjoiNURqemdtUVhSa3NRTkRCUTVHMXJOSXY3In0.vS_l9BAKGTrROl2uVFlEP1SA4FaI9TL4JuRpLCyilG0',
+                'X-Quoine-Auth': (
+                    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL29yZGVycyIsIm5vb'
+                    'mNlIjoiMjA4NTg0ODg5NjAwMCIsInRva2VuX2lkIjoiNURqemdtUVhSa3NRTkRCUTV'
+                    'HMXJOSXY3In0.vS_l9BAKGTrROl2uVFlEP1SA4FaI9TL4JuRpLCyilG0'
+                ),
             }
         ),
         'session': mock_session,
@@ -663,7 +702,9 @@ def test_bitbank_get(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'ACCESS-KEY': 'l5HGaEzIC3KiMqbYwtAl1r48',
                 'ACCESS-NONCE': '2085848896',
-                'ACCESS-SIGNATURE': 'ad1de787eef27d0d3f594c33b13c6df90bef4926466d77386f39a8c951baf67a',
+                'ACCESS-SIGNATURE': (
+                    'ad1de787eef27d0d3f594c33b13c6df90bef4926466d77386f39a8c951baf67a'
+                ),
             }
         ),
         'session': mock_session,
@@ -704,7 +745,9 @@ def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'ACCESS-KEY': 'l5HGaEzIC3KiMqbYwtAl1r48',
                 'ACCESS-NONCE': '2085848896',
-                'ACCESS-SIGNATURE': '56cc247424153a185c53bd0c4d1614f2321b2a424c9db12ff4cd2f7b89361219',
+                'ACCESS-SIGNATURE': (
+                    '56cc247424153a185c53bd0c4d1614f2321b2a424c9db12ff4cd2f7b89361219'
+                ),
             }
         ),
         'session': mock_session,
@@ -736,7 +779,9 @@ def test_ftx_get(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'FTX-KEY': 'J6vXtiZunV4lsRWoLHNYNiCa',
-                'FTX-SIGN': '8905ce229394d1b4aa26ebb6a05476f33e5c9a553ed98f79d4b23b28e25cd18e',
+                'FTX-SIGN': (
+                    '8905ce229394d1b4aa26ebb6a05476f33e5c9a553ed98f79d4b23b28e25cd18e'
+                ),
                 'FTX-TS': '2085848896000',
             }
         ),
@@ -748,7 +793,7 @@ def test_ftx_get(mock_session, mocker: pytest_mock.MockerFixture):
     assert kwargs['headers'] == expected_kwargs['headers']
 
 
-def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
+def test_ftx_post(mock_session, mocker: pytest_mock.MockerFixture):
     mocker.patch('time.time', return_value=2085848896.0)
     args = (
         'POST',
@@ -777,7 +822,9 @@ def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'FTX-KEY': 'J6vXtiZunV4lsRWoLHNYNiCa',
-                'FTX-SIGN': '50d50ce69efc8e87bc8776511997544bdef4aad497c7506b26ac633f526363e3',
+                'FTX-SIGN': (
+                    '50d50ce69efc8e87bc8776511997544bdef4aad497c7506b26ac633f526363e3'
+                ),
                 'FTX-TS': '2085848896000',
             }
         ),
@@ -811,7 +858,9 @@ def test_bitmex_get(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'api-expires': '2085848901',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
-                'api-signature': '7547642ac62bdda8349dc38c247c8cf96ea1cb8bbfc317aacf6713d274c36928',
+                'api-signature': (
+                    '7547642ac62bdda8349dc38c247c8cf96ea1cb8bbfc317aacf6713d274c36928'
+                ),
             }
         ),
         'session': mock_session,
@@ -852,7 +901,9 @@ def test_bitmex_post(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'api-expires': '2085848901',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
-                'api-signature': '245198eb7d480a695feeb3c6cc349895578738e9358e508315b6649c05ef2b33',
+                'api-signature': (
+                    '245198eb7d480a695feeb3c6cc349895578738e9358e508315b6649c05ef2b33'
+                ),
             }
         ),
         'session': mock_session,
@@ -884,7 +935,9 @@ def test_bitmex_ws(mock_session, mocker: pytest_mock.MockerFixture):
             {
                 'api-expires': '2085848901',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
-                'api-signature': '8c3c2b72035229be2fbc5daa9a93b59a5e7dcbb96d26eeaa4a1e42d74425847b',
+                'api-signature': (
+                    '8c3c2b72035229be2fbc5daa9a93b59a5e7dcbb96d26eeaa4a1e42d74425847b'
+                ),
             }
         ),
         'session': mock_session,

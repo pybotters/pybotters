@@ -25,7 +25,7 @@ def test_wsresponse_without_heartbeat(mocker: pytest_mock.MockerFixture):
     m_response = MagicMock()
     m_response.url = URL('ws://not-example.com')
     m_response.__dict__['_auth'] = None
-    ws = pybotters.ws.ClientWebSocketResponse(
+    pybotters.ws.ClientWebSocketResponse(
         MagicMock(),
         MagicMock(),
         MagicMock(),
@@ -47,7 +47,7 @@ def test_wsresponse_with_heartbeat(mocker: pytest_mock.MockerFixture):
     m_response = MagicMock()
     m_response.url = URL('ws://example.com')
     m_response.__dict__['_auth'] = None
-    ws = pybotters.ws.ClientWebSocketResponse(
+    pybotters.ws.ClientWebSocketResponse(
         MagicMock(),
         MagicMock(),
         MagicMock(),
@@ -82,7 +82,7 @@ def test_wsresponse_without_auth(mocker: pytest_mock.MockerFixture):
     m_session = MagicMock()
     m_session.__dict__['_apis'] = {}
     m_response._session = m_session
-    ws = pybotters.ws.ClientWebSocketResponse(
+    pybotters.ws.ClientWebSocketResponse(
         MagicMock(),
         MagicMock(),
         MagicMock(),
@@ -107,7 +107,7 @@ def test_wsresponse_with_auth(mocker: pytest_mock.MockerFixture):
     m_session = MagicMock()
     m_session.__dict__['_apis'] = {'example': ('key', 'secret'.encode())}
     m_response._session = m_session
-    ws = pybotters.ws.ClientWebSocketResponse(
+    pybotters.ws.ClientWebSocketResponse(
         MagicMock(),
         MagicMock(),
         MagicMock(),
@@ -134,7 +134,9 @@ async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
                 'api_key': 'Pcm1rbtSRqKxTvirZDDOct1k',
                 'timestamp': 2085848896,
                 'nonce': 'd73b41172d6deca2285e8e58533db082',
-                'signature': '62781062bd2edd3ece50fa5adca3987869f7446ab7af0f47c9679d76a6cbeb73',
+                'signature': (
+                    '62781062bd2edd3ece50fa5adca3987869f7446ab7af0f47c9679d76a6cbeb73'
+                ),
             },
             'id': 'auth',
         }
@@ -168,7 +170,12 @@ async def test_liquid_ws(mocker: pytest_mock.MockerFixture):
             'data': {
                 'path': '/realtime',
                 'headers': {
-                    'X-Quoine-Auth': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL3JlYWx0aW1lIiwibm9uY2UiOiIyMDg1ODQ4ODk2MDAwIiwidG9rZW5faWQiOiI1RGp6Z21RWFJrc1FOREJRNUcxck5JdjcifQ.9BS3xGAJW_Ggr_0LzfH1TNf8LjFeXl95yGvn9A7sKm4'
+                    'X-Quoine-Auth': (
+                        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL3JlYWx0aW1lI'
+                        'iwibm9uY2UiOiIyMDg1ODQ4ODk2MDAwIiwidG9rZW5faWQiOiI1RGp6Z21RWFJ'
+                        'rc1FOREJRNUcxck5JdjcifQ.9BS3xGAJW_Ggr_0LzfH1TNf8LjFeXl95yGvn9A'
+                        '7sKm4'
+                    )
                 },
             },
         }
@@ -195,7 +202,9 @@ async def test_ftx_ws(mocker: pytest_mock.MockerFixture):
             'op': 'login',
             'args': {
                 'key': 'J6vXtiZunV4lsRWoLHNYNiCa',
-                'sign': 'b810f0085a627ea8cad1b2923d63ee05916166a464ab4f89e366abfc7f76a8ac',
+                'sign': (
+                    'b810f0085a627ea8cad1b2923d63ee05916166a464ab4f89e366abfc7f76a8ac'
+                ),
                 'time': 2085848896000,
             },
         }

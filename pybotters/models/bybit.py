@@ -277,14 +277,9 @@ class StopOrder(DataStore):
 
     def _onresponse(self, data: List[Item]) -> None:
         if isinstance(data, list):
-            self._clear()
             self._update(data)
         elif isinstance(data, dict):
             self._update([data])
-
-    def _onresponse(self, data: List[Item]) -> None:
-        self._clear()
-        self._update(data)
 
     def _onmessage(self, data: List[Item]) -> None:
         for item in data:

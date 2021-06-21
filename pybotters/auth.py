@@ -165,7 +165,6 @@ class Auth:
 
     @staticmethod
     def liquid(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
-        method: str = args[0]
         url: URL = args[1]
         data: Dict[str, Any] = kwargs['data'] or {}
         headers: CIMultiDict = kwargs['headers']
@@ -299,7 +298,6 @@ class Hosts:
         'vstream.binance.com': Item('binance', Auth.binance),
         'testnet.binancefuture.com': Item('binance_testnet', Auth.binance),
         'stream.binancefuture.com': Item('binance_testnet', Auth.binance),
-        'testnet.binancefuture.com': Item('binance_testnet', Auth.binance),
         'dstream.binancefuture.com': Item('binance_testnet', Auth.binance),
         'testnet.binanceops.com': Item('binance_testnet', Auth.binance),
         'testnetws.binanceops.com': Item('binance_testnet', Auth.binance),

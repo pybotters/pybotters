@@ -1,5 +1,3 @@
-from typing import Any, Dict, List, Optional, Union
-
 from ..store import DataStore, DataStoreInterface
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse

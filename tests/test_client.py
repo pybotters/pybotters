@@ -29,7 +29,10 @@ async def test_client():
 
 
 async def test_client_open(mocker: pytest_mock.MockerFixture):
-    read_data = '{"name1":["key1","secret1"],"name2":["key2","secret2"],"name3":["key3","secret3"]}'
+    read_data = (
+        '{"name1":["key1","secret1"],"name2":["key2","secret2"],"name3":["key3","secret'
+        '3"]}'
+    )
     m = mocker.patch('pybotters.client.open', mock_open(read_data=read_data))
     apis = '/path/to/apis.json'
     async with pybotters.Client(apis=apis) as client:
@@ -56,11 +59,11 @@ async def test_client_warn(mocker: pytest_mock.MockerFixture):
 
 
 async def test_client_open_error(mocker: pytest_mock.MockerFixture):
-    read_data = 'name1:\- key1\n- secret1'
-    m = mocker.patch('pybotters.client.open', mock_open(read_data=read_data))
+    read_data = r'name1:\- key1\n- secret1'
+    mocker.patch('pybotters.client.open', mock_open(read_data=read_data))
     apis = '/path/to/apis.json'
     with pytest.raises(json.JSONDecodeError):
-        async with pybotters.Client(apis=apis) as client:
+        async with pybotters.Client(apis=apis):
             pass
 
 
