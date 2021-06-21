@@ -1,3 +1,4 @@
+import sys
 from unittest.mock import MagicMock
 
 import pytest
@@ -156,8 +157,13 @@ async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
     ws.send_json.side_effect = dummy_send
     # ws.__aiter__.side_effect = dummy_generator
     # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
-    with pytest.raises(TypeError):
+    if sys.version_info.major == 3 and sys.version_info.minor == 7:
+        with pytest.raises(TypeError):
+            await pybotters.ws.Auth.bitflyer(ws)
+    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
         await pybotters.ws.Auth.bitflyer(ws)
+    else:
+        raise RuntimeError(f'Unsupported Python version: {sys.version}')
 
 
 @pytest.mark.asyncio

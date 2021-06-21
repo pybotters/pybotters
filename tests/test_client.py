@@ -67,6 +67,7 @@ async def test_client_open_error(mocker: pytest_mock.MockerFixture):
             pass
 
 
+@pytest.mark.asyncio
 async def test_client_request_get(mocker: pytest_mock.MockerFixture):
     patched = mocker.patch('aiohttp.client.ClientSession._request')
     async with pybotters.Client() as client:
@@ -75,6 +76,7 @@ async def test_client_request_get(mocker: pytest_mock.MockerFixture):
     assert isinstance(ret, aiohttp.client._RequestContextManager)
 
 
+@pytest.mark.asyncio
 async def test_client_request_post(mocker: pytest_mock.MockerFixture):
     patched = mocker.patch('aiohttp.client.ClientSession._request')
     async with pybotters.Client() as client:
@@ -83,6 +85,7 @@ async def test_client_request_post(mocker: pytest_mock.MockerFixture):
     assert isinstance(ret, aiohttp.client._RequestContextManager)
 
 
+@pytest.mark.asyncio
 async def test_client_get(mocker: pytest_mock.MockerFixture):
     patched = mocker.patch('aiohttp.client.ClientSession._request')
     async with pybotters.Client() as client:
@@ -91,6 +94,7 @@ async def test_client_get(mocker: pytest_mock.MockerFixture):
     assert isinstance(ret, aiohttp.client._RequestContextManager)
 
 
+@pytest.mark.asyncio
 async def test_client_post(mocker: pytest_mock.MockerFixture):
     patched = mocker.patch('aiohttp.client.ClientSession._request')
     async with pybotters.Client() as client:
@@ -99,6 +103,7 @@ async def test_client_post(mocker: pytest_mock.MockerFixture):
     assert isinstance(ret, aiohttp.client._RequestContextManager)
 
 
+@pytest.mark.asyncio
 async def test_client_put(mocker: pytest_mock.MockerFixture):
     patched = mocker.patch('aiohttp.client.ClientSession._request')
     async with pybotters.Client() as client:
@@ -107,6 +112,7 @@ async def test_client_put(mocker: pytest_mock.MockerFixture):
     assert isinstance(ret, aiohttp.client._RequestContextManager)
 
 
+@pytest.mark.asyncio
 async def test_client_delete(mocker: pytest_mock.MockerFixture):
     patched = mocker.patch('aiohttp.client.ClientSession._request')
     async with pybotters.Client() as client:
@@ -132,6 +138,7 @@ async def test_client_ws_connect_str(mocker: pytest_mock.MockerFixture):
     assert ret == task.return_value
 
 
+@pytest.mark.asyncio
 async def test_client_ws_connect_json(mocker: pytest_mock.MockerFixture):
     event = asyncio.Event()
     event.set()
