@@ -1,9 +1,9 @@
-name: pytest
+name: Python package
 
 on: [push, pull_request]
 
 jobs:
-  pytest:
+  build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
