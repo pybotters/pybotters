@@ -193,12 +193,13 @@ class Instrument(DataStore):
 
 
 class Kline(DataStore):
-    _KEYS = ['symbol', 'start']
+    _KEYS = ['symbol', 'period', 'start']
 
     def _onmessage(self, topic: str, data: List[Item]) -> None:
-        symbol = topic.split('.')[2]  # ex:'klineV2.1.BTCUSD'
+        topic_split = topic.split('.')  # ex:'klineV2.1.BTCUSD'
         for item in data:
-            item['symbol'] = symbol
+            item['symbol'] = topic_split[-1]
+            item['period'] = topic_split[-2]
         self._update(data)
 
 
