@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import Any, Awaitable, Dict, List
 
 import aiohttp
@@ -7,6 +8,8 @@ from ..auth import Auth
 from ..store import DataStore, DataStoreInterface
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
+
+logger = logging.getLogger(__name__)
 
 
 class FTXDataStore(DataStoreInterface):
@@ -33,6 +36,9 @@ class FTXDataStore(DataStoreInterface):
                 self.positions._fetch = True
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+        if 'type' in msg:
+            if msg['type'] == 'error':
+                logger.warning(msg)
         if 'data' in msg:
             channel: str = msg['channel']
             market: str = msg['market'] if 'market' in msg else ''

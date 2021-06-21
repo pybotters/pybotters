@@ -53,6 +53,9 @@ class BybitDataStore(DataStoreInterface):
                 self.wallet._onresponse(data['result'])
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+        if 'success' in msg:
+            if not msg['success']:
+                logger.warning(msg)
         if 'topic' in msg:
             topic: str = msg['topic']
             data: Any = msg['data']

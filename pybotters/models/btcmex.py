@@ -1,10 +1,15 @@
+import logging
 from ..store import DataStore, DataStoreInterface
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
+logger = logging.getLogger(__name__)
+
 
 class BTCMEXDataStore(DataStoreInterface):
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+        if 'error' in msg:
+            logger.warning(msg)
         if 'table' in msg:
             table = msg['table']
             if table == 'orderBookL2_25':
