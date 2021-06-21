@@ -25,3 +25,5 @@ jobs:
         run: poetry install
       - name: Run Tests
         run: poetry run pytest
+      - name: Run Linter
+        run: poetry run flake8
