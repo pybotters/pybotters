@@ -154,7 +154,11 @@ class Auth:
         path = '/' + '/'.join(url.parts[2:])
         body = JsonPayload(data) if data else FormData(data)()
         timestamp = str(int(time.time() * 1000))
-        text = f'{timestamp}{method}{path}'.encode() + body._value
+        # PUT and DELETE requests do not require payload inclusion
+        if method == "POST":
+            text = f"{timestamp}{method}{path}".encode() + body._value
+        else:
+            text = f"{timestamp}{method}{path}".encode()
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
         headers.update(
