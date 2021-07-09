@@ -99,6 +99,12 @@ class Heartbeat:
             await asyncio.sleep(30.0)
 
     @staticmethod
+    async def bitbank(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('2')
+            await asyncio.sleep(15.0)
+
+    @staticmethod
     async def liquid(ws: aiohttp.ClientWebSocketResponse):
         while not ws.closed:
             await ws.send_str('{"event":"pusher:ping","data":{}}')
@@ -227,6 +233,7 @@ class Item:
 class HeartbeatHosts:
     items = {
         'www.btcmex.com': Heartbeat.btcmex,
+        'stream.bitbank.cc': Heartbeat.bitbank,
         'stream.bybit.com': Heartbeat.bybit,
         'stream.bytick.com': Heartbeat.bybit,
         'stream-testnet.bybit.com': Heartbeat.bybit,
