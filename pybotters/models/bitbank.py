@@ -20,7 +20,7 @@ class bitbankDataStore(DataStoreInterface):
             data_json = json.loads(msg[2:])
             room_name=data_json[1]['room_name']
             data=data_json[1]['message']['data']
-            if 'transactions' in data:
+            if 'transactions' in room_name:
                 self.transactions._onmessage(room_name, data)
             elif 'depth' in room_name:
                 self.depth._onmessage(room_name, data)
