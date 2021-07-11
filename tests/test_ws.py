@@ -226,3 +226,43 @@ async def test_ftx_ws(mocker: pytest_mock.MockerFixture):
     }
     ws.send_json.side_effect = dummy_send
     await pybotters.ws.Auth.ftx(ws)
+
+
+@pytest.mark.asyncio
+async def test_phemex_ws(mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+
+    async def dummy_send(msg):
+        expected = {
+            'method': 'user.auth',
+            'params': [
+                'API',
+                '9kYxQXZ6PrR8h17lsVdDcpnJ',
+                '196f317edfa0662ec3d388099683b40a25607919ca3546b131108b9ee5cbed4a',
+                2085848956,
+            ],
+            'id': 123,
+        }
+        assert msg == expected
+
+    async def dummy_generator():
+        yield
+
+    ws = MagicMock()
+    ws._response.url.host = 'phemex.com'
+    ws._response._session.__dict__['_apis'] = {
+        'phemex': (
+            '9kYxQXZ6PrR8h17lsVdDcpnJ',
+            b'ZBAUiPBTQOjYgTihYnZMw2HFkTooufRnNY5iuahBPMspRYQJ',
+        ),
+    }
+    ws.send_json.side_effect = dummy_send
+    # ws.__aiter__.side_effect = dummy_generator
+    # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
+    if sys.version_info.major == 3 and sys.version_info.minor == 7:
+        with pytest.raises(TypeError):
+            await pybotters.ws.Auth.phemex(ws)
+    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
+        await pybotters.ws.Auth.phemex(ws)
+    else:
+        raise RuntimeError(f'Unsupported Python version: {sys.version}')

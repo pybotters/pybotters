@@ -35,15 +35,15 @@ An advanced api client for python botters.
 
 | Name | API auth | DataStore | API docs |
 | --- | --- | --- | --- |
-| Bybit | ✅ | ✅ | [LINK](https://bybit-exchange.github.io/docs/inverse) |
-| Binance | ✅ | ✅(USDⓈ-M) | [LINK](https://binance-docs.github.io/apidocs/spot/en/) |
-| FTX | ✅ | ✅ | [LINK](https://docs.ftx.com/) |
-| BTCMEX | ✅ | ✅ | [LINK](https://help.btcmex.com/hc/ja/articles/360035945452-API) |
-| BitMEX | ✅ | WIP | [LINK](https://www.bitmex.com/app/apiOverview) |
-| bitFlyer | ✅ | WIP | [LINK](https://lightning.bitflyer.com/docs) |
-| GMO Coin | ✅ | WIP | [LINK](https://api.coin.z.com/docs/) |
-| Liquid | ✅ | WIP | [LINK](https://document.liquid.com/) |
-| bitbank | ✅ | WIP | [LINK](https://docs.bitbank.cc/) |
+| Bybit | ✅ | ✅ | [Official](https://bybit-exchange.github.io/docs/inverse) |
+| Binance | ✅ | ✅(USDⓈ-M) | [Official](https://binance-docs.github.io/apidocs/spot/en/) |
+| FTX | ✅ | ✅ | [Official](https://docs.ftx.com/) |
+| BitMEX | ✅ | ✅ | [Official](https://www.bitmex.com/app/apiOverview) |
+| Phemex | ✅ | WIP | [Official](https://github.com/phemex/phemex-api-docs) |
+| bitFlyer | ✅ | WIP | [Official](https://lightning.bitflyer.com/docs) |
+| GMO Coin | ✅ | WIP | [Official](https://api.coin.z.com/docs/) |
+| Liquid | ✅ | WIP | [Official](https://document.liquid.com/) |
+| bitbank | ✅ | ✅ | [Official](https://docs.bitbank.cc/) |
 
 ## 🐍 Requires
 
@@ -93,15 +93,12 @@ except KeyboardInterrupt:
 ```python
 apis = {
     'bybit': ['BYBIT_API_KEY', 'BYBIT_API_SECRET'],
-    'btcmex': ['BTCMEX_API_KEY', 'BTCMEX_API_SECRET'],
     'binance': ['BINANCE_API_KEY', 'BINANCE_API_SECRET'],
 }
 
 async def main():
     async with pybotters.Client(apis=apis) as client:
         await client.post('https://api.bybit.com/v2/private/order/create', data={'symbol': 'BTCUSD', ...: ...})
-        ...
-        await client.post('https://www.btcmex.com/api/v1/order', data={'symbol': 'XBTUSD', ...: ...})
         ...
         await client.post('https://dapi.binance.com/dapi/v1/order', data={'symbol': 'BTCUSD_PERP', ...: ...})
         ...

@@ -37,7 +37,7 @@ async def ws_run_forever(
     iscorofunc_str = asyncio.iscoroutinefunction(hdlr_str)
     iscorofunc_json = asyncio.iscoroutinefunction(hdlr_json)
     while not session.closed:
-        separator = asyncio.create_task(asyncio.sleep(60.0))
+        cooldown = asyncio.create_task(asyncio.sleep(60.0))
         try:
             async with session.ws_connect(url, auth=auth, **kwargs) as ws:
                 event.set()
@@ -80,9 +80,9 @@ async def ws_run_forever(
                                     logger.error(repr(e))
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         break
-        except aiohttp.WSServerHandshakeError as e:
+        except (aiohttp.WSServerHandshakeError, aiohttp.ClientOSError) as e:
             logger.warning(repr(e))
-        await separator
+        await cooldown
 
 
 class Heartbeat:
@@ -93,10 +93,10 @@ class Heartbeat:
             await asyncio.sleep(30.0)
 
     @staticmethod
-    async def btcmex(ws: aiohttp.ClientWebSocketResponse):
+    async def bitbank(ws: aiohttp.ClientWebSocketResponse):
         while not ws.closed:
-            await ws.send_str('ping')
-            await asyncio.sleep(30.0)
+            await ws.send_str('2')
+            await asyncio.sleep(15.0)
 
     @staticmethod
     async def liquid(ws: aiohttp.ClientWebSocketResponse):
@@ -115,6 +115,12 @@ class Heartbeat:
         while not ws.closed:
             await ws.pong()
             await asyncio.sleep(60.0)
+
+    @staticmethod
+    async def phemex(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('{"method":"server.ping","params":[],"id":123}')
+            await asyncio.sleep(10.0)
 
 
 class Auth:
@@ -217,6 +223,33 @@ class Auth:
             ]
         await ws.send_json(msg)
 
+    @staticmethod
+    async def phemex(ws: aiohttp.ClientWebSocketResponse):
+        key: str = ws._response._session.__dict__['_apis'][
+            AuthHosts.items[ws._response.url.host].name
+        ][0]
+        secret: bytes = ws._response._session.__dict__['_apis'][
+            AuthHosts.items[ws._response.url.host].name
+        ][1]
+
+        expiry = int(time.time() + 60.0)
+        signature = hmac.new(
+            secret, f'{key}{expiry}'.encode(), digestmod=hashlib.sha256
+        ).hexdigest()
+        msg = {
+            'method': 'user.auth',
+            'params': ['API', key, signature, expiry],
+            'id': 123,
+        }
+        await ws.send_json(msg)
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                data = msg.json()
+                if data['result'] == {'status': 'success'}:
+                    break
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                break
+
 
 @dataclass
 class Item:
@@ -226,7 +259,7 @@ class Item:
 
 class HeartbeatHosts:
     items = {
-        'www.btcmex.com': Heartbeat.btcmex,
+        'stream.bitbank.cc': Heartbeat.bitbank,
         'stream.bybit.com': Heartbeat.bybit,
         'stream.bytick.com': Heartbeat.bybit,
         'stream-testnet.bybit.com': Heartbeat.bybit,
@@ -240,6 +273,8 @@ class HeartbeatHosts:
         'dstream.binancefuture.com': Heartbeat.binance,
         'testnet.binanceops.com': Heartbeat.binance,
         'testnetws.binanceops.com': Heartbeat.binance,
+        'phemex.com': Heartbeat.phemex,
+        'testnet.phemex.com': Heartbeat.phemex,
     }
 
 
@@ -248,6 +283,8 @@ class AuthHosts:
         'ws.lightstream.bitflyer.com': Item('bitflyer', Auth.bitflyer),
         'tap.liquid.com': Item('liquid', Auth.liquid),
         'ftx.com': Item('ftx', Auth.ftx),
+        'phemex.com': Item('phemex', Auth.phemex),
+        'testnet.phemex.com': Item('phemex_testnet', Auth.phemex),
     }
 
 

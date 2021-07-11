@@ -6,7 +6,7 @@ from ..ws import ClientWebSocketResponse
 logger = logging.getLogger(__name__)
 
 
-class BTCMEXDataStore(DataStoreInterface):
+class BitMEXDataStore(DataStoreInterface):
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if 'error' in msg:
             logger.warning(msg)
@@ -17,7 +17,7 @@ class BTCMEXDataStore(DataStoreInterface):
             action = msg['action']
             data = msg['data']
             if action == 'partial':
-                self.create(table, keys=msg['keys'], data=data)
+                self.create(table, keys=msg['keys'] if 'keys' in msg else [], data=data)
                 if table == 'trade':
                     self['trade']._MAXLEN = 99999
             elif action == 'insert':
@@ -40,53 +40,49 @@ class BTCMEXDataStore(DataStoreInterface):
                     )
 
     @property
-    def orderbook(self) -> DataStore:
-        return self.get('orderBookL2', DataStore)
-
-    @property
-    def trade(self) -> DataStore:
-        return self.get('trade', DataStore)
+    def funding(self) -> DataStore:
+        return self.get('funding', DataStore)
 
     @property
     def instrument(self) -> DataStore:
         return self.get('instrument', DataStore)
 
     @property
+    def insurance(self) -> DataStore:
+        return self.get('insurance', DataStore)
+
+    @property
     def liquidation(self) -> DataStore:
         return self.get('liquidation', DataStore)
+
+    @property
+    def orderbook(self) -> DataStore:
+        return self.get('orderBookL2', DataStore)
 
     @property
     def quote(self) -> DataStore:
         return self.get('quote', DataStore)
 
     @property
-    def order(self) -> DataStore:
-        return self.get('order', DataStore)
+    def trade(self) -> DataStore:
+        return self.get('trade', DataStore)
 
     @property
     def execution(self) -> DataStore:
         return self.get('execution', DataStore)
 
     @property
-    def position(self) -> DataStore:
-        return self.get('position', DataStore)
+    def order(self) -> DataStore:
+        return self.get('order', DataStore)
 
     @property
     def margin(self) -> DataStore:
         return self.get('margin', DataStore)
 
     @property
-    def positionparam(self) -> DataStore:
-        return self.get('positionParam', DataStore)
+    def position(self) -> DataStore:
+        return self.get('position', DataStore)
 
     @property
-    def clientrisklimit(self) -> DataStore:
-        return self.get('clientRiskLimit', DataStore)
-
-    @property
-    def fundsandbonus(self) -> DataStore:
-        return self.get('fundsAndBonus', DataStore)
-
-    @property
-    def positionautocloseinfo(self) -> DataStore:
-        return self.get('positionAutoCloseInfo', DataStore)
+    def wallet(self) -> DataStore:
+        return self.get('wallet', DataStore)

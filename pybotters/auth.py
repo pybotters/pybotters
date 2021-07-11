@@ -58,29 +58,6 @@ class Auth:
         return args
 
     @staticmethod
-    def btcmex(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
-        method: str = args[0]
-        url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
-        headers: CIMultiDict = kwargs['headers']
-
-        session: aiohttp.ClientSession = kwargs['session']
-        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
-        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
-
-        path = url.raw_path_qs if url.scheme == 'https' else '/api/v1/signature'
-        body = FormData(data)()
-        expires = str(int(time.time() + 5.0))
-        message = f'{method}{path}{expires}'.encode() + body._value
-        signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
-        kwargs.update({'data': body})
-        headers.update(
-            {'api-expires': expires, 'api-key': key, 'api-signature': signature}
-        )
-
-        return args
-
-    @staticmethod
     def binance(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
         method: str = args[0]
         url: URL = args[1]
@@ -154,7 +131,11 @@ class Auth:
         path = '/' + '/'.join(url.parts[2:])
         body = JsonPayload(data) if data else FormData(data)()
         timestamp = str(int(time.time() * 1000))
-        text = f'{timestamp}{method}{path}'.encode() + body._value
+        # PUT and DELETE requests do not require payload inclusion
+        if method == "POST":
+            text = f"{timestamp}{method}{path}".encode() + body._value
+        else:
+            text = f"{timestamp}{method}{path}".encode()
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
         headers.update(
@@ -269,6 +250,33 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def phemex(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+        url: URL = args[1]
+        data: Dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+
+        path = url.raw_path
+        query = url.query_string
+        body = JsonPayload(data) if data else FormData(data)()
+        expiry = str(int(time.time() + 60.0))
+        formula = f'{path}{query}{expiry}'.encode() + body._value
+        signature = hmac.new(secret, formula, hashlib.sha256).hexdigest()
+        kwargs.update({'data': body})
+        headers.update(
+            {
+                'x-phemex-access-token': key,
+                'x-phemex-request-expiry': expiry,
+                'x-phemex-request-signature': signature,
+            }
+        )
+
+        return args
+
 
 @dataclass
 class Item:
@@ -278,7 +286,6 @@ class Item:
 
 class Hosts:
     items = {
-        'www.btcmex.com': Item('btcmex', Auth.btcmex),
         'api.bybit.com': Item('bybit', Auth.bybit),
         'api.bytick.com': Item('bybit', Auth.bybit),
         'stream.bybit.com': Item('bybit', Auth.bybit),
@@ -308,4 +315,6 @@ class Hosts:
         'ftx.com': Item('ftx', Auth.ftx),
         'www.bitmex.com': Item('bitmex', Auth.bitmex),
         'testnet.bitmex.com': Item('bitmex_testnet', Auth.bitmex),
+        'api.phemex.com': Item('phemex', Auth.phemex),
+        'testnet-api.phemex.com': Item('phemex_testnet', Auth.phemex),
     }
