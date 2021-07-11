@@ -43,7 +43,7 @@ An advanced api client for python botters.
 | bitFlyer | ✅ | WIP | [Official](https://lightning.bitflyer.com/docs) |
 | GMO Coin | ✅ | WIP | [Official](https://api.coin.z.com/docs/) |
 | Liquid | ✅ | WIP | [Official](https://document.liquid.com/) |
-| bitbank | ✅ | WIP | [Official](https://docs.bitbank.cc/) |
+| bitbank | ✅ | ✅ | [Official](https://docs.bitbank.cc/) |
 
 ## 🐍 Requires
 
