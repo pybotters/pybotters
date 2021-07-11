@@ -15,7 +15,7 @@ class bitbankDataStore(DataStoreInterface):
         self.create('transactions', datastore_class=Transactions)
         self.create('depth', datastore_class=Depth)
 
-    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: str, ws: ClientWebSocketResponse) -> None:
         if msg.startswith('42'):
             data_json = json.loads(msg[2:])
             room_name=data_json[1]['room_name']
@@ -68,8 +68,7 @@ class Depth(DataStore):
 
         for boardside, side in tuples:
             for item in data[boardside]:
-                item=[int(item[0]), float(item[1])]
-                if item[1]:
+                if item[1]!='0':
                     self._update([{'pair': pair, 'side': side, 'price': item[0], 'size': item[1]}])
                 else:
                     self._delete([{'pair': pair, 'side': side, 'price': item[0]}])
