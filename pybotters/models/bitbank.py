@@ -71,6 +71,14 @@ class Depth(DataStore):
             for item in data[boardside]:
                 if item[1] != '0':
                     self._update(
-                        [{'pair': pair, 'side': side, 'price': item[0], 'size': item[1]}])
+                        [
+                            {
+                                'pair': pair,
+                                'side': side,
+                                'price': item[0],
+                                'size': item[1],
+                            }
+                        ]
+                    )
                 else:
                     self._delete([{'pair': pair, 'side': side, 'price': item[0]}])
