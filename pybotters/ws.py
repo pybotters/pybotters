@@ -37,7 +37,7 @@ async def ws_run_forever(
     iscorofunc_str = asyncio.iscoroutinefunction(hdlr_str)
     iscorofunc_json = asyncio.iscoroutinefunction(hdlr_json)
     while not session.closed:
-        separator = asyncio.create_task(asyncio.sleep(60.0))
+        cooldown = asyncio.create_task(asyncio.sleep(60.0))
         try:
             async with session.ws_connect(url, auth=auth, **kwargs) as ws:
                 event.set()
@@ -80,9 +80,9 @@ async def ws_run_forever(
                                     logger.error(repr(e))
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         break
-        except aiohttp.WSServerHandshakeError as e:
+        except (aiohttp.WSServerHandshakeError, aiohttp.ClientOSError) as e:
             logger.warning(repr(e))
-        await separator
+        await cooldown
 
 
 class Heartbeat:
