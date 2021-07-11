@@ -273,6 +273,33 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def phemex(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+        url: URL = args[1]
+        data: Dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+
+        path = url.raw_path
+        query = url.query_string
+        body = JsonPayload(data) if data else FormData(data)()
+        expiry = str(int(time.time() + 60.0))
+        formula = f'{path}{query}{expiry}'.encode() + body._value
+        signature = hmac.new(secret, formula, hashlib.sha256).hexdigest()
+        kwargs.update({'data': body})
+        headers.update(
+            {
+                'x-phemex-access-token': key,
+                'x-phemex-request-expiry': expiry,
+                'x-phemex-request-signature': signature,
+            }
+        )
+
+        return args
+
 
 @dataclass
 class Item:
@@ -312,4 +339,6 @@ class Hosts:
         'ftx.com': Item('ftx', Auth.ftx),
         'www.bitmex.com': Item('bitmex', Auth.bitmex),
         'testnet.bitmex.com': Item('bitmex_testnet', Auth.bitmex),
+        'api.phemex.com': Item('phemex', Auth.phemex),
+        'testnet-api.phemex.com': Item('phemex_testnet', Auth.phemex),
     }

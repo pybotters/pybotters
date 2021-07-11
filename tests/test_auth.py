@@ -80,6 +80,14 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             'fSvgi9a85yDFx3efr94tmJpH',
             b'1GGUedysKk2s2rMMWRmMe7uAp1mKAbORgR3rUSMe15I70P1A',
         ),
+        'phemex': (
+            '9kYxQXZ6PrR8h17lsVdDcpnJ',
+            b'ZBAUiPBTQOjYgTihYnZMw2HFkTooufRnNY5iuahBPMspRYQJ',
+        ),
+        'phemex_testnet': (
+            'v7827R5upBIWwLSV2udjBTWm',
+            b'rJixSEyllgmgtthIMcLSkQmUmOxLhix4S8I2a4zBQa0opQ7Y',
+        ),
     }
     assert set(apis.keys()) == set(
         item.name for item in pybotters.auth.Hosts.items.values()
@@ -943,6 +951,101 @@ def test_bitmex_ws(mock_session, mocker: pytest_mock.MockerFixture):
         'session': mock_session,
     }
     args = pybotters.auth.Auth.bitmex(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_phemex_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL(
+            'https://api.phemex.com/orders/activeList?ordStatus=New&ordStatus=Partially'
+            'Filled&ordStatus=Untriggered&symbol=BTCUSD'
+        ),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL(
+            'https://api.phemex.com/orders/activeList?ordStatus=New&ordStatus=Partially'
+            'Filled&ordStatus=Untriggered&symbol=BTCUSD'
+        ),
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict(
+            {
+                'x-phemex-access-token': '9kYxQXZ6PrR8h17lsVdDcpnJ',
+                'x-phemex-request-expiry': '2085848956',
+                'x-phemex-request-signature': (
+                    'abe7afcaaff085715ad26615b315007bdc4590390efcf5267b4317ce832ca6b5'
+                ),
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.phemex(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_phemex_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://api.phemex.com/orders'),
+    )
+    kwargs = {
+        'data': {
+            'symbol': 'BTCUSD',
+            'clOrdID': 'uuid-1573058952273',
+            'side': 'Sell',
+            'priceEp': 93185000,
+            'orderQty': 7,
+            'ordType': 'Limit',
+            'reduceOnly': False,
+            'timeInForce': 'GoodTillCancel',
+            'takeProfitEp': 0,
+            'stopLossEp': 0,
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = ('POST', URL('https://api.phemex.com/orders'))
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload(
+            {
+                'symbol': 'BTCUSD',
+                'clOrdID': 'uuid-1573058952273',
+                'side': 'Sell',
+                'priceEp': 93185000,
+                'orderQty': 7,
+                'ordType': 'Limit',
+                'reduceOnly': False,
+                'timeInForce': 'GoodTillCancel',
+                'takeProfitEp': 0,
+                'stopLossEp': 0,
+            }
+        ),
+        'headers': CIMultiDict(
+            {
+                'x-phemex-access-token': '9kYxQXZ6PrR8h17lsVdDcpnJ',
+                'x-phemex-request-expiry': '2085848956',
+                'x-phemex-request-signature': (
+                    '5a02dc2e10c613256eec342d1833229fa00e5c7f58e522c70fd7ee12613ce7d6'
+                ),
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.phemex(args, kwargs)
     assert args == expected_args
     assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']
