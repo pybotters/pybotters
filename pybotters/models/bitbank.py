@@ -1,9 +1,4 @@
-import asyncio
-from typing import Any, Awaitable, Dict, List
-
-import aiohttp
-
-from ..auth import Auth
+from typing import Dict, List
 from ..store import DataStore, DataStoreInterface
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse

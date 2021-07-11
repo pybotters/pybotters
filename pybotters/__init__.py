@@ -24,6 +24,7 @@ __all__: Tuple[str, ...] = (
     'BybitDataStore',
     'FTXDataStore',
     'BinanceDataStore',
+    'bitbankDataStore',
     'print',
     'print_handler',
 )
