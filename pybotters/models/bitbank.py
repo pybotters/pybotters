@@ -1,14 +1,16 @@
+import json
 from typing import Dict, List
+
 from ..store import DataStore, DataStoreInterface
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
-import json
 
 
 class bitbankDataStore(DataStoreInterface):
     def _init(self) -> None:
         self.create('transactions', datastore_class=Transactions)
         self.create('depth', datastore_class=Depth)
+        self.create('ticker', datastore_class=Ticker)
 
     def _onmessage(self, msg: str, ws: ClientWebSocketResponse) -> None:
         if msg.startswith('42'):
@@ -19,6 +21,8 @@ class bitbankDataStore(DataStoreInterface):
                 self.transactions._onmessage(room_name, data)
             elif 'depth' in room_name:
                 self.depth._onmessage(room_name, data)
+            elif 'ticker' in room_name:
+                self.ticker._onmessage(room_name, data)
 
     @property
     def transactions(self) -> 'Transactions':
@@ -27,6 +31,10 @@ class bitbankDataStore(DataStoreInterface):
     @property
     def depth(self) -> 'Depth':
         return self.get('depth', Depth)
+
+    @property
+    def ticker(self) -> 'Ticker':
+        return self.get('ticker', Ticker)
 
 
 class Transactions(DataStore):
@@ -77,3 +85,11 @@ class Depth(DataStore):
                     )
                 else:
                     self._delete([{'pair': pair, 'side': side, 'price': item[0]}])
+
+
+class Ticker(DataStore):
+    _KEYS = ['pair']
+
+    def _onmessage(self, room_name: str, item: Item) -> None:
+        pair = room_name.replace('ticker_', '')
+        self._insert([{'pair': pair, **item}])
