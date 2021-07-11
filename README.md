@@ -35,15 +35,16 @@ An advanced api client for python botters.
 
 | Name | API auth | DataStore | API docs |
 | --- | --- | --- | --- |
-| Bybit | ✅ | ✅ | [LINK](https://bybit-exchange.github.io/docs/inverse) |
-| Binance | ✅ | ✅(USDⓈ-M) | [LINK](https://binance-docs.github.io/apidocs/spot/en/) |
-| FTX | ✅ | ✅ | [LINK](https://docs.ftx.com/) |
-| BTCMEX | ✅ | ✅ | [LINK](https://help.btcmex.com/hc/ja/articles/360035945452-API) |
-| BitMEX | ✅ | WIP | [LINK](https://www.bitmex.com/app/apiOverview) |
-| bitFlyer | ✅ | WIP | [LINK](https://lightning.bitflyer.com/docs) |
-| GMO Coin | ✅ | WIP | [LINK](https://api.coin.z.com/docs/) |
-| Liquid | ✅ | WIP | [LINK](https://document.liquid.com/) |
-| bitbank | ✅ | WIP | [LINK](https://docs.bitbank.cc/) |
+| Bybit | ✅ | ✅ | [Official](https://bybit-exchange.github.io/docs/inverse) |
+| Binance | ✅ | ✅(USDⓈ-M) | [Official](https://binance-docs.github.io/apidocs/spot/en/) |
+| FTX | ✅ | ✅ | [Official](https://docs.ftx.com/) |
+| BTCMEX | ✅ | ✅ | [Official](https://help.btcmex.com/hc/ja/articles/360035945452-API) |
+| BitMEX | ✅ | WIP | [Official](https://www.bitmex.com/app/apiOverview) |
+| Phemex | ✅ | WIP | [Official](https://github.com/phemex/phemex-api-docs) |
+| bitFlyer | ✅ | WIP | [Official](https://lightning.bitflyer.com/docs) |
+| GMO Coin | ✅ | WIP | [Official](https://api.coin.z.com/docs/) |
+| Liquid | ✅ | WIP | [Official](https://document.liquid.com/) |
+| bitbank | ✅ | WIP | [Official](https://docs.bitbank.cc/) |
 
 ## 🐍 Requires
 
