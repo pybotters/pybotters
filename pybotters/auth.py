@@ -58,29 +58,6 @@ class Auth:
         return args
 
     @staticmethod
-    def btcmex(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
-        method: str = args[0]
-        url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
-        headers: CIMultiDict = kwargs['headers']
-
-        session: aiohttp.ClientSession = kwargs['session']
-        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
-        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
-
-        path = url.raw_path_qs if url.scheme == 'https' else '/api/v1/signature'
-        body = FormData(data)()
-        expires = str(int(time.time() + 5.0))
-        message = f'{method}{path}{expires}'.encode() + body._value
-        signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
-        kwargs.update({'data': body})
-        headers.update(
-            {'api-expires': expires, 'api-key': key, 'api-signature': signature}
-        )
-
-        return args
-
-    @staticmethod
     def binance(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
         method: str = args[0]
         url: URL = args[1]
@@ -309,7 +286,6 @@ class Item:
 
 class Hosts:
     items = {
-        'www.btcmex.com': Item('btcmex', Auth.btcmex),
         'api.bybit.com': Item('bybit', Auth.bybit),
         'api.bytick.com': Item('bybit', Auth.bybit),
         'stream.bybit.com': Item('bybit', Auth.bybit),

@@ -6,11 +6,11 @@ from aiohttp import hdrs
 from rich import print
 
 from .client import Client
-from .models.btcmex import BTCMEXDataStore
 from .models.bybit import BybitDataStore
 from .models.ftx import FTXDataStore
 from .models.binance import BinanceDataStore
 from .models.bitbank import bitbankDataStore
+from .models.bitmex import BitMEXDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
 
 __all__: Tuple[str, ...] = (
@@ -20,11 +20,11 @@ __all__: Tuple[str, ...] = (
     'post',
     'put',
     'delete',
-    'BTCMEXDataStore',
     'BybitDataStore',
     'FTXDataStore',
     'BinanceDataStore',
     'bitbankDataStore',
+    'BitMEXDataStore',
     'print',
     'print_handler',
 )

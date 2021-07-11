@@ -40,10 +40,6 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             'vDGsldGGevgVkG3ATH1PzBYd',
             b'fVp9Y9iZbkCb4JXyprq2ZbbDXupWz5V3H06REf2eJ53DyQju',
         ),
-        'btcmex': (
-            'fSvgi9a85yDFx3efr94tmJpH',
-            b'1GGUedysKk2s2rMMWRmMe7uAp1mKAbORgR3rUSMe15I70P1A',
-        ),
         'binance': (
             '9qm1u2s4GoHt9ryIm1D2fHV8',
             b'7pDOQJ49zyyDjrNGAvB31RcnAada8nkxkl2IWKop6b0E3tXh',
@@ -215,118 +211,6 @@ def test_bybit_ws(mock_session, mocker: pytest_mock.MockerFixture):
     args = pybotters.auth.Auth.bybit(args, kwargs)
     assert args == expected_args
     assert kwargs['data'] == expected_kwargs['data']
-
-
-def test_btcmex_get(mock_session, mocker: pytest_mock.MockerFixture):
-    mocker.patch('time.time', return_value=2085848896.0)
-    args = (
-        'GET',
-        URL('https://www.btcmex.com/api/v1/order').with_query(
-            {
-                'symbol': 'XBTUSD',
-            }
-        ),
-    )
-    kwargs = {
-        'data': None,
-        'headers': CIMultiDict(),
-        'session': mock_session,
-    }
-    expected_args = ('GET', URL('https://www.btcmex.com/api/v1/order?symbol=XBTUSD'))
-    expected_kwargs = {
-        'data': aiohttp.formdata.FormData({})(),
-        'headers': CIMultiDict(
-            {
-                'api-expires': '2085848901',
-                'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
-                'api-signature': (
-                    '7547642ac62bdda8349dc38c247c8cf96ea1cb8bbfc317aacf6713d274c36928'
-                ),
-            }
-        ),
-        'session': mock_session,
-    }
-    args = pybotters.auth.Auth.btcmex(args, kwargs)
-    assert args == expected_args
-    assert kwargs['data']._value == expected_kwargs['data']._value
-    assert kwargs['headers'] == expected_kwargs['headers']
-
-
-def test_btcmex_post(mock_session, mocker: pytest_mock.MockerFixture):
-    mocker.patch('time.time', return_value=2085848896.0)
-    args = (
-        'POST',
-        URL('https://www.btcmex.com/api/v1/order'),
-    )
-    kwargs = {
-        'data': {
-            'symbol': 'XBTUSD',
-            'side': 'Buy',
-            'orderQty': 100,
-            'ordType': 'Market',
-        },
-        'headers': CIMultiDict(),
-        'session': mock_session,
-    }
-    expected_args = ('POST', URL('https://www.btcmex.com/api/v1/order'))
-    expected_kwargs = {
-        'data': aiohttp.formdata.FormData(
-            {
-                'symbol': 'XBTUSD',
-                'side': 'Buy',
-                'orderQty': 100,
-                'ordType': 'Market',
-            }
-        )(),
-        'headers': CIMultiDict(
-            {
-                'api-expires': '2085848901',
-                'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
-                'api-signature': (
-                    '245198eb7d480a695feeb3c6cc349895578738e9358e508315b6649c05ef2b33'
-                ),
-            }
-        ),
-        'session': mock_session,
-    }
-    args = pybotters.auth.Auth.btcmex(args, kwargs)
-    assert args == expected_args
-    assert kwargs['data']._value == expected_kwargs['data']._value
-    assert kwargs['headers'] == expected_kwargs['headers']
-
-
-def test_btcmex_ws(mock_session, mocker: pytest_mock.MockerFixture):
-    mocker.patch('time.time', return_value=2085848896.0)
-    args = (
-        'GET',
-        URL('wss://www.btcmex.com/realtime'),
-    )
-    kwargs = {
-        'data': None,
-        'headers': CIMultiDict(),
-        'session': mock_session,
-    }
-    expected_args = (
-        'GET',
-        URL('wss://www.btcmex.com/realtime'),
-    )
-    expected_kwargs = {
-        'data': aiohttp.formdata.FormData({})(),
-        'headers': CIMultiDict(
-            {
-                'api-expires': '2085848901',
-                'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
-                'api-signature': (
-                    '125c388f8af1e5d93146064d8aada1ccf6dc80616a3057e67ca26f5970e393ac'
-                ),
-            }
-        ),
-        'session': mock_session,
-    }
-    args = pybotters.auth.Auth.btcmex(args, kwargs)
-    assert args == expected_args
-    assert kwargs['data']._value == expected_kwargs['data']._value
-    assert kwargs['headers'] == expected_kwargs['headers']
 
 
 def test_binance_get(mock_session, mocker: pytest_mock.MockerFixture):
