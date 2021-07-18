@@ -237,7 +237,7 @@ class Execution(TypedDict):
     timestamp: datetime
     loss_gain: int
     fee: int
-    # websocket only
+    # properties that only appears websocket message
     position_id: Optional[int]
     execution_type: Optional[ExecutionType]
     order_price: Optional[int]
@@ -261,7 +261,7 @@ class Order(TypedDict):
     executed_size: Decimal
     losscut_price: int
     time_in_force: TimeInForce
-    # websocket only
+    # properties that only appears websocket message
     cancel_type: Optional[CancelType]
 
 
