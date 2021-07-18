@@ -17,7 +17,6 @@ from typing import (
 import aiohttp
 from pybotters.store import DataStore, DataStoreInterface
 from pybotters.typedefs import Item
-from pybotters.ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
@@ -574,7 +573,7 @@ class GmoCoinDataStoreInterface(DataStoreInterface):
                     MessageHelper.to_position_summaries(data["data"]["list"])
                 )
 
-    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Item) -> None:
         if "channel" in msg:
             msg_type = MessageType[msg.get("msgType", MessageType.NONE.name)]
             channel: Channel = Channel.from_str(msg["channel"])
