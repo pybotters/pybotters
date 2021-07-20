@@ -133,6 +133,20 @@ class DataStore:
                 if keyhash in self._index:
                     return self._data[self._index[keyhash]]
 
+    def delete(self, item: Item) -> Optional[Item]:
+        if self._keys:
+            try:
+                keyitem = {k: item[k] for k in self._keys}
+            except KeyError:
+                pass
+            else:
+                keyhash = self._hash(keyitem)
+                if keyhash in self._index:
+                    ret = self._data[self._index[keyhash]]
+                    del self._data[self._index[keyhash]]
+                    del self._index[keyhash]
+                    return ret
+
     def find(self, query: Item = {}) -> List[Item]:
         if query:
             return [
