@@ -86,7 +86,7 @@ class DataStore:
             self._sweep_without_key()
         self._set()
 
-    def _delete(self, data: List[Item]) -> None:
+    def delete(self, data: List[Item]) -> None:
         if self._keys:
             for item in data:
                 try:

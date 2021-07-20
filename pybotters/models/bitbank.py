@@ -64,7 +64,7 @@ class Depth(DataStore):
         if 'whole' in room_name:
             pair = room_name.replace('depth_whole_', '')
             result = self.find({'pair': pair})
-            self._delete(result)
+            self.delete(result)
             tuples = (('bids', 'buy'), ('asks', 'sell'))
         else:
             pair = room_name.replace('depth_diff_', '')
@@ -84,7 +84,7 @@ class Depth(DataStore):
                         ]
                     )
                 else:
-                    self._delete([{'pair': pair, 'side': side, 'price': item[0]}])
+                    self.delete([{'pair': pair, 'side': side, 'price': item[0]}])
 
 
 class Ticker(DataStore):

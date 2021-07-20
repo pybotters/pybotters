@@ -130,7 +130,7 @@ class OrderBook(DataStore):
     def _onmessage(self, market: str, data: List[Item]) -> None:
         if data['action'] == 'partial':
             result = self.find({'market': market})
-            self._delete(result)
+            self.delete(result)
         for boardside, side in (('bids', 'buy'), ('asks', 'sell')):
             for item in data[boardside]:
                 if item[1]:
@@ -145,7 +145,7 @@ class OrderBook(DataStore):
                         ]
                     )
                 else:
-                    self._delete([{'market': market, 'side': side, 'price': item[0]}])
+                    self.delete([{'market': market, 'side': side, 'price': item[0]}])
 
 
 class Fills(DataStore):
@@ -159,14 +159,14 @@ class Orders(DataStore):
     def _onresponse(self, data: List[Item]) -> None:
         if data:
             results = self.find({'market': data[0]['market']})
-            self._delete(results)
+            self.delete(results)
             self._update(data)
 
     def _onmessage(self, item: Item) -> None:
         if item['status'] != 'closed':
             self._update([item])
         else:
-            self._delete([item])
+            self.delete([item])
 
 
 class Positions(DataStore):

@@ -28,10 +28,10 @@ class BitMEXDataStore(DataStoreInterface):
                     self[table]._update(data)
             elif action == 'delete':
                 if table in self:
-                    self[table]._delete(data)
+                    self[table].delete(data)
             if table == 'order':
                 if 'order' in self:
-                    self['order']._delete(
+                    self['order'].delete(
                         [
                             order
                             for order in self['order'].find()
