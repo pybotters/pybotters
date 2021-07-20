@@ -200,11 +200,11 @@ class OrderBook(DataStore):
                 if float(row[1]) != 0.0:
                     self._update([{'s': item['s'], 'S': s, 'p': row[0], 'q': row[1]}])
                 else:
-                    self.delete([{'s': item['s'], 'S': s, 'p': row[0]}])
+                    self._delete([{'s': item['s'], 'S': s, 'p': row[0]}])
 
     def _onresponse(self, symbol: str, item: Item) -> None:
         self.initialized = True
-        self.delete(self.find({'s': symbol}))
+        self._delete(self.find({'s': symbol}))
         for s, bs in (('BUY', 'bids'), ('SELL', 'asks')):
             for row in item[bs]:
                 self._insert([{'s': symbol, 'S': s, 'p': row[0], 'q': row[1]}])
@@ -262,11 +262,11 @@ class Order(DataStore):
         if item['o']['X'] not in ('FILLED', 'CANCELED', 'EXPIRED'):
             self._update([item['o']])
         else:
-            self.delete([item['o']])
+            self._delete([item['o']])
 
     def _onresponse(self, symbol: Optional[str], data: List[Item]) -> None:
         if symbol is not None:
-            self.delete(self.find({'symbol': symbol}))
+            self._delete(self.find({'symbol': symbol}))
         else:
             self._clear()
         for item in data:

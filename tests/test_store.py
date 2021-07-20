@@ -146,17 +146,17 @@ def test_delete():
     invalid = [{'invalid': f'data{i}'} for i in range(1000, 2000)]
 
     ds1 = pybotters.store.DataStore(keys=['foo'], data=data)
-    ds1.delete(data)
+    ds1._delete(data)
     assert len(ds1._data) == 0
     assert len(ds1._index) == 0
 
     ds2 = pybotters.store.DataStore(keys=['foo'], data=data)
-    ds2.delete(nodata)
+    ds2._delete(nodata)
     assert len(ds2._data) == 1000
     assert len(ds2._index) == 1000
 
     ds3 = pybotters.store.DataStore(keys=['foo'], data=data)
-    ds3.delete(invalid)
+    ds3._delete(invalid)
     assert len(ds3._data) == 1000
     assert len(ds3._index) == 1000
 

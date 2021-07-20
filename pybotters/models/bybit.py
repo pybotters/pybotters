@@ -157,12 +157,12 @@ class OrderBook(DataStore):
         if type_ == 'snapshot':
             symbol = topic.split('.')[-1]  # ex: 'orderBookL2_25.BTCUSD'
             result = self.find({'symbol': symbol})
-            self.delete(result)
+            self._delete(result)
             if isinstance(data, dict):
                 data = data['order_book']
             self._insert(data)
         elif type_ == 'delta':
-            self.delete(data['delete'])
+            self._delete(data['delete'])
             self._update(data['update'])
             self._insert(data['insert'])
 
@@ -189,7 +189,7 @@ class Instrument(DataStore):
         if type_ == 'snapshot':
             symbol = topic.split('.')[-1]  # ex: 'instrument_info.100ms.BTCUSD'
             result = self.find({'symbol': symbol})
-            self.delete(result)
+            self._delete(result)
             self._insert([data])
         elif type_ == 'delta':
             self._update(data['update'])
@@ -273,7 +273,7 @@ class Order(DataStore):
             if item['order_status'] in ('Created', 'New', 'PartiallyFilled'):
                 self._update([item])
             else:
-                self.delete([item])
+                self._delete([item])
 
 
 class StopOrder(DataStore):
@@ -294,7 +294,7 @@ class StopOrder(DataStore):
             if item['stop_order_status'] in ('Active', 'Untriggered'):
                 self._update([item])
             else:
-                self.delete([item])
+                self._delete([item])
 
 
 class Wallet(DataStore):
