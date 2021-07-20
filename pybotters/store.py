@@ -143,6 +143,16 @@ class DataStore:
         else:
             return list(self)
 
+    def findel(self, query: Item = {}) -> List[Item]:
+        if query:
+            return [
+                item
+                for item in self
+                if all(k in item and query[k] == item[k] for k in query)
+            ]
+        else:
+            return list(self)
+
     def _set(self) -> None:
         for event in self._events:
             event.set()
