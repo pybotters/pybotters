@@ -150,7 +150,7 @@ class DataStore:
                 for item in self
                 if all(k in item and query[k] == item[k] for k in query)
             ]
-            self.delete(ret)
+            self._delete(ret)
             return ret
         else:
             ret = list(self)
