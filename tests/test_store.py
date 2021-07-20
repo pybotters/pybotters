@@ -161,6 +161,20 @@ def test_delete():
     assert len(ds3._index) == 1000
 
 
+def test_findel():
+    data = [{'foo': f'bar{i}', 'iseven': (i % 2) == 0} for i in range(1000)]
+
+    ds1 = pybotters.store.DataStore(keys=['foo'], data=data)
+    ds1.findel({'iseven': True})
+    assert len(ds1._data) == 500
+    assert len(ds1._index) == 500
+
+    ds2 = pybotters.store.DataStore(keys=['foo'], data=data)
+    ds2.findel({'iseven': False})
+    assert len(ds2._data) == 500
+    assert len(ds2._index) == 500
+
+
 def test_clear():
     data = [{'foo': f'bar{i}'} for i in range(1000)]
     ds = pybotters.store.DataStore(keys=['foo'], data=data)
