@@ -140,7 +140,7 @@ def test_update():
     assert len(ds4._index) == 0
 
 
-def test_delete():
+def test__delete():
     data = [{'foo': f'bar{i}'} for i in range(1000)]
     nodata = [{'foo': f'bar{i}'} for i in range(1000, 2000)]
     invalid = [{'invalid': f'data{i}'} for i in range(1000, 2000)]
@@ -159,6 +159,18 @@ def test_delete():
     ds3._delete(invalid)
     assert len(ds3._data) == 1000
     assert len(ds3._index) == 1000
+
+
+def test_delete():
+    data = [{'foo': f'bar{i}'} for i in range(1000)]
+
+    ds1 = pybotters.store.DataStore(keys=['foo'], data=data)
+    assert ds1.delete({'foo': 'bar500'}) == {'foo': 'bar500'}
+    assert ds1.get({'foo': 'bar500'}) is None
+    assert ds1.delete({'foo': 'bar9999'}) is None
+
+    ds2 = pybotters.store.DataStore(data=data)
+    assert ds2.delete({'foo': 'bar500'}) is None
 
 
 def test_findel():
