@@ -167,11 +167,13 @@ def test_findel():
     ds1 = pybotters.store.DataStore(keys=['foo'], data=data)
     ds1.findel({'iseven': True})
     assert len(ds1._data) == 500
+    assert all(map(lambda record: not record['iseven'], ds1._data.values()))
     assert len(ds1._index) == 500
 
     ds2 = pybotters.store.DataStore(keys=['foo'], data=data)
     ds2.findel({'iseven': False})
     assert len(ds2._data) == 500
+    assert all(map(lambda record: record['iseven'], ds2._data.values()))
     assert len(ds2._index) == 500
 
 
