@@ -246,14 +246,14 @@ async def test_wait_insert():
     data = [{'dummy': 'data'}]
     ret = {}
 
-    class DataStoreHasDummySet(pybotters.store.DataStore):
+    class DataStoreHasDummyInsert(pybotters.store.DataStore):
         async def _insert(self, data) -> None:
             return super()._insert(data)
 
     async def wait_func(ds):
         ret['val'] = await ds.wait()
 
-    ds1 = DataStoreHasDummySet()
+    ds1 = DataStoreHasDummyInsert()
     t_wait1 = asyncio.create_task(wait_func(ds1))
     t_set1 = asyncio.create_task(ds1._insert(data))
     await asyncio.wait_for(t_wait1, timeout=5.0)
@@ -266,14 +266,14 @@ async def test_wait_update():
     data = [{'dummy': 'data'}]
     ret = {}
 
-    class DataStoreHasDummySet(pybotters.store.DataStore):
+    class DataStoreHasDummyUpdate(pybotters.store.DataStore):
         async def _update(self, data) -> None:
             return super()._update(data)
 
     async def wait_func(ds):
         ret['val'] = await ds.wait()
 
-    ds2 = DataStoreHasDummySet()
+    ds2 = DataStoreHasDummyUpdate()
     t_wait2 = asyncio.create_task(wait_func(ds2))
     t_set2 = asyncio.create_task(ds2._update(data))
     await asyncio.wait_for(t_wait2, timeout=5.0)
@@ -286,14 +286,14 @@ async def test_wait_delete():
     data = [{'dummy': 'data'}]
     ret = {}
 
-    class DataStoreHasDummySet(pybotters.store.DataStore):
+    class DataStoreHasDummyDelete(pybotters.store.DataStore):
         async def _delete(self, data) -> None:
             return super()._delete(data)
 
     async def wait_func(ds):
         ret['val'] = await ds.wait()
 
-    ds3 = DataStoreHasDummySet()
+    ds3 = DataStoreHasDummyDelete()
     t_wait3 = asyncio.create_task(wait_func(ds3))
     t_set3 = asyncio.create_task(ds3._delete(data))
     await asyncio.wait_for(t_wait3, timeout=5.0)
