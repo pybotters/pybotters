@@ -223,12 +223,19 @@ def test_set():
 
 @pytest.mark.asyncio
 async def test_wait():
+    data = [{'dummy': 'data'}]
+    ret = {}
+
     class DataStoreHasDummySet(pybotters.store.DataStore):
-        async def _set(self) -> None:
-            return super()._set()
+        async def _set(self, data=None) -> None:
+            return super()._set(data)
+
+    async def wait_func():
+        ret['val'] = await ds.wait()
 
     ds = DataStoreHasDummySet()
-    t_wait = asyncio.create_task(ds.wait())
-    t_set = asyncio.create_task(ds._set())
+    t_wait = asyncio.create_task(wait_func())
+    t_set = asyncio.create_task(ds._set(data))
     await asyncio.wait_for(t_wait, timeout=5.0)
     assert t_set.done()
+    assert data == ret['val']
