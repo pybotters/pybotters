@@ -158,7 +158,8 @@ class DataStore:
         self._events.append(event)
         await event.wait()
         try:
-            _, ret = self._events_return.popitem(event)
+            ret = self._events_return[event]
+            del self._events_return[event]
         except KeyError:
             ret = None
         return ret
