@@ -261,6 +261,7 @@ async def test_wait_insert():
     assert data == ret['val']
 
 
+@pytest.mark.asyncio
 async def test_wait_update():
     data = [{'dummy': 'data'}]
     ret = {}
@@ -280,6 +281,7 @@ async def test_wait_update():
     assert data == ret['val']
 
 
+@pytest.mark.asyncio
 async def test_wait_delete():
     data = [{'dummy': 'data'}]
     ret = {}
