@@ -147,13 +147,13 @@ class DataStore:
         else:
             return list(self)
 
-    def _set(self, data=None) -> None:
+    def _set(self, data: List[Item] = None) -> None:
         for event in self._events:
             event.set()
             self._events_return[event] = data
         self._events.clear()
 
-    async def wait(self) -> None:
+    async def wait(self) -> List[Item]:
         event = asyncio.Event()
         self._events.append(event)
         await event.wait()
