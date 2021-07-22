@@ -26,6 +26,7 @@ class DataStore:
         self._index: Dict[int, uuid.UUID] = {}
         self._keys: Tuple[str, ...] = tuple(keys if keys else self._KEYS)
         self._events: List[asyncio.Event] = []
+        self._events_return: Dict[asyncio.Event, List[Item]] = {}
         self._insert(data)
         if hasattr(self, '_init'):
             getattr(self, '_init')()
@@ -61,7 +62,8 @@ class DataStore:
                 _id = uuid.uuid4()
                 self._data[_id] = item
             self._sweep_without_key()
-        self._set()
+        # !TODO! This behaviour might be undesirable.
+        self._set(data)
 
     def _update(self, data: List[Item]) -> None:
         if self._keys:
@@ -84,7 +86,8 @@ class DataStore:
                 _id = uuid.uuid4()
                 self._data[_id] = item
             self._sweep_without_key()
-        self._set()
+        # !TODO! This behaviour might be undesirable.
+        self._set(data)
 
     def _delete(self, data: List[Item]) -> None:
         if self._keys:
@@ -98,7 +101,8 @@ class DataStore:
                     if keyhash in self._index:
                         del self._data[self._index[keyhash]]
                         del self._index[keyhash]
-        self._set()
+        # !TODO! This behaviour might be undesirable.
+        self._set(data)
 
     def _clear(self) -> None:
         self._data.clear()
@@ -143,15 +147,21 @@ class DataStore:
         else:
             return list(self)
 
-    def _set(self) -> None:
+    def _set(self, data=None) -> None:
         for event in self._events:
             event.set()
+            self._events_return[event] = data
         self._events.clear()
 
     async def wait(self) -> None:
         event = asyncio.Event()
         self._events.append(event)
         await event.wait()
+        try:
+            _, ret = self._events_return.popitem(event)
+        except KeyError:
+            ret = None
+        return ret
 
 
 TDataStore = TypeVar('TDataStore', bound=DataStore)
