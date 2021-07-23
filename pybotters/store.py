@@ -25,8 +25,7 @@ class DataStore:
         self._data: Dict[uuid.UUID, Item] = {}
         self._index: Dict[int, uuid.UUID] = {}
         self._keys: Tuple[str, ...] = tuple(keys if keys else self._KEYS)
-        self._events: List[asyncio.Event] = []
-        self._events_return: Dict[asyncio.Event, List[Item]] = {}
+        self._events: Dict[asyncio.Event, List[Item]] = {}
         self._insert(data)
         if hasattr(self, '_init'):
             getattr(self, '_init')()
@@ -150,18 +149,14 @@ class DataStore:
     def _set(self, data: List[Item] = None) -> None:
         for event in self._events:
             event.set()
-            self._events_return[event] = data
-        self._events.clear()
+            self._events[event].extend(data)
 
     async def wait(self) -> List[Item]:
         event = asyncio.Event()
-        self._events.append(event)
+        ret = []
+        self._events[event] = ret
         await event.wait()
-        try:
-            ret = self._events_return[event]
-            del self._events_return[event]
-        except KeyError:
-            ret = None
+        del self._events[event]
         return ret
 
 
