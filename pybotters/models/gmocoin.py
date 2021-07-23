@@ -9,9 +9,9 @@ from typing import (
     Dict,
     List,
     Optional,
-    TypedDict,
     cast,
 )
+from typing_extensions import TypedDict
 
 import aiohttp
 from pybotters.store import DataStore, DataStoreInterface
