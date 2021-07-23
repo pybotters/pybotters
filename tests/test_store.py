@@ -212,13 +212,12 @@ def test__iter__():
 
 def test_set():
     ds = pybotters.store.DataStore()
-    events = [asyncio.Event(), asyncio.Event(), asyncio.Event()]
-    ds._events.extend(events)
-    data = [{'dummy': 'data'}]
+    event = asyncio.Event()
+    ds._events[event] = []
+    data = [{'dummy1': 'data1'}, {'dummy2': 'data2'}, {'dummy3': 'data3'}]
     ds._set(data)
-    assert all(e.is_set() for e in events)
-    assert not len(ds._events)
-    assert all(ds._events_return[e] == data for e in events)
+    assert all(e.is_set() for e in ds._events)
+    assert ds._events[event] == data
 
 
 @pytest.mark.asyncio
