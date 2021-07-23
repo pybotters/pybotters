@@ -11,11 +11,17 @@ from typing import (
     Optional,
     cast,
 )
-from typing_extensions import TypedDict
 
 import aiohttp
 from pybotters.store import DataStore, DataStoreInterface
 from pybotters.typedefs import Item
+
+from ..ws import ClientWebSocketResponse
+
+try:
+    from typing import TypedDict
+except ImportError:
+    from typing_extensions import TypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -187,11 +193,11 @@ class CancelType(Enum):
 
 
 class Ticker(TypedDict):
-    ask: int
-    bid: int
-    high: int
-    last: int
-    low: int
+    ask: Decimal
+    bid: Decimal
+    high: Decimal
+    last: Decimal
+    low: Decimal
     symbol: Symbol
     timestamp: datetime
     volume: Decimal
@@ -200,7 +206,7 @@ class Ticker(TypedDict):
 class OrderLevel(TypedDict):
     symbol: Symbol
     side: OrderSide
-    price: int
+    price: Decimal
     size: Decimal
 
 
@@ -212,7 +218,7 @@ class OrderBook(TypedDict):
 
 
 class Trade(TypedDict):
-    price: int
+    price: Decimal
     side: OrderSide
     size: Decimal
     timestamp: datetime
@@ -226,14 +232,14 @@ class Execution(TypedDict):
     side: OrderSide
     settle_type: SettleType
     size: Decimal
-    price: int
+    price: Decimal
     timestamp: datetime
-    loss_gain: int
-    fee: int
+    loss_gain: Decimal
+    fee: Decimal
     # properties that only appears websocket message
     position_id: Optional[int]
     execution_type: Optional[ExecutionType]
-    order_price: Optional[int]
+    order_price: Optional[Decimal]
     order_size: Optional[Decimal]
     order_executed_size: Optional[Decimal]
     order_timestamp: Optional[datetime]
@@ -248,10 +254,10 @@ class Order(TypedDict):
     side: OrderSide
     order_status: OrderStatus
     order_timestamp: datetime
-    price: int
+    price: Decimal
     size: Decimal
     executed_size: Decimal
-    losscut_price: int
+    losscut_price: Decimal
     time_in_force: TimeInForce
     # properties that only appears websocket message
     cancel_type: Optional[CancelType]
@@ -263,18 +269,18 @@ class Position(TypedDict):
     side: OrderSide
     size: Decimal
     orderd_size: Decimal
-    price: int
-    loss_gain: int
+    price: Decimal
+    loss_gain: Decimal
     leverage: Decimal
-    losscut_price: int
+    losscut_price: Decimal
     timestamp: datetime
 
 
 class PositionSummary(TypedDict):
     symbol: Symbol
     side: OrderSide
-    average_position_rate: int
-    position_loss_gain: int
+    average_position_rate: Decimal
+    position_loss_gain: Decimal
     sum_order_quantity: Decimal
     sum_position_quantity: Decimal
     timestamp: datetime
@@ -303,33 +309,30 @@ class OrderBookStore(DataStore):
 
 
 class OrderStore(DataStore):
-    syncroot = asyncio.Lock()
     _KEYS = ["order_id"]
 
     def _onresponse(self, data: List[Order]) -> None:
         self._insert(cast(List[Item], data))
 
-    async def _onmessage(self, mes: Order) -> None:
-        async with self.syncroot:
-            if mes["order_status"] in (OrderStatus.WAITING, OrderStatus.ORDERED):
-                self._update([cast(Item, mes)])
-            else:
-                self._delete([cast(Item, mes)])
+    def _onmessage(self, mes: Order) -> None:
+        if mes["order_status"] in (OrderStatus.WAITING, OrderStatus.ORDERED):
+            self._update([cast(Item, mes)])
+        else:
+            self._delete([cast(Item, mes)])
 
-    async def _onexecution(self, mes: Execution) -> None:
-        async with self.syncroot:
-            current = cast(Order, self.get({"order_id": mes["order_id"]}))
-            if (
-                mes["order_executed_size"]
-                and current
-                and current["executed_size"] < mes["order_executed_size"]
-            ):
-                current["executed_size"] = mes["order_executed_size"]
-                remain = current["size"] - current["executed_size"]
-                if remain == 0:
-                    self._delete([cast(Item, current)])
-                else:
-                    self._update([cast(Item, current)])
+    def _onexecution(self, mes: Execution) -> None:
+        current = cast(Order, self.get({"order_id": mes["order_id"]}))
+        if (
+            mes["order_executed_size"]
+            and current
+            and current["executed_size"] < mes["order_executed_size"]
+        ):
+            current["executed_size"] = mes["order_executed_size"]
+            remain = current["size"] - current["executed_size"]
+            if remain == 0:
+                self._delete([cast(Item, current)])
+            else:
+                self._update([cast(Item, current)])
 
 
 class ExecutionStore(DataStore):
@@ -346,7 +349,7 @@ class ExecutionStore(DataStore):
     def _onresponse(self, data: List[Execution]) -> None:
         self._insert(cast(List[Item], data))
 
-    async def _onmessage(self, mes: Execution) -> None:
+    def _onmessage(self, mes: Execution) -> None:
         self._insert([cast(Item, mes)])
 
 
@@ -383,11 +386,11 @@ class MessageHelper:
     @staticmethod
     def to_ticker(data: Item) -> "Ticker":
         return Ticker(
-            ask=int(data["ask"]),
-            bid=int(data["bid"]),
-            high=int(data["high"]),
-            last=int(data["last"]),
-            low=int(data["low"]),
+            ask=Decimal(data["ask"]),
+            bid=Decimal(data["bid"]),
+            high=Decimal(data["high"]),
+            last=Decimal(data["last"]),
+            low=Decimal(data["low"]),
             symbol=Symbol[data["symbol"]],
             timestamp=parse_datetime(data.get("timestamp")),
             volume=Decimal(data["volume"]),
@@ -400,7 +403,7 @@ class MessageHelper:
                 OrderLevel(
                     symbol=Symbol[data["symbol"]],
                     side=OrderSide.SELL,
-                    price=int(ol["price"]),
+                    price=Decimal(ol["price"]),
                     size=Decimal(ol["size"]),
                 )
                 for ol in data["asks"]
@@ -409,7 +412,7 @@ class MessageHelper:
                 OrderLevel(
                     symbol=Symbol[data["symbol"]],
                     side=OrderSide.BUY,
-                    price=int(ol["price"]),
+                    price=Decimal(ol["price"]),
                     size=Decimal(ol["size"]),
                 )
                 for ol in data["bids"]
@@ -425,7 +428,7 @@ class MessageHelper:
     @staticmethod
     def to_trade(data: Item) -> "Trade":
         return Trade(
-            price=int(data["price"]),
+            price=Decimal(data["price"]),
             side=OrderSide[data["side"]],
             size=Decimal(data["size"]),
             timestamp=parse_datetime(data.get("timestamp")),
@@ -444,19 +447,19 @@ class MessageHelper:
             symbol=Symbol[data["symbol"]],
             settle_type=SettleType[data["settleType"]],
             side=OrderSide[data["side"]],
-            price=int(data.get("executionPrice", data.get("price"))),
+            price=Decimal(data.get("executionPrice", data.get("price"))),
             size=Decimal(data.get("executionSize", data.get("size"))),
             timestamp=parse_datetime(
                 data.get("executionTimestamp", data.get("timestamp"))
             ),
-            loss_gain=int(data["lossGain"]),
-            fee=int(data["fee"]),
+            loss_gain=Decimal(data["lossGain"]),
+            fee=Decimal(data["fee"]),
             # properties that only appears websocket message
-            position_id=int(data["positionId"]) if "positionId" in data else None,
+            position_id=data["positionId"] if "positionId" in data else None,
             execution_type=ExecutionType[data["executionType"]]
             if "executionType" in data
             else None,
-            order_price=int(data["orderPrice"]) if "orderPrice" in data else None,
+            order_price=Decimal(data["orderPrice"]) if "orderPrice" in data else None,
             order_size=Decimal(data["orderSize"]) if ("orderSize" in data) else None,
             order_executed_size=Decimal(data["orderExecutedSize"])
             if "orderExecutedSize" in data
@@ -484,12 +487,12 @@ class MessageHelper:
             order_status=status,
             cancel_type=CancelType[data.get("cancelType", CancelType.NONE.name)],
             order_timestamp=timestamp,
-            price=int(data.get("price", data.get("orderPrice"))),
+            price=Decimal(data.get("price", data.get("orderPrice"))),
             size=Decimal(data.get("size", data.get("orderSize"))),
             executed_size=Decimal(
                 data.get("executedSize", data.get("orderExecutedSize"))
             ),
-            losscut_price=int(data["losscutPrice"]),
+            losscut_price=Decimal(data["losscutPrice"]),
             time_in_force=data["timeInForce"],
         )
 
@@ -505,10 +508,10 @@ class MessageHelper:
             side=OrderSide[data["side"]],
             size=Decimal(data["size"]),
             orderd_size=Decimal(data["orderdSize"]),
-            price=int(data["price"]),
-            loss_gain=int(data["lossGain"]),
+            price=Decimal(data["price"]),
+            loss_gain=Decimal(data["lossGain"]),
             leverage=Decimal(data["leverage"]),
-            losscut_price=int(data["losscutPrice"]),
+            losscut_price=Decimal(data["losscutPrice"]),
             timestamp=parse_datetime(data.get("timestamp")),
         )
 
@@ -521,8 +524,8 @@ class MessageHelper:
         return PositionSummary(
             symbol=Symbol[data["symbol"]],
             side=OrderSide[data["side"]],
-            average_position_rate=int(data["averagePositionRate"]),
-            position_loss_gain=int(data["positionLossGain"]),
+            average_position_rate=Decimal(data["averagePositionRate"]),
+            position_loss_gain=Decimal(data["positionLossGain"]),
             sum_order_quantity=Decimal(data["sumOrderQuantity"]),
             sum_position_quantity=Decimal(data["sumPositionQuantity"]),
             timestamp=parse_datetime(data.get("timestamp"))
@@ -531,9 +534,9 @@ class MessageHelper:
         )
 
 
-class GmoCoinDataStoreInterface(DataStoreInterface):
+class GMOCoinDataStore(DataStoreInterface):
     def _init(self) -> None:
-        self.create("orderbook", datastore_class=OrderBookStore)
+        self.create("orderbooks", datastore_class=OrderBookStore)
         self.create("orders", datastore_class=OrderStore)
         self.create("positions", datastore_class=PositionStore)
         self.create("executions", datastore_class=ExecutionStore)
@@ -564,31 +567,27 @@ class GmoCoinDataStoreInterface(DataStoreInterface):
                     MessageHelper.to_position_summaries(data["data"]["list"])
                 )
 
-    def _onmessage(self, msg: Item) -> None:
+    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if "channel" in msg:
             msg_type = MessageType[msg.get("msgType", MessageType.NONE.name)]
             channel: Channel = Channel.from_str(msg["channel"])
             # Public
             if channel == Channel.ORDER_BOOKS:
-                self.orderbook._onmessage(MessageHelper.to_orderbook(msg))
+                self.orderbooks._onmessage(MessageHelper.to_orderbook(msg))
             # Private
             elif channel == Channel.EXECUTION_EVENTS:
-                asyncio.create_task(
-                    self.orders._onexecution(MessageHelper.to_execution(msg))
-                )
-                asyncio.create_task(
-                    self.executions._onmessage(MessageHelper.to_execution(msg))
-                )
+                self.orders._onexecution(MessageHelper.to_execution(msg))
+                self.executions._onmessage(MessageHelper.to_execution(msg))
             elif channel == Channel.ORDER_EVENTS:
-                asyncio.create_task(self.orders._onmessage(MessageHelper.to_order(msg)))
+                self.orders._onmessage(MessageHelper.to_order(msg))
             elif channel == Channel.POSITION_EVENTS:
                 self.positions._onmessage(MessageHelper.to_position(msg), msg_type)
             elif channel == Channel.POSITION_SUMMARY_EVENTS:
                 self.position_summary._onmessage(MessageHelper.to_position_summary(msg))
 
     @property
-    def orderbook(self) -> OrderBookStore:
-        return self.get("orderbook", OrderBookStore)
+    def orderbooks(self) -> OrderBookStore:
+        return self.get("orderbooks", OrderBookStore)
 
     @property
     def orders(self) -> OrderStore:
