@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum, auto
@@ -187,7 +186,6 @@ class CancelType(Enum):
     PRICE_LIMIT = auto()
 
 
-@dataclass
 class Ticker(TypedDict):
     ask: int
     bid: int
@@ -199,7 +197,6 @@ class Ticker(TypedDict):
     volume: Decimal
 
 
-@dataclass
 class OrderLevel(TypedDict):
     symbol: Symbol
     side: OrderSide
@@ -207,7 +204,6 @@ class OrderLevel(TypedDict):
     size: Decimal
 
 
-@dataclass
 class OrderBook(TypedDict):
     asks: List[OrderLevel]
     bids: List[OrderLevel]
@@ -215,7 +211,6 @@ class OrderBook(TypedDict):
     timestamp: datetime
 
 
-@dataclass
 class Trade(TypedDict):
     price: int
     side: OrderSide
@@ -224,7 +219,6 @@ class Trade(TypedDict):
     symbol: Symbol
 
 
-@dataclass
 class Execution(TypedDict):
     execution_id: int
     order_id: int
@@ -246,7 +240,6 @@ class Execution(TypedDict):
     time_in_force: Optional[str]
 
 
-@dataclass
 class Order(TypedDict):
     order_id: int
     symbol: Symbol
@@ -264,7 +257,6 @@ class Order(TypedDict):
     cancel_type: Optional[CancelType]
 
 
-@dataclass
 class Position(TypedDict):
     position_id: int
     symbol: Symbol
@@ -278,7 +270,6 @@ class Position(TypedDict):
     timestamp: datetime
 
 
-@dataclass
 class PositionSummary(TypedDict):
     symbol: Symbol
     side: OrderSide
