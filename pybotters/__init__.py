@@ -11,6 +11,7 @@ from .models.ftx import FTXDataStore
 from .models.binance import BinanceDataStore
 from .models.bitbank import bitbankDataStore
 from .models.bitmex import BitMEXDataStore
+from .models.gmocoin import GMOCoinDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
 
 __all__: Tuple[str, ...] = (
@@ -25,6 +26,7 @@ __all__: Tuple[str, ...] = (
     'BinanceDataStore',
     'bitbankDataStore',
     'BitMEXDataStore',
+    'GMOCoinDataStore',
     'print',
     'print_handler',
 )
