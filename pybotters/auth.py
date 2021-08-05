@@ -277,6 +277,27 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def coincheck(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+        url: URL = args[1]
+        data: Dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+
+        nonce = str(int(time.time()))
+        body = FormData(data)()
+        message = f'{nonce}{url}'.encode() + body._value
+        signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
+        kwargs.update({'data': body})
+        headers.update(
+            {'ACCESS-KEY': key, 'ACCESS-NONCE': nonce, 'ACCESS-SIGNATURE': signature}
+        )
+
+        return args
+
 
 @dataclass
 class Item:
@@ -317,4 +338,5 @@ class Hosts:
         'testnet.bitmex.com': Item('bitmex_testnet', Auth.bitmex),
         'api.phemex.com': Item('phemex', Auth.phemex),
         'testnet-api.phemex.com': Item('phemex_testnet', Auth.phemex),
+        'coincheck.com': Item('coincheck', Auth.coincheck),
     }
