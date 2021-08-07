@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'pybotters'
-copyright = '2021, test'
-author = 'test'
+copyright = '2021, MtkN1XBt'
+author = 'MtkN1XBt'
 
 
 # -- General configuration ---------------------------------------------------
