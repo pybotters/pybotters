@@ -286,6 +286,11 @@ class PositionSummary(TypedDict):
     timestamp: datetime
 
 
+class TickerStore(DataStore):
+    def _onmessage(self, mes: Ticker) -> None:
+        self._update([cast(Item, mes)])
+
+
 class OrderBookStore(DataStore):
     _KEYS = ["symbol", "side", "price"]
 
@@ -306,6 +311,11 @@ class OrderBookStore(DataStore):
         result = self.find({"symbol": mes["symbol"]})
         self._delete(result)
         self._insert(cast(List[Item], data))
+
+
+class TradeStore(DataStore):
+    def _onmessage(self, mes: Trade) -> None:
+        self._insert([cast(Item, mes)])
 
 
 class OrderStore(DataStore):
@@ -536,7 +546,9 @@ class MessageHelper:
 
 class GMOCoinDataStore(DataStoreInterface):
     def _init(self) -> None:
+        self.create("ticker", datastore_class=TickerStore)
         self.create("orderbooks", datastore_class=OrderBookStore)
+        self.create("trades", datastore_class=TradeStore)
         self.create("orders", datastore_class=OrderStore)
         self.create("positions", datastore_class=PositionStore)
         self.create("executions", datastore_class=ExecutionStore)
@@ -572,8 +584,12 @@ class GMOCoinDataStore(DataStoreInterface):
             msg_type = MessageType[msg.get("msgType", MessageType.NONE.name)]
             channel: Channel = Channel.from_str(msg["channel"])
             # Public
-            if channel == Channel.ORDER_BOOKS:
+            if channel == Channel.TICKER:
+                self.ticker._onmessage(MessageHelper.to_ticker(msg))
+            elif channel == Channel.ORDER_BOOKS:
                 self.orderbooks._onmessage(MessageHelper.to_orderbook(msg))
+            elif channel == Channel.TRADES:
+                self.trades._onmessage(MessageHelper.to_trade(msg))
             # Private
             elif channel == Channel.EXECUTION_EVENTS:
                 self.orders._onexecution(MessageHelper.to_execution(msg))
@@ -586,8 +602,16 @@ class GMOCoinDataStore(DataStoreInterface):
                 self.position_summary._onmessage(MessageHelper.to_position_summary(msg))
 
     @property
+    def ticker(self) -> TickerStore:
+        return self.get("ticker", TickerStore)
+
+    @property
     def orderbooks(self) -> OrderBookStore:
         return self.get("orderbooks", OrderBookStore)
+
+    @property
+    def trades(self) -> TradeStore:
+        return self.get("trades", TradeStore)
 
     @property
     def orders(self) -> OrderStore:
