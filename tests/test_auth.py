@@ -956,9 +956,7 @@ def test_coincheck_get(mock_session, mocker: pytest_mock.MockerFixture):
     }
     expected_args = (
         'GET',
-        URL(
-            'https://coincheck.com/api/deposit_money?currency=BTC'
-        ),
+        URL('https://coincheck.com/api/deposit_money?currency=BTC'),
     )
     expected_kwargs = {
         'data': aiohttp.formdata.FormData({})(),
