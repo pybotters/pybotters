@@ -133,6 +133,20 @@ class DataStore:
                 if keyhash in self._index:
                     return self._data[self._index[keyhash]]
 
+    def _pop(self, item: Item) -> Optional[Item]:
+        if self._keys:
+            try:
+                keyitem = {k: item[k] for k in self._keys}
+            except KeyError:
+                pass
+            else:
+                keyhash = self._hash(keyitem)
+                if keyhash in self._index:
+                    ret = self._data[self._index[keyhash]]
+                    del self._data[self._index[keyhash]]
+                    del self._index[keyhash]
+                    return ret
+
     def find(self, query: Item = {}) -> List[Item]:
         if query:
             return [
@@ -142,6 +156,20 @@ class DataStore:
             ]
         else:
             return list(self)
+
+    def _find_and_delete(self, query: Item = {}) -> List[Item]:
+        if query:
+            ret = [
+                item
+                for item in self
+                if all(k in item and query[k] == item[k] for k in query)
+            ]
+            self._delete(ret)
+            return ret
+        else:
+            ret = list(self)
+            self._clear()
+            return ret
 
     def _set(self) -> None:
         for event in self._events:
