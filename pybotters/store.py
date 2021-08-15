@@ -133,7 +133,7 @@ class DataStore:
                 if keyhash in self._index:
                     return self._data[self._index[keyhash]]
 
-    def delete(self, item: Item) -> Optional[Item]:
+    def _pop(self, item: Item) -> Optional[Item]:
         if self._keys:
             try:
                 keyitem = {k: item[k] for k in self._keys}
@@ -157,7 +157,7 @@ class DataStore:
         else:
             return list(self)
 
-    def findel(self, query: Item = {}) -> List[Item]:
+    def _find_and_delete(self, query: Item = {}) -> List[Item]:
         if query:
             ret = [
                 item

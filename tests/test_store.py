@@ -140,7 +140,7 @@ def test_update():
     assert len(ds4._index) == 0
 
 
-def test__delete():
+def test_delete():
     data = [{'foo': f'bar{i}'} for i in range(1000)]
     nodata = [{'foo': f'bar{i}'} for i in range(1000, 2000)]
     invalid = [{'invalid': f'data{i}'} for i in range(1000, 2000)]
@@ -161,25 +161,25 @@ def test__delete():
     assert len(ds3._index) == 1000
 
 
-def test_delete():
+def test_pop():
     data = [{'foo': f'bar{i}'} for i in range(1000)]
 
     ds1 = pybotters.store.DataStore(keys=['foo'], data=data)
-    assert ds1.delete({'foo': 'bar500'}) == {'foo': 'bar500'}
+    assert ds1._pop({'foo': 'bar500'}) == {'foo': 'bar500'}
     assert ds1.get({'foo': 'bar500'}) is None
-    assert ds1.delete({'foo': 'bar9999'}) is None
+    assert ds1._pop({'foo': 'bar9999'}) is None
 
     ds2 = pybotters.store.DataStore(data=data)
-    assert ds2.delete({'foo': 'bar500'}) is None
+    assert ds2._pop({'foo': 'bar500'}) is None
 
 
-def test_findel():
+def test_find_and_delete():
     data = [{'foo': f'bar{i}', 'mod': i % 2} for i in range(1000)]
     query = {'mod': 1}
     invalid = {'mod': -1}
 
     ds1 = pybotters.store.DataStore(keys=['foo'], data=data)
-    ret1 = ds1.findel()
+    ret1 = ds1._find_and_delete()
     # return value
     assert isinstance(ret1, list)
     assert len(ret1) == 1000
@@ -188,7 +188,7 @@ def test_findel():
     assert len(ds1._index) == 0
 
     ds2 = pybotters.store.DataStore(keys=['foo'], data=data)
-    ret2 = ds2.findel(query)
+    ret2 = ds2._find_and_delete(query)
     # return value
     assert isinstance(ret2, list)
     assert len(ret2) == 500
@@ -199,7 +199,7 @@ def test_findel():
     assert len(ds2._index) == 500
 
     ds3 = pybotters.store.DataStore(keys=['foo'], data=data)
-    ret3 = ds3.findel(invalid)
+    ret3 = ds3._find_and_delete(invalid)
     # return value
     assert isinstance(ret3, list)
     assert len(ret3) == 0
