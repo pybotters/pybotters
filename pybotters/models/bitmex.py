@@ -1,12 +1,12 @@
 import logging
-from ..store import DataStore, DataStoreInterface
+from ..store import DataStore, DataStoreManager
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class BitMEXDataStore(DataStoreInterface):
+class BitMEXDataStore(DataStoreManager):
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if 'error' in msg:
             logger.warning(msg)

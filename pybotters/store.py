@@ -157,7 +157,7 @@ class DataStore:
 TDataStore = TypeVar('TDataStore', bound=DataStore)
 
 
-class DataStoreInterface:
+class DataStoreManager:
     def __init__(self) -> None:
         self._stores: Dict[str, DataStore] = {}
         self._events: List[asyncio.Event] = []

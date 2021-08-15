@@ -13,7 +13,7 @@ from typing import (
 )
 
 import aiohttp
-from pybotters.store import DataStore, DataStoreInterface
+from pybotters.store import DataStore, DataStoreManager
 from pybotters.typedefs import Item
 
 from ..ws import ClientWebSocketResponse
@@ -544,7 +544,7 @@ class MessageHelper:
         )
 
 
-class GMOCoinDataStore(DataStoreInterface):
+class GMOCoinDataStore(DataStoreManager):
     def _init(self) -> None:
         self.create("ticker", datastore_class=TickerStore)
         self.create("orderbooks", datastore_class=OrderBookStore)

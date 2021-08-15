@@ -4,14 +4,14 @@ from typing import Any, Awaitable, Dict, List, Optional, Union
 
 import aiohttp
 
-from ..store import DataStore, DataStoreInterface
+from ..store import DataStore, DataStoreManager
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class BybitDataStore(DataStoreInterface):
+class BybitDataStore(DataStoreManager):
     def _init(self) -> None:
         self.create('orderbook', datastore_class=OrderBook)
         self.create('trade', datastore_class=Trade)

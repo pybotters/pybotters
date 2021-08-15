@@ -8,7 +8,7 @@ import pybotters.store
 
 
 def test_interface():
-    store = pybotters.store.DataStoreInterface()
+    store = pybotters.store.DataStoreManager()
     store.create('example')
     assert isinstance(store._stores, dict)
     assert isinstance(store._events, list)
@@ -19,7 +19,7 @@ def test_interface():
 
 @pytest.mark.asyncio
 async def test_interface_onmessage(mocker: pytest_mock.MockerFixture):
-    store = pybotters.store.DataStoreInterface()
+    store = pybotters.store.DataStoreManager()
     assert not store._iscorofunc
     store._events.append(asyncio.Event())
     store.onmessage({'foo': 'bar'}, mocker.MagicMock())

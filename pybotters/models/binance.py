@@ -5,12 +5,12 @@ from typing import Any, Awaitable, Dict, List, Optional, Union
 import aiohttp
 
 from ..auth import Auth
-from ..store import DataStore, DataStoreInterface
+from ..store import DataStore, DataStoreManager
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 
-class BinanceDataStore(DataStoreInterface):
+class BinanceDataStore(DataStoreManager):
     def _init(self) -> None:
         self.create('trade', datastore_class=Trade)
         self.create('markprice', datastore_class=MarkPrice)
