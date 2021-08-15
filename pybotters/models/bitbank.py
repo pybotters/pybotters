@@ -1,12 +1,12 @@
 import json
 from typing import Dict, List
 
-from ..store import DataStore, DataStoreInterface
+from ..store import DataStore, DataStoreManager
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 
-class bitbankDataStore(DataStoreInterface):
+class bitbankDataStore(DataStoreManager):
     def _init(self) -> None:
         self.create('transactions', datastore_class=Transactions)
         self.create('depth', datastore_class=Depth)

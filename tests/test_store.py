@@ -8,7 +8,7 @@ import pybotters.store
 
 
 def test_interface():
-    store = pybotters.store.DataStoreInterface()
+    store = pybotters.store.DataStoreManager()
     store.create('example')
     assert isinstance(store._stores, dict)
     assert isinstance(store._events, list)
@@ -19,7 +19,7 @@ def test_interface():
 
 @pytest.mark.asyncio
 async def test_interface_onmessage(mocker: pytest_mock.MockerFixture):
-    store = pybotters.store.DataStoreInterface()
+    store = pybotters.store.DataStoreManager()
     assert not store._iscorofunc
     store._events.append(asyncio.Event())
     store.onmessage({'foo': 'bar'}, mocker.MagicMock())
@@ -157,6 +157,53 @@ def test_delete():
 
     ds3 = pybotters.store.DataStore(keys=['foo'], data=data)
     ds3._delete(invalid)
+    assert len(ds3._data) == 1000
+    assert len(ds3._index) == 1000
+
+
+def test_pop():
+    data = [{'foo': f'bar{i}'} for i in range(1000)]
+
+    ds1 = pybotters.store.DataStore(keys=['foo'], data=data)
+    assert ds1._pop({'foo': 'bar500'}) == {'foo': 'bar500'}
+    assert ds1.get({'foo': 'bar500'}) is None
+    assert ds1._pop({'foo': 'bar9999'}) is None
+
+    ds2 = pybotters.store.DataStore(data=data)
+    assert ds2._pop({'foo': 'bar500'}) is None
+
+
+def test_find_and_delete():
+    data = [{'foo': f'bar{i}', 'mod': i % 2} for i in range(1000)]
+    query = {'mod': 1}
+    invalid = {'mod': -1}
+
+    ds1 = pybotters.store.DataStore(keys=['foo'], data=data)
+    ret1 = ds1._find_and_delete()
+    # return value
+    assert isinstance(ret1, list)
+    assert len(ret1) == 1000
+    # data store
+    assert len(ds1._data) == 0
+    assert len(ds1._index) == 0
+
+    ds2 = pybotters.store.DataStore(keys=['foo'], data=data)
+    ret2 = ds2._find_and_delete(query)
+    # return value
+    assert isinstance(ret2, list)
+    assert len(ret2) == 500
+    assert all(map(lambda record: 1 == record['mod'], ret2))
+    # data store
+    assert len(ds2._data) == 500
+    assert all(map(lambda record: 0 == record['mod'], ds2._data.values()))
+    assert len(ds2._index) == 500
+
+    ds3 = pybotters.store.DataStore(keys=['foo'], data=data)
+    ret3 = ds3._find_and_delete(invalid)
+    # return value
+    assert isinstance(ret3, list)
+    assert len(ret3) == 0
+    # data store
     assert len(ds3._data) == 1000
     assert len(ds3._index) == 1000
 

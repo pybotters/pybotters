@@ -5,14 +5,14 @@ from typing import Any, Awaitable, Dict, List
 import aiohttp
 
 from ..auth import Auth
-from ..store import DataStore, DataStoreInterface
+from ..store import DataStore, DataStoreManager
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class FTXDataStore(DataStoreInterface):
+class FTXDataStore(DataStoreManager):
     def _init(self) -> None:
         self.create('ticker', datastore_class=Ticker)
         self.create('markets', datastore_class=Markets)

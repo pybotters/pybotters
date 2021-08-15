@@ -84,6 +84,10 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             'v7827R5upBIWwLSV2udjBTWm',
             b'rJixSEyllgmgtthIMcLSkQmUmOxLhix4S8I2a4zBQa0opQ7Y',
         ),
+        'coincheck': (
+            'FASfaGggPBYDtiIHu6XoJgK6',
+            b'NNT34iDK8Qr2P6nlAt4XTuw42nQUdqzHaj3337Qlz4i5l4zu',
+        ),
     }
     assert set(apis.keys()) == set(
         item.name for item in pybotters.auth.Hosts.items.values()
@@ -930,6 +934,87 @@ def test_phemex_post(mock_session, mocker: pytest_mock.MockerFixture):
         'session': mock_session,
     }
     args = pybotters.auth.Auth.phemex(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_coincheck_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://coincheck.com/api/deposit_money').with_query(
+            {
+                'currency': 'BTC',
+            }
+        ),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://coincheck.com/api/deposit_money?currency=BTC'),
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict(
+            {
+                'ACCESS-KEY': 'FASfaGggPBYDtiIHu6XoJgK6',
+                'ACCESS-NONCE': '2085848896',
+                'ACCESS-SIGNATURE': (
+                    'c6824f3b989aaea044bbd76de19962aeea754167d8c4790b452904bd5fd5cf2e'
+                ),
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.coincheck(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_coincheck_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL('https://coincheck.com/api/exchange/orders'),
+    )
+    kwargs = {
+        'data': {
+            'pair': 'btc_jpy',
+            'order_type': 'market_buy',
+            'market_buy_amount': 'BUY',
+            'size': 0.01,
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = ('POST', URL('https://coincheck.com/api/exchange/orders'))
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData(
+            {
+                'pair': 'btc_jpy',
+                'order_type': 'market_buy',
+                'market_buy_amount': 'BUY',
+                'size': 0.01,
+            }
+        )(),
+        'headers': CIMultiDict(
+            {
+                'ACCESS-KEY': 'FASfaGggPBYDtiIHu6XoJgK6',
+                'ACCESS-NONCE': '2085848896',
+                'ACCESS-SIGNATURE': (
+                    '4ae0b6c9a2c5c94bb2756f8c435933137d9d889812f28a0aa8f4c924449c7eb0'
+                ),
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.coincheck(args, kwargs)
     assert args == expected_args
     assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']
