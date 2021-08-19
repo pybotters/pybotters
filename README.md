@@ -41,7 +41,7 @@ An advanced api client for python botters.
 | Phemex | ✅ | WIP | [Official](https://github.com/phemex/phemex-api-docs) |
 | BitMEX | ✅ | ✅ | [Official](https://www.bitmex.com/app/apiOverview) |
 | bitFlyer | ✅ | WIP | [Official](https://lightning.bitflyer.com/docs) |
-| GMO Coin | ✅ | WIP | [Official](https://api.coin.z.com/docs/) |
+| GMO Coin | ✅ | ✅ | [Official](https://api.coin.z.com/docs/) |
 | Liquid | ✅ | WIP | [Official](https://document.liquid.com/) |
 | bitbank | ✅ | ✅ | [Official](https://docs.bitbank.cc/) |
 | Coincheck | ✅ | WIP | [Official](https://coincheck.com/documents/exchange/api) |
@@ -107,6 +107,8 @@ async def main():
 ## 📖 Wiki
 
 詳しい利用方法は👉[Wikiページへ](https://github.com/MtkN1/pybotters/wiki)
+
+現在こちらにに移行中です👉[Read the Docs](https://pybotters.readthedocs.io/ja/latest/)
 
 ## 🗽 License
 
