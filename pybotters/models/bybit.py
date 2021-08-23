@@ -51,6 +51,8 @@ class BybitDataStore(DataStoreManager):
                 self.position_usdt._onresponse(data['result'])
             elif resp.url.path in ('/v2/private/wallet/balance',):
                 self.wallet._onresponse(data['result'])
+            elif resp.url.path in ("/v2/public/kline/list",):
+                self.kline._onresponse(data["result"])
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if 'success' in msg:
@@ -204,6 +206,27 @@ class Kline(DataStore):
             item['symbol'] = topic_split[-1]
             item['period'] = topic_split[-2]
         self._update(data)
+
+    def _onresponse(self, data: List[Item]) -> None:
+        ws_format_data = [
+            {
+                "start": kline["open_time"],
+                "end": None,
+                "open": float(kline["open"]),
+                "close": float(kline["close"]),
+                "high": float(kline["high"]),
+                "low": float(kline["low"]),
+                "volume": float(kline["volume"]),
+                "turnover": float(kline["turnover"]),
+                "confirm": None,
+                "cross_seq": None,
+                "timestamp": None,
+                "period": kline["interval"],
+                "symbol": kline["symbol"],
+            }
+            for kline in data
+        ]
+        self._update(ws_format_data)
 
 
 class PositionInverse(DataStore):
