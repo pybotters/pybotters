@@ -51,7 +51,7 @@ class BybitDataStore(DataStoreManager):
                 self.position_usdt._onresponse(data['result'])
             elif resp.url.path in ('/v2/private/wallet/balance',):
                 self.wallet._onresponse(data['result'])
-            elif resp.url.path in ("/v2/public/kline/list",):
+            elif resp.url.path in ("/v2/public/kline/list", "/public/linear/kline"):
                 self.kline._onresponse(data["result"])
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
