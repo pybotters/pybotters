@@ -208,25 +208,18 @@ class Kline(DataStore):
         self._update(data)
 
     def _onresponse(self, data: List[Item]) -> None:
-        ws_format_data = [
-            {
-                "start": kline["open_time"],
-                "end": None,
-                "open": float(kline["open"]),
-                "close": float(kline["close"]),
-                "high": float(kline["high"]),
-                "low": float(kline["low"]),
-                "volume": float(kline["volume"]),
-                "turnover": float(kline["turnover"]),
-                "confirm": None,
-                "cross_seq": None,
-                "timestamp": None,
-                "period": kline["interval"],
-                "symbol": kline["symbol"],
-            }
-            for kline in data
-        ]
-        self._update(ws_format_data)
+        for item in data:
+            item["start"] = item.pop("open_time")
+            item["period"] = item.pop("interval")
+            for k in ['open', 'high', 'low', 'close']:
+                item[k] = float(item[k])
+            if 'id' in item.keys():
+                item['volume'] = str(item['volume'])
+                item['turnover'] = str(item['turnover'])
+            else:
+                item['volume'] = int(item['volume'])
+                item['turnover'] = float(item['turnover'])
+        self._update(data)
 
 
 class PositionInverse(DataStore):
