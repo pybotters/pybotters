@@ -18,6 +18,7 @@ class BybitDataStore(DataStoreManager):
         self.create('insurance', datastore_class=Insurance)
         self.create('instrument', datastore_class=Instrument)
         self.create('kline', datastore_class=Kline)
+        self.create('liquidation', datastore_class=Liquidation)
         self.create('position_inverse', datastore_class=PositionInverse)
         self.create('position_usdt', datastore_class=PositionUSDT)
         self.create('execution', datastore_class=Execution)
@@ -51,6 +52,8 @@ class BybitDataStore(DataStoreManager):
                 self.position_usdt._onresponse(data['result'])
             elif resp.url.path in ('/v2/private/wallet/balance',):
                 self.wallet._onresponse(data['result'])
+            elif resp.url.path in ("/v2/public/kline/list", "/public/linear/kline"):
+                self.kline._onresponse(data["result"])
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if 'success' in msg:
@@ -79,6 +82,8 @@ class BybitDataStore(DataStoreManager):
                 ]
             ):
                 self.kline._onmessage(topic, data)
+            elif topic.startswith('liquidation'):
+                self.liquidation._onmessage(data)
             elif topic == 'position':
                 if ws._response.url.path == '/realtime':
                     self.position_inverse._onmessage(data)
@@ -115,6 +120,10 @@ class BybitDataStore(DataStoreManager):
     @property
     def kline(self) -> 'Kline':
         return self.get('kline', Kline)
+
+    @property
+    def liquidation(self) -> 'Liquidation':
+        return self.get('liquidation', Liquidation)
 
     @property
     def position_inverse(self) -> 'PositionInverse':
@@ -204,6 +213,27 @@ class Kline(DataStore):
             item['symbol'] = topic_split[-1]
             item['period'] = topic_split[-2]
         self._update(data)
+
+    def _onresponse(self, data: List[Item]) -> None:
+        for item in data:
+            item["start"] = item.pop("open_time")
+            item["period"] = item.pop("interval")
+            for k in ['open', 'high', 'low', 'close']:
+                item[k] = float(item[k])
+            if 'id' in item.keys():
+                item['volume'] = str(item['volume'])
+                item['turnover'] = str(item['turnover'])
+            else:
+                item['volume'] = int(item['volume'])
+                item['turnover'] = float(item['turnover'])
+        self._update(data)
+
+
+class Liquidation(DataStore):
+    _MAXLEN = 99999
+
+    def _onmessage(self, item: Item) -> None:
+        self._insert([item])
 
 
 class PositionInverse(DataStore):
