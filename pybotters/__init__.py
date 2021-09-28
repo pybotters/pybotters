@@ -9,6 +9,7 @@ from .client import Client
 from .models import experimental
 from .models.binance import BinanceDataStore
 from .models.bitbank import bitbankDataStore
+from .models.bitflyer import bitFlyerDataStore
 from .models.bitmex import BitMEXDataStore
 from .models.bybit import BybitDataStore
 from .models.ftx import FTXDataStore
@@ -26,6 +27,7 @@ __all__: Tuple[str, ...] = (
     'FTXDataStore',
     'BinanceDataStore',
     'bitbankDataStore',
+    'bitFlyerDataStore',
     'BitMEXDataStore',
     'GMOCoinDataStore',
     'experimental',
