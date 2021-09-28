@@ -106,7 +106,7 @@ class DataStore:
     def _clear(self) -> None:
         self._data.clear()
         self._index.clear()
-        self._set()
+        self._set([])
 
     def _sweep_with_key(self) -> None:
         if len(self._data) > self._MAXLEN:
