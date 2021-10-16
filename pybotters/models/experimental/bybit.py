@@ -4,9 +4,9 @@ from typing import Awaitable, Dict, List, Optional, Union
 
 import aiohttp
 
-from ..store import DataStore, DataStoreManager
-from ..typedefs import Item
-from ..ws import ClientWebSocketResponse
+from ...store import DataStore, DataStoreManager
+from ...typedefs import Item
+from ...ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
@@ -530,6 +530,12 @@ class PositionUSDT(PositionInverse):
             "risk_id",
         ],
     }
+
+    def one(self, symbol: str) -> Dict[str, Optional[Item]]:
+        return {
+            "Sell": self.get({"symbol": symbol, "side": "Sell"}),
+            "Buy": self.get({"symbol": symbol, "side": "Buy"}),
+        }
 
     def both(self, symbol: str) -> Dict[str, Optional[Item]]:
         return {
