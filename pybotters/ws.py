@@ -80,7 +80,11 @@ async def ws_run_forever(
                                     logger.error(repr(e))
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         break
-        except (aiohttp.WSServerHandshakeError, aiohttp.ClientOSError) as e:
+        except (
+            aiohttp.WSServerHandshakeError,
+            aiohttp.ClientOSError,
+            ConnectionResetError,
+        ) as e:
             logger.warning(repr(e))
         await cooldown
 

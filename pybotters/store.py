@@ -103,6 +103,21 @@ class DataStore:
         # !TODO! This behaviour might be undesirable.
         self._set(data)
 
+    def _remove(self, uuids: List[uuid.UUID]) -> None:
+        if self._keys:
+            for _id in uuids:
+                if _id in self._data:
+                    item = self._data[_id]
+                    keyhash = self._hash({k: item[k] for k in self._keys})
+                    del self._data[_id]
+                    del self._index[keyhash]
+        else:
+            for _id in uuids:
+                if _id in self._data:
+                    del self._data[_id]
+        # !TODO! This behaviour might be undesirable.
+        self._set([])
+
     def _clear(self) -> None:
         self._data.clear()
         self._index.clear()
@@ -159,6 +174,16 @@ class DataStore:
             ]
         else:
             return list(self)
+
+    def _find_with_uuid(self, query: Item = {}) -> Dict[uuid.UUID, Item]:
+        if query:
+            return {
+                _id: item
+                for _id, item in self._data.items()
+                if all(k in item and query[k] == item[k] for k in query)
+            }
+        else:
+            return self._data
 
     def _find_and_delete(self, query: Item = {}) -> List[Item]:
         if query:
