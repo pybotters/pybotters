@@ -22,7 +22,7 @@ class Client:
 
     def __init__(
         self,
-        apis: Union[Dict[str, List[str]], str] = {},
+        apis: Optional[Union[Dict[str, List[str]], str]] = None,
         base_url: str = '',
         **kwargs: Any,
     ) -> None:
@@ -141,7 +141,11 @@ class Client:
         return task
 
     @staticmethod
-    def _load_apis(apis: Union[Dict[str, List[str]], str]) -> Dict[str, List[str]]:
+    def _load_apis(
+        apis: Optional[Union[Dict[str, List[str]], str]]
+    ) -> Dict[str, List[str]]:
+        if apis is None:
+            apis = {}
         if isinstance(apis, dict):
             if apis:
                 return apis
@@ -165,7 +169,11 @@ class Client:
             return {}
 
     @staticmethod
-    def _encode_apis(apis: Dict[str, List[str]]) -> Dict[str, Tuple[str, bytes]]:
+    def _encode_apis(
+        apis: Optional[Dict[str, List[str]]]
+    ) -> Dict[str, Tuple[str, bytes]]:
+        if apis is None:
+            apis = {}
         encoded = {}
         for name in apis:
             if len(apis[name]) == 2:

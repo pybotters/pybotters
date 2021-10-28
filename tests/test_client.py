@@ -3,10 +3,9 @@ import json
 from unittest.mock import mock_open
 
 import aiohttp
+import pybotters
 import pytest
 import pytest_mock
-
-import pybotters
 
 
 async def test_client():
@@ -50,7 +49,7 @@ async def test_client_open(mocker: pytest_mock.MockerFixture):
 async def test_client_warn(mocker: pytest_mock.MockerFixture):
     apis = {'name1', 'key1', 'secret1'}
     base_url = 'http://example.com'
-    async with pybotters.Client(apis=apis, base_url=base_url) as client:
+    async with pybotters.Client(apis=apis, base_url=base_url) as client:  # type: ignore
         assert isinstance(client._session, aiohttp.ClientSession)
         assert not client._session.closed
     assert client._base_url == base_url
@@ -149,7 +148,7 @@ async def test_client_ws_connect_json(mocker: pytest_mock.MockerFixture):
         ret = await client.ws_connect(
             'ws://test.org',
             send_json={'foo': 'bar'},
-            hdlr_json=lambda msg, ws: ...,
+            hdlr_json=lambda msg, ws: None,
         )
     assert coro.called
     assert task.called

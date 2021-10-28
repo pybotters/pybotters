@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Awaitable, Dict, List
+from typing import Any, Awaitable, Dict, List, Optional
 
 import aiohttp
 
@@ -118,7 +118,9 @@ class OrderBook(DataStore):
     _KEYS = ['market', 'side', 'price']
     _BDSIDE = {'sell': 'asks', 'buy': 'bids'}
 
-    def sorted(self, query: Item = {}) -> Dict[str, List[float]]:
+    def sorted(self, query: Optional[Item] = None) -> Dict[str, List[float]]:
+        if query is None:
+            query = {}
         result = {'asks': [], 'bids': []}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):

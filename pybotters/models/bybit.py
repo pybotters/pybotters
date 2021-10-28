@@ -153,7 +153,9 @@ class BybitDataStore(DataStoreManager):
 class OrderBook(DataStore):
     _KEYS = ['symbol', 'id', 'side']
 
-    def sorted(self, query: Item = {}) -> Dict[str, List[Item]]:
+    def sorted(self, query: Optional[Item] = None) -> Dict[str, List[Item]]:
+        if query is None:
+            query = {}
         result = {'Sell': [], 'Buy': []}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):

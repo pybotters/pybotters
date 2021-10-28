@@ -183,7 +183,9 @@ class OrderBook(DataStore):
         self.initialized = False
         self._buff = deque(maxlen=200)
 
-    def sorted(self, query: Item = {}) -> Dict[str, List[float]]:
+    def sorted(self, query: Optional[Item] = None) -> Dict[str, List[float]]:
+        if query is None:
+            query = {}
         result = {self._MAPSIDE[k]: [] for k in self._MAPSIDE}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
