@@ -2,7 +2,6 @@ import asyncio
 import uuid
 from typing import (
     Any,
-    cast,
     Dict,
     Hashable,
     Iterator,
@@ -11,6 +10,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    cast,
 )
 
 from .typedefs import Item
@@ -21,11 +21,15 @@ class DataStore:
     _KEYS = []
     _MAXLEN = 9999
 
-    def __init__(self, keys: List[str] = [], data: List[Item] = []) -> None:
+    def __init__(
+        self, keys: Optional[List[str]] = None, data: Optional[List[Item]] = None
+    ) -> None:
         self._data: Dict[uuid.UUID, Item] = {}
         self._index: Dict[int, uuid.UUID] = {}
         self._keys: Tuple[str, ...] = tuple(keys if keys else self._KEYS)
         self._events: Dict[asyncio.Event, List[Item]] = {}
+        if data is None:
+            data = []
         self._insert(data)
         if hasattr(self, '_init'):
             getattr(self, '_init')()
@@ -165,7 +169,7 @@ class DataStore:
                     del self._index[keyhash]
                     return ret
 
-    def find(self, query: Item = {}) -> List[Item]:
+    def find(self, query: Optional[Item] = None) -> List[Item]:
         if query:
             return [
                 item
@@ -175,7 +179,9 @@ class DataStore:
         else:
             return list(self)
 
-    def _find_with_uuid(self, query: Item = {}) -> Dict[uuid.UUID, Item]:
+    def _find_with_uuid(self, query: Optional[Item] = None) -> dict[uuid.UUID, Item]:
+        if query is None:
+            query = {}
         if query:
             return {
                 _id: item
@@ -185,7 +191,9 @@ class DataStore:
         else:
             return self._data
 
-    def _find_and_delete(self, query: Item = {}) -> List[Item]:
+    def _find_and_delete(self, query: Optional[Item] = None) -> list[Item]:
+        if query is None:
+            query = {}
         if query:
             ret = [
                 item
@@ -199,7 +207,9 @@ class DataStore:
             self._clear()
             return ret
 
-    def _set(self, data: List[Item] = None) -> None:
+    def _set(self, data: Optional[List[Item]] = None) -> None:
+        if data is None:
+            data = []
         for event in self._events:
             event.set()
             self._events[event].extend(data)
@@ -234,10 +244,14 @@ class DataStoreManager:
         self,
         name: str,
         *,
-        keys: List[str] = [],
-        data: List[Item] = [],
+        keys: Optional[List[str]] = None,
+        data: Optional[List[Item]] = None,
         datastore_class: Type[DataStore] = DataStore,
     ) -> None:
+        if keys is None:
+            keys = []
+        if data is None:
+            data = []
         self._stores[name] = datastore_class(keys, data)
 
     def get(self, name: str, type: Type[TDataStore]) -> TDataStore:

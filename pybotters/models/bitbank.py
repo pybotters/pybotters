@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from ..store import DataStore, DataStoreManager
 from ..typedefs import Item
@@ -51,7 +51,9 @@ class Depth(DataStore):
     _KEYS = ['pair', 'side', 'price']
     _BDSIDE = {'sell': 'asks', 'buy': 'bids'}
 
-    def sorted(self, query: Item = {}) -> Dict[str, List[float]]:
+    def sorted(self, query: Optional[Item] = None) -> Dict[str, List[float]]:
+        if query is None:
+            query = {}
         result = {'asks': [], 'bids': []}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):

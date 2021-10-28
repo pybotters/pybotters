@@ -3,14 +3,7 @@ import logging
 from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum, auto
-from typing import (
-    Any,
-    Awaitable,
-    Dict,
-    List,
-    Optional,
-    cast,
-)
+from typing import Any, Awaitable, Dict, List, Optional, cast
 
 import aiohttp
 from pybotters.store import DataStore, DataStoreManager
@@ -294,7 +287,9 @@ class TickerStore(DataStore):
 class OrderBookStore(DataStore):
     _KEYS = ["symbol", "side", "price"]
 
-    def sorted(self, query: Item = {}) -> Dict[OrderSide, List[OrderLevel]]:
+    def sorted(self, query: Optional[Item] = None) -> Dict[OrderSide, List[OrderLevel]]:
+        if query is None:
+            query = {}
         result: Dict[OrderSide, List[OrderLevel]] = {
             OrderSide.BUY: [],
             OrderSide.SELL: [],
@@ -348,7 +343,9 @@ class OrderStore(DataStore):
 class ExecutionStore(DataStore):
     _KEYS = ["execution_id"]
 
-    def sorted(self, query: Item = {}) -> List[Execution]:
+    def sorted(self, query: Optional[Item] = None) -> List[Execution]:
+        if query is None:
+            query = {}
         result = []
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
