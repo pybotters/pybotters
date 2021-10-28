@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Awaitable, Dict, List, Optional, Union
+from typing import Any, Awaitable, Optional, Union
 
 import aiohttp
 
@@ -153,7 +153,7 @@ class BybitDataStore(DataStoreManager):
 class OrderBook(DataStore):
     _KEYS = ['symbol', 'id', 'side']
 
-    def sorted(self, query: Optional[Item] = None) -> Dict[str, List[Item]]:
+    def sorted(self, query: Optional[Item] = None) -> dict[str, list[Item]]:
         if query is None:
             query = {}
         result = {'Sell': [], 'Buy': []}
@@ -164,7 +164,7 @@ class OrderBook(DataStore):
         result['Buy'].sort(key=lambda x: x['id'], reverse=True)
         return result
 
-    def _onmessage(self, topic: str, type_: str, data: Union[List[Item], Item]) -> None:
+    def _onmessage(self, topic: str, type_: str, data: Union[list[Item], Item]) -> None:
         if type_ == 'snapshot':
             symbol = topic.split('.')[-1]  # ex: 'orderBookL2_25.BTCUSD'
             result = self.find({'symbol': symbol})
@@ -182,14 +182,14 @@ class Trade(DataStore):
     _KEYS = ['trade_id']
     _MAXLEN = 99999
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._insert(data)
 
 
 class Insurance(DataStore):
     _KEYS = ['currency']
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
@@ -209,14 +209,14 @@ class Instrument(DataStore):
 class Kline(DataStore):
     _KEYS = ['symbol', 'period', 'start']
 
-    def _onmessage(self, topic: str, data: List[Item]) -> None:
+    def _onmessage(self, topic: str, data: list[Item]) -> None:
         topic_split = topic.split('.')  # ex:'klineV2.1.BTCUSD'
         for item in data:
             item['symbol'] = topic_split[-1]
             item['period'] = topic_split[-2]
         self._update(data)
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         for item in data:
             item["start"] = item.pop("open_time")
             item["period"] = item.pop("interval")
@@ -244,13 +244,13 @@ class PositionInverse(DataStore):
     def getone(self, symbol: str) -> Optional[Item]:
         return self.get({'symbol': symbol, 'position_idx': 0})
 
-    def getboth(self, symbol: str) -> Dict[str, Optional[Item]]:
+    def getboth(self, symbol: str) -> dict[str, Optional[Item]]:
         return {
             'Sell': self.get({'symbol': symbol, 'position_idx': 2}),
             'Buy': self.get({'symbol': symbol, 'position_idx': 1}),
         }
 
-    def _onresponse(self, data: Union[Item, List[Item]]) -> None:
+    def _onresponse(self, data: Union[Item, list[Item]]) -> None:
         if isinstance(data, dict):
             self._update([data])
         elif isinstance(data, list):
@@ -260,47 +260,47 @@ class PositionInverse(DataStore):
                 else:
                     self._update(data)
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
 class PositionUSDT(DataStore):
     _KEYS = ['symbol', 'side']
 
-    def getboth(self, symbol: str) -> Dict[str, Optional[Item]]:
+    def getboth(self, symbol: str) -> dict[str, Optional[Item]]:
         return {
             'Sell': self.get({'symbol': symbol, 'side': 'Sell'}),
             'Buy': self.get({'symbol': symbol, 'side': 'Buy'}),
         }
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if len(data):
             if 'data' in data[0]:
                 self._update([item['data'] for item in data])
             else:
                 self._update(data)
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
 class Execution(DataStore):
     _KEYS = ['exec_id']
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
 class Order(DataStore):
     _KEYS = ['order_id']
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if isinstance(data, list):
             self._update(data)
         elif isinstance(data, dict):
             self._update([data])
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         for item in data:
             if item['order_status'] in ('Created', 'New', 'PartiallyFilled'):
                 self._update([item])
@@ -311,13 +311,13 @@ class Order(DataStore):
 class StopOrder(DataStore):
     _KEYS = ['stop_order_id']
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if isinstance(data, list):
             self._update(data)
         elif isinstance(data, dict):
             self._update([data])
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         for item in data:
             if 'order_id' in item:
                 item['stop_order_id'] = item.pop('order_id')
@@ -332,7 +332,7 @@ class StopOrder(DataStore):
 class Wallet(DataStore):
     _KEYS = ['coin']
 
-    def _onresponse(self, data: Dict[str, Item]) -> None:
+    def _onresponse(self, data: dict[str, Item]) -> None:
         for coin, item in data.items():
             self._update(
                 [
@@ -344,7 +344,7 @@ class Wallet(DataStore):
                 ]
             )
 
-    def _onposition(self, data: List[Item]) -> None:
+    def _onposition(self, data: list[Item]) -> None:
         for item in data:
             symbol: str = item['symbol']
             if symbol.endswith('USD'):
@@ -361,7 +361,7 @@ class Wallet(DataStore):
                 ]
             )
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         for item in data:
             self._update(
                 [

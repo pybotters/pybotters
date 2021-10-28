@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 import os
-from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
+from typing import Any, Mapping, Optional, Union
 
 import aiohttp
 from aiohttp import hdrs
@@ -22,7 +22,7 @@ class Client:
 
     def __init__(
         self,
-        apis: Optional[Union[Dict[str, List[str]], str]] = None,
+        apis: Optional[Union[dict[str, list[str]], str]] = None,
         base_url: str = '',
         **kwargs: Any,
     ) -> None:
@@ -49,8 +49,8 @@ class Client:
         method: str,
         url: str,
         *,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
+        params: Optional[Mapping[str, Any]] = None,
+        data: Optional[dict[str, Any]] = None,
         auth: Optional[Auth] = Auth,
         **kwargs: Any,
     ) -> _RequestContextManager:
@@ -118,7 +118,7 @@ class Client:
         self,
         url: str,
         *,
-        send_str: Optional[Union[str, List[str]]] = None,
+        send_str: Optional[Union[str, list[str]]] = None,
         send_json: Any = None,
         hdlr_str: Optional[WsStrHandler] = None,
         hdlr_json: Optional[WsJsonHandler] = None,
@@ -142,8 +142,8 @@ class Client:
 
     @staticmethod
     def _load_apis(
-        apis: Optional[Union[Dict[str, List[str]], str]]
-    ) -> Dict[str, List[str]]:
+        apis: Optional[Union[dict[str, list[str]], str]]
+    ) -> dict[str, list[str]]:
         if apis is None:
             apis = {}
         if isinstance(apis, dict):
@@ -170,8 +170,8 @@ class Client:
 
     @staticmethod
     def _encode_apis(
-        apis: Optional[Dict[str, List[str]]]
-    ) -> Dict[str, Tuple[str, bytes]]:
+        apis: Optional[dict[str, list[str]]]
+    ) -> dict[str, tuple[str, bytes]]:
         if apis is None:
             apis = {}
         encoded = {}

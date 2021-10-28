@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Awaitable, Dict, List, Optional
+from typing import Any, Awaitable, Optional
 
 import aiohttp
 
@@ -109,7 +109,7 @@ class Markets(DataStore):
 class Trades(DataStore):
     _MAXLEN = 99999
 
-    def _onmessage(self, market: str, data: List[Item]) -> None:
+    def _onmessage(self, market: str, data: list[Item]) -> None:
         for item in data:
             self._insert([{'market': market, **item}])
 
@@ -118,7 +118,7 @@ class OrderBook(DataStore):
     _KEYS = ['market', 'side', 'price']
     _BDSIDE = {'sell': 'asks', 'buy': 'bids'}
 
-    def sorted(self, query: Optional[Item] = None) -> Dict[str, List[float]]:
+    def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
         if query is None:
             query = {}
         result = {'asks': [], 'bids': []}
@@ -129,7 +129,7 @@ class OrderBook(DataStore):
         result['bids'].sort(key=lambda x: x[0], reverse=True)
         return result
 
-    def _onmessage(self, market: str, data: List[Item]) -> None:
+    def _onmessage(self, market: str, data: list[Item]) -> None:
         if data['action'] == 'partial':
             result = self.find({'market': market})
             self._delete(result)
@@ -158,7 +158,7 @@ class Fills(DataStore):
 class Orders(DataStore):
     _KEYS = ['id']
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if data:
             results = self.find({'market': data[0]['market']})
             self._delete(results)
@@ -177,7 +177,7 @@ class Positions(DataStore):
     def _init(self) -> None:
         self._fetch = False
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         self._update(data)
 
     async def _onfills(self, session: aiohttp.ClientSession) -> None:

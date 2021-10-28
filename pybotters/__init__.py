@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
+from typing import Any, Mapping, Optional, Tuple, Union
 
 import aiohttp
 from aiohttp import hdrs
@@ -54,7 +54,7 @@ async def _request(
     *,
     params: Optional[Mapping[str, str]] = None,
     data: Any = None,
-    apis: Optional[Union[Dict[str, List[str]], str]] = None,
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
     if apis is None:
@@ -73,7 +73,7 @@ def request(
     *,
     params: Optional[Mapping[str, str]] = None,
     data: Any = None,
-    apis: Optional[Union[Dict[str, List[str]], str]] = None,
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
     loop = asyncio.get_event_loop()
@@ -86,7 +86,7 @@ def get(
     url: str,
     *,
     params: Optional[Mapping[str, str]] = None,
-    apis: Optional[Union[Dict[str, List[str]], str]] = None,
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
     loop = asyncio.get_event_loop()
@@ -99,7 +99,7 @@ def post(
     url: str,
     *,
     data: Any = None,
-    apis: Optional[Union[Dict[str, List[str]], str]] = None,
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
     loop = asyncio.get_event_loop()
@@ -112,7 +112,7 @@ def put(
     url: str,
     *,
     data: Any = None,
-    apis: Optional[Union[Dict[str, List[str]], str]] = None,
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
     loop = asyncio.get_event_loop()
@@ -125,7 +125,7 @@ def delete(
     url: str,
     *,
     data: Any = None,
-    apis: Optional[Union[Dict[str, List[str]], str]] = None,
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
     loop = asyncio.get_event_loop()
@@ -137,11 +137,11 @@ def delete(
 async def _ws_connect(
     url: str,
     *,
-    send_str: Optional[Union[str, List[str]]] = None,
+    send_str: Optional[Union[str, list[str]]] = None,
     send_json: Any = None,
     hdlr_str: Optional[WsStrHandler] = None,
     hdlr_json: Optional[WsJsonHandler] = None,
-    apis: Optional[Union[Dict[str, List[str]], str]] = None,
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> None:
     if apis is None:
@@ -161,11 +161,11 @@ async def _ws_connect(
 def ws_connect(
     url: str,
     *,
-    send_str: Optional[Union[str, List[str]]] = None,
+    send_str: Optional[Union[str, list[str]]] = None,
     send_json: Any = None,
     hdlr_str: Optional[WsStrHandler] = None,
     hdlr_json: Optional[WsJsonHandler] = None,
-    apis: Optional[Union[Dict[str, List[str]], str]] = None,
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> None:
     loop = asyncio.get_event_loop()

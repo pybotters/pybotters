@@ -1,6 +1,6 @@
 import asyncio
 from collections import deque
-from typing import Any, Awaitable, Dict, List, Optional, Union
+from typing import Any, Awaitable, Optional, Union
 
 import aiohttp
 
@@ -132,7 +132,7 @@ class Trade(DataStore):
 class MarkPrice(DataStore):
     _KEYS = ['s']
 
-    def _onmessage(self, data: Union[Item, List[Item]]) -> None:
+    def _onmessage(self, data: Union[Item, list[Item]]) -> None:
         if isinstance(data, list):
             self._update(data)
         else:
@@ -156,7 +156,7 @@ class ContinuousKline(DataStore):
 class Ticker(DataStore):
     _KEYS = ['s']
 
-    def _onmessage(self, data: Union[Item, List[Item]]) -> None:
+    def _onmessage(self, data: Union[Item, list[Item]]) -> None:
         if isinstance(data, list):
             self._update(data)
         else:
@@ -183,7 +183,7 @@ class OrderBook(DataStore):
         self.initialized = False
         self._buff = deque(maxlen=200)
 
-    def sorted(self, query: Optional[Item] = None) -> Dict[str, List[float]]:
+    def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
         if query is None:
             query = {}
         result = {self._MAPSIDE[k]: [] for k in self._MAPSIDE}
@@ -222,7 +222,7 @@ class Balance(DataStore):
     def _onmessage(self, item: Item) -> None:
         self._update(item['a']['B'])
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         for item in data:
             self._update(
                 [
@@ -241,7 +241,7 @@ class Position(DataStore):
     def _onmessage(self, item: Item) -> None:
         self._update(item['a']['P'])
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         for item in data:
             self._update(
                 [
@@ -266,7 +266,7 @@ class Order(DataStore):
         else:
             self._delete([item['o']])
 
-    def _onresponse(self, symbol: Optional[str], data: List[Item]) -> None:
+    def _onresponse(self, symbol: Optional[str], data: list[Item]) -> None:
         if symbol is not None:
             self._delete(self.find({'symbol': symbol}))
         else:

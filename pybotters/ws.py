@@ -7,7 +7,7 @@ import logging
 import time
 from dataclasses import dataclass
 from secrets import token_hex
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 
 import aiohttp
 from aiohttp.http_websocket import json
@@ -25,7 +25,7 @@ async def ws_run_forever(
     session: aiohttp.ClientSession,
     event: asyncio.Event,
     *,
-    send_str: Optional[Union[str, List[str]]] = None,
+    send_str: Optional[Union[str, list[str]]] = None,
     send_json: Any = None,
     hdlr_str=None,
     hdlr_json=None,
