@@ -2,7 +2,7 @@ import asyncio
 import logging
 import operator
 from decimal import Decimal
-from typing import Awaitable, Dict, List
+from typing import Awaitable
 
 import aiohttp
 
@@ -108,9 +108,11 @@ class Board(DataStore):
     _KEYS = ['product_code', 'side', 'price']
 
     def _init(self) -> None:
-        self.mid_price: Dict[str, float] = {}
+        self.mid_price: dict[str, float] = {}
 
-    def sorted(self, query: Item = {}) -> Dict[str, List[Item]]:
+    def sorted(self, query: Item = None) -> dict[str, list[Item]]:
+        if query is None:
+            query = {}
         result = {'SELL': [], 'BUY': []}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
@@ -148,31 +150,31 @@ class Ticker(DataStore):
 class Executions(DataStore):
     _MAXLEN = 99999
 
-    def _onmessage(self, message: List[Item]) -> None:
+    def _onmessage(self, message: list[Item]) -> None:
         self._insert(message)
 
 
 class ChildOrderEvents(DataStore):
-    def _onmessage(self, message: List[Item]) -> None:
+    def _onmessage(self, message: list[Item]) -> None:
         self._insert(message)
 
 
 class ParentOrderEvents(DataStore):
-    def _onmessage(self, message: List[Item]) -> None:
+    def _onmessage(self, message: list[Item]) -> None:
         self._insert(message)
 
 
 class ChildOrders(DataStore):
     _KEYS = ['child_order_acceptance_id']
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if data:
             self._delete(self.find({'product_code': data[0]['product_code']}))
             for item in data:
                 if item['child_order_state'] == 'ACTIVE':
                     self._insert([item])
 
-    def _onmessage(self, message: List[Item]) -> None:
+    def _onmessage(self, message: list[Item]) -> None:
         for item in message:
             if item['event_type'] == 'ORDER':
                 self._insert([item])
@@ -198,14 +200,14 @@ class ChildOrders(DataStore):
 class ParentOrders(DataStore):
     _KEYS = ['parent_order_acceptance_id']
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if data:
             self._delete(self.find({'product_code': data[0]['product_code']}))
             for item in data:
                 if item['parent_order_state'] == 'ACTIVE':
                     self._insert([item])
 
-    def _onmessage(self, message: List[Item]) -> None:
+    def _onmessage(self, message: list[Item]) -> None:
         for item in message:
             if item['event_type'] == 'ORDER':
                 self._insert([item])
@@ -234,13 +236,13 @@ class Positions(DataStore):
     def _common_keys(self, item: Item) -> Item:
         return {key: item[key] for key in self._COMMON_KEYS}
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if data:
             self._delete(self.find({'product_code': data[0]['product_code']}))
             for item in data:
                 self._insert([self._common_keys(item)])
 
-    def _onmessage(self, message: List[Item]) -> None:
+    def _onmessage(self, message: list[Item]) -> None:
         for item in message:
             if item['event_type'] == 'EXECUTION':
                 positions = self._find_with_uuid({'product_code': item['product_code']})

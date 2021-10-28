@@ -3,7 +3,7 @@ import logging
 from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum, auto
-from typing import Any, Awaitable, Dict, List, Optional, cast
+from typing import Any, Awaitable, Optional, cast
 
 import aiohttp
 from pybotters.store import DataStore, DataStoreManager
@@ -204,8 +204,8 @@ class OrderLevel(TypedDict):
 
 
 class OrderBook(TypedDict):
-    asks: List[OrderLevel]
-    bids: List[OrderLevel]
+    asks: list[OrderLevel]
+    bids: list[OrderLevel]
     symbol: Symbol
     timestamp: datetime
 
@@ -287,10 +287,10 @@ class TickerStore(DataStore):
 class OrderBookStore(DataStore):
     _KEYS = ["symbol", "side", "price"]
 
-    def sorted(self, query: Optional[Item] = None) -> Dict[OrderSide, List[OrderLevel]]:
+    def sorted(self, query: Optional[Item] = None) -> dict[OrderSide, list[OrderLevel]]:
         if query is None:
             query = {}
-        result: Dict[OrderSide, List[OrderLevel]] = {
+        result: dict[OrderSide, list[OrderLevel]] = {
             OrderSide.BUY: [],
             OrderSide.SELL: [],
         }
@@ -305,7 +305,7 @@ class OrderBookStore(DataStore):
         data = mes["asks"] + mes["bids"]
         result = self.find({"symbol": mes["symbol"]})
         self._delete(result)
-        self._insert(cast(List[Item], data))
+        self._insert(cast(list[Item], data))
 
 
 class TradeStore(DataStore):
@@ -316,8 +316,8 @@ class TradeStore(DataStore):
 class OrderStore(DataStore):
     _KEYS = ["order_id"]
 
-    def _onresponse(self, data: List[Order]) -> None:
-        self._insert(cast(List[Item], data))
+    def _onresponse(self, data: list[Order]) -> None:
+        self._insert(cast(list[Item], data))
 
     def _onmessage(self, mes: Order) -> None:
         if mes["order_status"] in (OrderStatus.WAITING, OrderStatus.ORDERED):
@@ -343,7 +343,7 @@ class OrderStore(DataStore):
 class ExecutionStore(DataStore):
     _KEYS = ["execution_id"]
 
-    def sorted(self, query: Optional[Item] = None) -> List[Execution]:
+    def sorted(self, query: Optional[Item] = None) -> list[Execution]:
         if query is None:
             query = {}
         result = []
@@ -353,8 +353,8 @@ class ExecutionStore(DataStore):
         result.sort(key=lambda x: x["execution_id"], reverse=True)
         return result
 
-    def _onresponse(self, data: List[Execution]) -> None:
-        self._insert(cast(List[Item], data))
+    def _onresponse(self, data: list[Execution]) -> None:
+        self._insert(cast(list[Item], data))
 
     def _onmessage(self, mes: Execution) -> None:
         self._insert([cast(Item, mes)])
@@ -363,8 +363,8 @@ class ExecutionStore(DataStore):
 class PositionStore(DataStore):
     _KEYS = ["position_id"]
 
-    def _onresponse(self, data: List[Position]) -> None:
-        self._update(cast(List[Item], data))
+    def _onresponse(self, data: list[Position]) -> None:
+        self._update(cast(list[Item], data))
 
     def _onmessage(self, mes: Position, type: MessageType) -> None:
         if type == MessageType.OPR:
@@ -378,8 +378,8 @@ class PositionStore(DataStore):
 class PositionSummaryStore(DataStore):
     _KEYS = ["symbol", "side"]
 
-    def _onresponse(self, data: List[PositionSummary]) -> None:
-        self._update(cast(List[Item], data))
+    def _onresponse(self, data: list[PositionSummary]) -> None:
+        self._update(cast(list[Item], data))
 
     def _onmessage(self, mes: PositionSummary) -> None:
         self._update([cast(Item, mes)])
@@ -387,7 +387,7 @@ class PositionSummaryStore(DataStore):
 
 class MessageHelper:
     @staticmethod
-    def to_tickers(data: List[Item]) -> List["Ticker"]:
+    def to_tickers(data: list[Item]) -> list["Ticker"]:
         return [MessageHelper.to_ticker(x) for x in data]
 
     @staticmethod
@@ -429,7 +429,7 @@ class MessageHelper:
         )
 
     @staticmethod
-    def to_trades(data: List[Item]) -> List["Trade"]:
+    def to_trades(data: list[Item]) -> list["Trade"]:
         return [MessageHelper.to_trade(x) for x in data]
 
     @staticmethod
@@ -443,7 +443,7 @@ class MessageHelper:
         )
 
     @staticmethod
-    def to_executions(data: List[Item]) -> List["Execution"]:
+    def to_executions(data: list[Item]) -> list["Execution"]:
         return [MessageHelper.to_execution(x) for x in data]
 
     @staticmethod
@@ -478,7 +478,7 @@ class MessageHelper:
         )
 
     @staticmethod
-    def to_orders(data: List[Item]) -> List["Order"]:
+    def to_orders(data: list[Item]) -> list["Order"]:
         return [MessageHelper.to_order(x) for x in data]
 
     @staticmethod
@@ -504,7 +504,7 @@ class MessageHelper:
         )
 
     @staticmethod
-    def to_positions(data: List[Item]) -> List["Position"]:
+    def to_positions(data: list[Item]) -> list["Position"]:
         return [MessageHelper.to_position(x) for x in data]
 
     @staticmethod
@@ -523,7 +523,7 @@ class MessageHelper:
         )
 
     @staticmethod
-    def to_position_summaries(data: List[Item]) -> List["PositionSummary"]:
+    def to_position_summaries(data: list[Item]) -> list["PositionSummary"]:
         return [MessageHelper.to_position_summary(x) for x in data]
 
     @staticmethod

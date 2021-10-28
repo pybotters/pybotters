@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Optional
+from typing import Optional
 
 from ..store import DataStore, DataStoreManager
 from ..typedefs import Item
@@ -40,7 +40,7 @@ class bitbankDataStore(DataStoreManager):
 class Transactions(DataStore):
     _MAXLEN = 99999
 
-    def _onmessage(self, room_name: str, data: List[Item]) -> None:
+    def _onmessage(self, room_name: str, data: list[Item]) -> None:
         data = data['transactions']
         for item in data:
             pair = room_name.replace('transactions_', '')
@@ -51,7 +51,7 @@ class Depth(DataStore):
     _KEYS = ['pair', 'side', 'price']
     _BDSIDE = {'sell': 'asks', 'buy': 'bids'}
 
-    def sorted(self, query: Optional[Item] = None) -> Dict[str, List[float]]:
+    def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
         if query is None:
             query = {}
         result = {'asks': [], 'bids': []}
@@ -62,7 +62,7 @@ class Depth(DataStore):
         result['bids'].sort(key=lambda x: x[0], reverse=True)
         return result
 
-    def _onmessage(self, room_name: str, data: List[Item]) -> None:
+    def _onmessage(self, room_name: str, data: list[Item]) -> None:
         if 'whole' in room_name:
             pair = room_name.replace('depth_whole_', '')
             result = self.find({'pair': pair})

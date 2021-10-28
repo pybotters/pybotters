@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Awaitable, Dict, List, Optional, Union
+from typing import Awaitable, Optional, Union
 
 import aiohttp
 
@@ -242,7 +242,7 @@ class BybitUSDTDataStore(DataStoreManager):
 class CastDataStore(DataStore):
     _CAST_TYPES = {}
 
-    def _cast(self, data: List[Item]) -> None:
+    def _cast(self, data: list[Item]) -> None:
         for item in data:
             for x in self._CAST_TYPES:
                 for k in self._CAST_TYPES[x]:
@@ -253,15 +253,15 @@ class CastDataStore(DataStore):
                     except TypeError:
                         pass
 
-    def _insert(self, data: List[Item]) -> None:
+    def _insert(self, data: list[Item]) -> None:
         self._cast(data)
         super()._insert(data)
 
-    def _update(self, data: List[Item]) -> None:
+    def _update(self, data: list[Item]) -> None:
         self._cast(data)
         super()._update(data)
 
-    def _delete(self, data: List[Item]) -> None:
+    def _delete(self, data: list[Item]) -> None:
         self._cast(data)
         super()._delete(data)
 
@@ -274,7 +274,7 @@ class OrderBookInverse(CastDataStore):
         ],
     }
 
-    def sorted(self, query: Optional[Item] = None) -> Dict[str, List[Item]]:
+    def sorted(self, query: Optional[Item] = None) -> dict[str, list[Item]]:
         if query is None:
             query = {}
         result = {"Sell": [], "Buy": []}
@@ -285,7 +285,7 @@ class OrderBookInverse(CastDataStore):
         result["Buy"].sort(key=lambda x: x["id"], reverse=True)
         return result
 
-    def _onmessage(self, topic: str, type_: str, data: Union[List[Item], Item]) -> None:
+    def _onmessage(self, topic: str, type_: str, data: Union[list[Item], Item]) -> None:
         if type_ == "snapshot":
             symbol = topic.split(".")[-1]
             # ex: "orderBookL2_25.BTCUSD", "orderBook_200.100ms.BTCUSD"
@@ -308,7 +308,7 @@ class OrderBookUSDT(OrderBookInverse):
         ],
     }
 
-    def _onmessage(self, topic: str, type_: str, data: Union[List[Item], Item]) -> None:
+    def _onmessage(self, topic: str, type_: str, data: Union[list[Item], Item]) -> None:
         if type_ == "snapshot":
             symbol = topic.split(".")[-1]
             # ex: "orderBookL2_25.BTCUSDT", "orderBook_200.100ms.BTCUSDT"
@@ -325,7 +325,7 @@ class TradeInverse(CastDataStore):
     _KEYS = ['trade_id']
     _MAXLEN = 99999
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._insert(data)
 
 
@@ -343,7 +343,7 @@ class TradeUSDT(TradeInverse):
 class Insurance(CastDataStore):
     _KEYS = ["currency"]
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
@@ -414,14 +414,14 @@ class InstrumentUSDT(InstrumentInverse):
 class KlineInverse(CastDataStore):
     _KEYS = ["start", "symbol", "interval"]
 
-    def _onmessage(self, topic: str, data: List[Item]) -> None:
+    def _onmessage(self, topic: str, data: list[Item]) -> None:
         topic_split = topic.split(".")  # ex:"klineV2.1.BTCUSD"
         for item in data:
             item["symbol"] = topic_split[-1]
             item["interval"] = topic_split[-2]
         self._update(data)
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         for item in data:
             item["start"] = item.pop("open_time")
         self._update(data)
@@ -490,13 +490,13 @@ class PositionInverse(CastDataStore):
     def one(self, symbol: str) -> Optional[Item]:
         return self.get({"symbol": symbol, "position_idx": 0})
 
-    def both(self, symbol: str) -> Dict[str, Optional[Item]]:
+    def both(self, symbol: str) -> dict[str, Optional[Item]]:
         return {
             "Sell": self.get({"symbol": symbol, "position_idx": 2}),
             "Buy": self.get({"symbol": symbol, "position_idx": 1}),
         }
 
-    def _onresponse(self, data: Union[Item, List[Item]]) -> None:
+    def _onresponse(self, data: Union[Item, list[Item]]) -> None:
         if isinstance(data, dict):
             self._update([data])  # ex: {"symbol": "BTCUSD", ...}
         elif isinstance(data, list):
@@ -516,7 +516,7 @@ class PositionInverse(CastDataStore):
                     self._update([item])
                     # ex: [{"symbol": "BTCUSDT", ...}, ...]
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
@@ -533,13 +533,13 @@ class PositionUSDT(PositionInverse):
         ],
     }
 
-    def one(self, symbol: str) -> Dict[str, Optional[Item]]:
+    def one(self, symbol: str) -> dict[str, Optional[Item]]:
         return {
             "Sell": self.get({"symbol": symbol, "side": "Sell"}),
             "Buy": self.get({"symbol": symbol, "side": "Buy"}),
         }
 
-    def both(self, symbol: str) -> Dict[str, Optional[Item]]:
+    def both(self, symbol: str) -> dict[str, Optional[Item]]:
         return {
             "Sell": self.get({"symbol": symbol, "side": "Sell"}),
             "Buy": self.get({"symbol": symbol, "side": "Buy"}),
@@ -555,7 +555,7 @@ class ExecutionInverse(CastDataStore):
         ],
     }
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
@@ -577,13 +577,13 @@ class OrderInverse(CastDataStore):
         ],
     }
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if isinstance(data, list):
             self._update(data)
         elif isinstance(data, dict):
             self._update([data])
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         for item in data:
             if item["order_status"] in ("Created", "New", "PartiallyFilled"):
                 self._update([item])
@@ -604,13 +604,13 @@ class StopOrderInverse(CastDataStore):
         ],
     }
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if isinstance(data, list):
             self._update(data)
         elif isinstance(data, dict):
             self._update([data])
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         for item in data:
             if item["order_status"] in ("Active", "Untriggered"):
                 self._update([item])
@@ -628,6 +628,6 @@ class StopOrderUSDT(StopOrderInverse):
 
 
 class Wallet(CastDataStore):
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._clear()
         self._update(data)

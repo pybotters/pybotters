@@ -1,17 +1,6 @@
 import asyncio
 import uuid
-from typing import (
-    Any,
-    Dict,
-    Hashable,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    cast,
-)
+from typing import Any, Hashable, Iterator, Optional, Type, TypeVar, cast
 
 from .typedefs import Item
 from .ws import ClientWebSocketResponse
@@ -22,12 +11,12 @@ class DataStore:
     _MAXLEN = 9999
 
     def __init__(
-        self, keys: Optional[List[str]] = None, data: Optional[List[Item]] = None
+        self, keys: Optional[list[str]] = None, data: Optional[list[Item]] = None
     ) -> None:
-        self._data: Dict[uuid.UUID, Item] = {}
-        self._index: Dict[int, uuid.UUID] = {}
-        self._keys: Tuple[str, ...] = tuple(keys if keys else self._KEYS)
-        self._events: Dict[asyncio.Event, List[Item]] = {}
+        self._data: dict[uuid.UUID, Item] = {}
+        self._index: dict[int, uuid.UUID] = {}
+        self._keys: tuple[str, ...] = tuple(keys if keys else self._KEYS)
+        self._events: dict[asyncio.Event, list[Item]] = {}
         if data is None:
             data = []
         self._insert(data)
@@ -41,10 +30,10 @@ class DataStore:
         return iter(self._data.values())
 
     @staticmethod
-    def _hash(item: Dict[str, Hashable]) -> int:
+    def _hash(item: dict[str, Hashable]) -> int:
         return hash(tuple(item.items()))
 
-    def _insert(self, data: List[Item]) -> None:
+    def _insert(self, data: list[Item]) -> None:
         if self._keys:
             for item in data:
                 try:
@@ -68,7 +57,7 @@ class DataStore:
         # !TODO! This behaviour might be undesirable.
         self._set(data)
 
-    def _update(self, data: List[Item]) -> None:
+    def _update(self, data: list[Item]) -> None:
         if self._keys:
             for item in data:
                 try:
@@ -92,7 +81,7 @@ class DataStore:
         # !TODO! This behaviour might be undesirable.
         self._set(data)
 
-    def _delete(self, data: List[Item]) -> None:
+    def _delete(self, data: list[Item]) -> None:
         if self._keys:
             for item in data:
                 try:
@@ -107,7 +96,7 @@ class DataStore:
         # !TODO! This behaviour might be undesirable.
         self._set(data)
 
-    def _remove(self, uuids: List[uuid.UUID]) -> None:
+    def _remove(self, uuids: list[uuid.UUID]) -> None:
         if self._keys:
             for _id in uuids:
                 if _id in self._data:
@@ -169,7 +158,7 @@ class DataStore:
                     del self._index[keyhash]
                     return ret
 
-    def find(self, query: Optional[Item] = None) -> List[Item]:
+    def find(self, query: Optional[Item] = None) -> list[Item]:
         if query:
             return [
                 item
@@ -207,14 +196,14 @@ class DataStore:
             self._clear()
             return ret
 
-    def _set(self, data: Optional[List[Item]] = None) -> None:
+    def _set(self, data: Optional[list[Item]] = None) -> None:
         if data is None:
             data = []
         for event in self._events:
             event.set()
             self._events[event].extend(data)
 
-    async def wait(self) -> List[Item]:
+    async def wait(self) -> list[Item]:
         event = asyncio.Event()
         ret = []
         self._events[event] = ret
@@ -228,8 +217,8 @@ TDataStore = TypeVar('TDataStore', bound=DataStore)
 
 class DataStoreManager:
     def __init__(self) -> None:
-        self._stores: Dict[str, DataStore] = {}
-        self._events: List[asyncio.Event] = []
+        self._stores: dict[str, DataStore] = {}
+        self._events: list[asyncio.Event] = []
         self._iscorofunc = asyncio.iscoroutinefunction(self._onmessage)
         if hasattr(self, '_init'):
             getattr(self, '_init')()
@@ -244,8 +233,8 @@ class DataStoreManager:
         self,
         name: str,
         *,
-        keys: Optional[List[str]] = None,
-        data: Optional[List[Item]] = None,
+        keys: Optional[list[str]] = None,
+        data: Optional[list[Item]] = None,
         datastore_class: Type[DataStore] = DataStore,
     ) -> None:
         if keys is None:
