@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 from collections import deque
 from typing import Any, Awaitable, Optional, Union
