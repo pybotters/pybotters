@@ -16,6 +16,11 @@ def test_interface():
     assert 'example' in store
     assert isinstance(store['example'], pybotters.store.DataStore)
 
+    store = pybotters.store.DataStoreManager(auto_cast=True)
+    assert store._auto_cast is True
+    store.create('example')
+    store['example']._auto_cast is True
+
 
 @pytest.mark.asyncio
 async def test_interface_onmessage(mocker: pytest_mock.MockerFixture):
@@ -64,6 +69,29 @@ def test_ds():
 def test_hash():
     hashed = pybotters.store.DataStore._hash({'foo': 'bar'})
     assert isinstance(hashed, int)
+
+
+def test_cast_item():
+    actual = {
+        'num_int': 123,
+        'num_float': 1.23,
+        'str_int': "123",
+        'str_float': "1.23",
+        'str_orig': "foo",
+        'bool': True,
+        'null': None,
+    }
+    expected = {
+        'num_int': 123,
+        'num_float': 1.23,
+        'str_int': 123,
+        'str_float': 1.23,
+        'str_orig': "foo",
+        'bool': True,
+        'null': None,
+    }
+    pybotters.store.DataStore._cast_item(actual)
+    assert expected == actual
 
 
 def test_sweep_with_key():

@@ -13,12 +13,17 @@ class DataStore:
     _MAXLEN = 9999
 
     def __init__(
-        self, keys: Optional[list[str]] = None, data: Optional[list[Item]] = None
+        self,
+        keys: Optional[list[str]] = None,
+        data: Optional[list[Item]] = None,
+        *,
+        auto_cast: bool = False,
     ) -> None:
         self._data: dict[uuid.UUID, Item] = {}
         self._index: dict[int, uuid.UUID] = {}
         self._keys: tuple[str, ...] = tuple(keys if keys else self._KEYS)
         self._events: dict[asyncio.Event, list[Item]] = {}
+        self._auto_cast = auto_cast
         if data is None:
             data = []
         self._insert(data)
@@ -35,9 +40,23 @@ class DataStore:
     def _hash(item: dict[str, Hashable]) -> int:
         return hash(tuple(item.items()))
 
+    @staticmethod
+    def _cast_item(item: dict[str, Hashable]) -> None:
+        for k in item:
+            if isinstance(item[k], str):
+                try:
+                    item[k] = int(item[k])
+                except ValueError:
+                    try:
+                        item[k] = float(item[k])
+                    except ValueError:
+                        pass
+
     def _insert(self, data: list[Item]) -> None:
         if self._keys:
             for item in data:
+                if self._auto_cast:
+                    self._cast_item(item)
                 try:
                     keyitem = {k: item[k] for k in self._keys}
                 except KeyError:
@@ -53,6 +72,8 @@ class DataStore:
             self._sweep_with_key()
         else:
             for item in data:
+                if self._auto_cast:
+                    self._cast_item(item)
                 _id = uuid.uuid4()
                 self._data[_id] = item
             self._sweep_without_key()
@@ -62,6 +83,8 @@ class DataStore:
     def _update(self, data: list[Item]) -> None:
         if self._keys:
             for item in data:
+                if self._auto_cast:
+                    self._cast_item(item)
                 try:
                     keyitem = {k: item[k] for k in self._keys}
                 except KeyError:
@@ -77,6 +100,8 @@ class DataStore:
             self._sweep_with_key()
         else:
             for item in data:
+                if self._auto_cast:
+                    self._cast_item(item)
                 _id = uuid.uuid4()
                 self._data[_id] = item
             self._sweep_without_key()
@@ -86,6 +111,8 @@ class DataStore:
     def _delete(self, data: list[Item]) -> None:
         if self._keys:
             for item in data:
+                if self._auto_cast:
+                    self._cast_item(item)
                 try:
                     keyitem = {k: item[k] for k in self._keys}
                 except KeyError:
@@ -218,10 +245,11 @@ TDataStore = TypeVar('TDataStore', bound=DataStore)
 
 
 class DataStoreManager:
-    def __init__(self) -> None:
+    def __init__(self, auto_cast: bool = False) -> None:
         self._stores: dict[str, DataStore] = {}
         self._events: list[asyncio.Event] = []
         self._iscorofunc = asyncio.iscoroutinefunction(self._onmessage)
+        self._auto_cast = auto_cast
         if hasattr(self, '_init'):
             getattr(self, '_init')()
 
@@ -243,7 +271,7 @@ class DataStoreManager:
             keys = []
         if data is None:
             data = []
-        self._stores[name] = datastore_class(keys, data)
+        self._stores[name] = datastore_class(keys, data, auto_cast=self._auto_cast)
 
     def get(self, name: str, type: Type[TDataStore]) -> TDataStore:
         return cast(type, self._stores.get(name))
