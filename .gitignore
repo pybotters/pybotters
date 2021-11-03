@@ -130,3 +130,7 @@ dmypy.json
 
 # Visual Studio Code
 .vscode/
+
+# sphinx.ext.autosummary
+
+generated
