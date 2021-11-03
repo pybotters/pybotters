@@ -544,6 +544,9 @@ class MessageHelper:
 
 
 class GMOCoinDataStore(DataStoreManager):
+    """
+    GMOコインのデータストアマネージャー
+    """
     def _init(self) -> None:
         self.create("ticker", datastore_class=TickerStore)
         self.create("orderbooks", datastore_class=OrderBookStore)
@@ -554,6 +557,14 @@ class GMOCoinDataStore(DataStoreManager):
         self.create("position_summary", datastore_class=PositionSummaryStore)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /private/v1/latestExecutions (DataStore: executions)
+        - GET /private/v1/activeOrders (DataStore: orders)
+        - GET /private/v1/openPositions (DataStore: positions)
+        - GET /private/v1/positionSummary (DataStore: position_summary)
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -614,6 +625,9 @@ class GMOCoinDataStore(DataStoreManager):
 
     @property
     def orders(self) -> OrderStore:
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get("orders", OrderStore)
 
     @property

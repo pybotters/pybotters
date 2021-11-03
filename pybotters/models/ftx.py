@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class FTXDataStore(DataStoreManager):
+    """
+    FTXのデータストアマネージャー
+    """
     def _init(self) -> None:
         self.create('ticker', datastore_class=Ticker)
         self.create('markets', datastore_class=Markets)
@@ -25,6 +28,15 @@ class FTXDataStore(DataStoreManager):
         self.create('positions', datastore_class=Positions)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /orders (DataStore: orders)
+        - GET /conditional_orders (DataStore: orders)
+        - GET /positions (DataStore: positions)
+        
+            - fills 受信時に GET /positions の自動フェッチする機能が有効化される。
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -85,6 +97,9 @@ class FTXDataStore(DataStoreManager):
 
     @property
     def orders(self) -> 'Orders':
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get('orders', Orders)
 
     @property

@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 class BybitDataStore(DataStoreManager):
+    """
+    Bybitのデータストアマネージャー
+    """
+
     def __new__(cls) -> BybitDataStore:
         logger.warning(
             'DEPRECATION WARNING: BybitDataStore will be changed to '
@@ -37,6 +41,20 @@ class BybitDataStore(DataStoreManager):
         self.timestamp_e6: Optional[int] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /v2/private/order (DataStore: order)
+        - GET /private/linear/order/search (DataStore: order)
+        - GET /futures/private/order (DataStore: order)
+        - GET /v2/private/stop-order (DataStore: stoporder)
+        - GET /private/linear/stop-order/search (DataStore: stoporder)
+        - GET /futures/private/stop-order (DataStore: stoporder)
+        - GET /v2/private/position/list (DataStore: position_inverse)
+        - GET /futures/private/position/list (DataStore: position_inverse)
+        - GET /private/linear/position/list (DataStore: position_usdt)
+        - GET /v2/private/wallet/balance (DataStore: wallet)
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -136,6 +154,9 @@ class BybitDataStore(DataStoreManager):
 
     @property
     def position_inverse(self) -> 'PositionInverse':
+        """
+        インバース契約(無期限/先物)用のポジション
+        """
         return self.get('position_inverse', PositionInverse)
 
     @property
@@ -144,14 +165,23 @@ class BybitDataStore(DataStoreManager):
 
     @property
     def execution(self) -> 'Execution':
+        """
+        USDT契約用のポジション
+        """
         return self.get('execution', Execution)
 
     @property
     def order(self) -> 'Order':
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get('order', Order)
 
     @property
     def stoporder(self) -> 'StopOrder':
+        """
+        アクティブオーダーのみ(トリガー済みは削除される)
+        """
         return self.get('stoporder', StopOrder)
 
     @property

@@ -42,6 +42,12 @@ class Client:
                 await wstask
                 # Ctrl+C to break
 
+    Basic API
+
+    パッケージトップレベルで利用できるHTTPリクエスト関数です。 これらは同期関数です。 内部的にpybotters.Clientをラップしています。
+
+    :Example:
+
     .. code-block:: python
 
         r = pybotters.get('https://...', params={'foo': 'bar'}, apis={'example': ['KEY', 'SECRET']})
@@ -65,6 +71,7 @@ class Client:
         """
         :param apis: APIキー・シークレットのデータ(optional) ex: {'exchange': ['key', 'secret']}
         :param base_url: リクエストメソッドの url の前方に自動付加するURL(optional)
+        :param ``**kwargs``: aiohttp.Client.requestに渡されるキーワード引数(optional)
         """
         self._session = aiohttp.ClientSession(
             request_class=ClientRequest,
@@ -123,6 +130,7 @@ class Client:
         :param data: リクエストボディ(optional)
         :param headers: リクエストヘッダー(optional)
         :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)
+        :param ``kwargs``: aiohttp.Client.requestに渡されるキーワード引数(optional)
         """
         return self._request(method, url, params=params, data=data, **kwargs)
 
@@ -180,6 +188,7 @@ class Client:
         :param hdlr_json: WebSocketの受信データをハンドリングする関数。第1引数 msg に Any 型(JSON-like), 第2引数 ws に WebSocketClientResponse 型の変数が渡されます(optional)
         :param headers: リクエストヘッダー(optional)
         :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)
+        :param ``**kwargs``: aiohttp.ClientSession.ws_connectに渡されるキーワード引数(optional)
         """
         event = asyncio.Event()
         task = asyncio.create_task(
