@@ -33,12 +33,16 @@ class Client:
             async with pybotters.Client(apis={'example': ['KEY', 'SECRET']}) as client:
                 r = await client.get('https://...', params={'foo': 'bar'})
                 print(await r.json())
-    
+
     .. code-block:: python
 
         async def main():
             async with pybotters.Client(apis={'example': ['KEY', 'SECRET']}) as client:
-                wstask = await client.ws_connect('wss://...', send_json={'foo': 'bar'}, hdlr_json=pybotters.print_handler)
+                wstask = await client.ws_connect(
+                    'wss://...',
+                    send_json={'foo': 'bar'},
+                    hdlr_json=pybotters.print_handler
+                    )
                 await wstask
                 # Ctrl+C to break
 
@@ -50,15 +54,25 @@ class Client:
 
     .. code-block:: python
 
-        r = pybotters.get('https://...', params={'foo': 'bar'}, apis={'example': ['KEY', 'SECRET']})
+        r = pybotters.get(
+                'https://...',
+                params={'foo': 'bar'},
+                apis={'example': ['KEY', 'SECRET']}
+            )
         print(r.text())
         print(r.json())
-    
+
     .. code-block:: python
-    
-        pybotters.ws_connect('wss://...', send_json={'foo': 'bar'}, hdlr_json=pybotters.print_handler, apis={'example': ['KEY', 'SECRET']})
+
+        pybotters.ws_connect(
+                'wss://...',
+                send_json={'foo': 'bar'},
+                hdlr_json=pybotters.print_handler,
+                apis={'example': ['KEY', 'SECRET']}
+            )
         # Ctrl+C to break
     """
+
     _session: aiohttp.ClientSession
     _base_url: str
 
@@ -184,7 +198,7 @@ class Client:
         :param url: WebSocket URL
         :param send_str: WebSocketで送信する文字列。文字列、または文字列のリスト形式(optional)
         :param send_json: WebSocketで送信する辞書オブジェクト。辞書、または辞書のリスト形式(optional)
-        :param hdlr_str: WebSocketの受信データをハンドリングする関数。第1引数 msg に _str_型, 第2引数 ws に WebSocketClientResponse 型の変数が渡されます(optional)
+        :param hdlr_str: WebSocketの受信データをハンドリングする関数。第1引数 msg に _str_型, 第2引数 ws にWebSocketClientResponse 型の変数が渡されます(optional)
         :param hdlr_json: WebSocketの受信データをハンドリングする関数。第1引数 msg に Any 型(JSON-like), 第2引数 ws に WebSocketClientResponse 型の変数が渡されます(optional)
         :param headers: リクエストヘッダー(optional)
         :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)

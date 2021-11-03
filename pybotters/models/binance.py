@@ -16,6 +16,7 @@ class BinanceDataStore(DataStoreManager):
     """
     Binanceのデータストアマネージャー(※v0.4.0: Binance Futures USDⓈ-Mのみ)
     """
+
     def _init(self) -> None:
         self.create('trade', datastore_class=Trade)
         self.create('markprice', datastore_class=MarkPrice)
@@ -43,8 +44,9 @@ class BinanceDataStore(DataStoreManager):
         - GET /fapi/v2/positionRisk (DataStore: position)
         - GET /fapi/v1/openOrders (DataStore: order)
         - POST /fapi/v1/listenKey (Property: listenkey)
-        
-            - プロパティ listenkey にlistenKeyが格納され30分ごとに PUT /fapi/v1/listenKey のリクエストがスケジュールされる。
+
+            - プロパティ listenkey にlistenKeyが格納され30分ごとに PUT /fapi/v1/listenKey
+              のリクエストがスケジュールされる。
         """
         for f in asyncio.as_completed(aws):
             resp = await f

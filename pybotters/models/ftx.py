@@ -18,6 +18,7 @@ class FTXDataStore(DataStoreManager):
     """
     FTXのデータストアマネージャー
     """
+
     def _init(self) -> None:
         self.create('ticker', datastore_class=Ticker)
         self.create('markets', datastore_class=Markets)
@@ -34,7 +35,7 @@ class FTXDataStore(DataStoreManager):
         - GET /orders (DataStore: orders)
         - GET /conditional_orders (DataStore: orders)
         - GET /positions (DataStore: positions)
-        
+
             - fills 受信時に GET /positions の自動フェッチする機能が有効化される。
         """
         for f in asyncio.as_completed(aws):
