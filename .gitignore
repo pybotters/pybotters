@@ -131,6 +131,6 @@ dmypy.json
 # Visual Studio Code
 .vscode/
 
-# sphinx.ext.autodoc
+# sphinx.ext.autosummary
 
-sphinx.ext.autosummary
+generated
