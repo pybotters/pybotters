@@ -64,7 +64,8 @@ class bitFlyerDataStore(DataStoreManager):
             elif channel.startswith('lightning_ticker_'):
                 self.ticker._onmessage(message)
             elif channel.startswith('lightning_executions_'):
-                self.executions._onmessage(message)
+                product_code = channel.replace('lightning_executions_', '')
+                self.executions._onmessage(product_code, message)
             elif channel == 'child_order_events':
                 self.childorderevents._onmessage(message)
                 self.childorders._onmessage(message)
@@ -152,8 +153,9 @@ class Ticker(DataStore):
 class Executions(DataStore):
     _MAXLEN = 99999
 
-    def _onmessage(self, message: list[Item]) -> None:
-        self._insert(message)
+    def _onmessage(self, product_code: str, message: list[Item]) -> None:
+        for item in message:
+            self._insert([{'product_code': product_code, **item}])
 
 
 class ChildOrderEvents(DataStore):
