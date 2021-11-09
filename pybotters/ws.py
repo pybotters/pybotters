@@ -5,6 +5,7 @@ import base64
 import datetime
 import hashlib
 import hmac
+import inspect
 import logging
 import time
 from dataclasses import dataclass
@@ -20,6 +21,14 @@ import pybotters
 from .auth import Auth as _Auth
 
 logger = logging.getLogger(__name__)
+
+
+def pretty_modulename(e: Exception) -> str:
+    modulename = e.__class__.__name__
+    module = inspect.getmodule(e)
+    if module:
+        modulename = f'{module.__name__}.{modulename}'
+    return modulename
 
 
 async def ws_run_forever(
@@ -66,7 +75,7 @@ async def ws_run_forever(
                                 else:
                                     hdlr_str(msg.data, ws)
                             except Exception as e:
-                                logger.error(repr(e))
+                                logger.exception(f'{pretty_modulename(e)}: {e}')
                         if hdlr_json is not None:
                             try:
                                 data = msg.json()
@@ -79,7 +88,7 @@ async def ws_run_forever(
                                     else:
                                         hdlr_json(data, ws)
                                 except Exception as e:
-                                    logger.error(repr(e))
+                                    logger.exception(f'{pretty_modulename(e)}: {e}')
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         break
         except (
@@ -87,7 +96,7 @@ async def ws_run_forever(
             aiohttp.ClientOSError,
             ConnectionResetError,
         ) as e:
-            logger.warning(repr(e))
+            logger.warning(f'{pretty_modulename(e)}: {e}')
         await cooldown
 
 
