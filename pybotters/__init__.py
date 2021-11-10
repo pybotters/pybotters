@@ -14,6 +14,7 @@ from .models.bitbank import bitbankDataStore
 from .models.bitflyer import bitFlyerDataStore
 from .models.bitmex import BitMEXDataStore
 from .models.bybit import BybitDataStore
+from .models.experimental.bybit import BybitInverseDataStore, BybitUSDTDataStore
 from .models.ftx import FTXDataStore
 from .models.gmocoin import GMOCoinDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
@@ -26,6 +27,8 @@ __all__: Tuple[str, ...] = (
     'put',
     'delete',
     'BybitDataStore',
+    'BybitInverseDataStore',
+    'BybitUSDTDataStore',
     'FTXDataStore',
     'BinanceDataStore',
     'bitbankDataStore',
