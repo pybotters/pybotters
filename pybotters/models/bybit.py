@@ -14,6 +14,13 @@ logger = logging.getLogger(__name__)
 
 
 class BybitDataStore(DataStoreManager):
+    def __new__(cls) -> BybitDataStore:
+        logger.warning(
+            'DEPRECATION WARNING: BybitDataStore will be changed to '
+            'BybitInverseDataStore and BybitUSDTDataStore'
+        )
+        return super().__new__(cls)
+
     def _init(self) -> None:
         self.create('orderbook', datastore_class=OrderBook)
         self.create('trade', datastore_class=Trade)
