@@ -10,6 +10,7 @@ class BitMEXDataStore(DataStoreManager):
     """
     BitMEXのデータストアマネージャー
     """
+
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if 'error' in msg:
             logger.warning(msg)

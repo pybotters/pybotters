@@ -547,6 +547,7 @@ class GMOCoinDataStore(DataStoreManager):
     """
     GMOコインのデータストアマネージャー
     """
+
     def _init(self) -> None:
         self.create("ticker", datastore_class=TickerStore)
         self.create("orderbooks", datastore_class=OrderBookStore)
