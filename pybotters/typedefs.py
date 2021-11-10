@@ -5,6 +5,9 @@ from aiohttp.client_ws import ClientWebSocketResponse
 WsStrHandler = Callable[
     [str, ClientWebSocketResponse], Optional[Coroutine[Any, Any, None]]
 ]
+WsBytesHandler = Callable[
+    [bytes, ClientWebSocketResponse], Optional[Coroutine[Any, Any, None]]
+]
 WsJsonHandler = Callable[
     [Any, ClientWebSocketResponse], Optional[Coroutine[Any, Any, None]]
 ]

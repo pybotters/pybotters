@@ -12,7 +12,7 @@ from aiohttp.client import _RequestContextManager
 
 from .auth import Auth
 from .request import ClientRequest
-from .typedefs import WsJsonHandler, WsStrHandler
+from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
 from .ws import ClientWebSocketResponse, ws_run_forever
 
 logger = logging.getLogger(__name__)
@@ -189,8 +189,10 @@ class Client:
         url: str,
         *,
         send_str: Optional[Union[str, list[str]]] = None,
+        send_bytes: Optional[Union[bytes, list[bytes]]] = None,
         send_json: Any = None,
         hdlr_str: Optional[WsStrHandler] = None,
+        hdlr_bytes: Optional[WsBytesHandler] = None,
         hdlr_json: Optional[WsJsonHandler] = None,
         **kwargs: Any,
     ) -> asyncio.Task:
@@ -214,8 +216,10 @@ class Client:
                 self._session,
                 event,
                 send_str=send_str,
+                send_bytes=send_bytes,
                 send_json=send_json,
                 hdlr_str=hdlr_str,
+                hdlr_bytes=hdlr_bytes,
                 hdlr_json=hdlr_json,
                 **kwargs,
             )

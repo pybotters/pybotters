@@ -37,8 +37,10 @@ async def ws_run_forever(
     event: asyncio.Event,
     *,
     send_str: Optional[Union[str, list[str]]] = None,
+    send_bytes: Optional[Union[bytes, list[bytes]]] = None,
     send_json: Any = None,
     hdlr_str=None,
+    hdlr_bytes=None,
     hdlr_json=None,
     auth=_Auth,
     **kwargs: Any,
@@ -46,6 +48,7 @@ async def ws_run_forever(
     if all([hdlr_str is None, hdlr_json is None]):
         hdlr_json = pybotters.print_handler
     iscorofunc_str = asyncio.iscoroutinefunction(hdlr_str)
+    iscorofunc_bytes = asyncio.iscoroutinefunction(hdlr_bytes)
     iscorofunc_json = asyncio.iscoroutinefunction(hdlr_json)
     while not session.closed:
         cooldown = asyncio.create_task(asyncio.sleep(60.0))
@@ -59,6 +62,13 @@ async def ws_run_forever(
                         await asyncio.gather(*[ws.send_str(item) for item in send_str])
                     else:
                         await ws.send_str(send_str)
+                if send_bytes is not None:
+                    if isinstance(send_bytes, list):
+                        await asyncio.gather(
+                            *[ws.send_bytes(item) for item in send_bytes]
+                        )
+                    else:
+                        await ws.send_bytes(send_bytes)
                 if send_json is not None:
                     if isinstance(send_json, list):
                         await asyncio.gather(
@@ -89,6 +99,15 @@ async def ws_run_forever(
                                         hdlr_json(data, ws)
                                 except Exception as e:
                                     logger.exception(f'{pretty_modulename(e)}: {e}')
+                    elif msg.type == aiohttp.WSMsgType.BINARY:
+                        if hdlr_bytes is not None:
+                            try:
+                                if iscorofunc_bytes:
+                                    await hdlr_bytes(msg.data, ws)
+                                else:
+                                    hdlr_bytes(msg.data, ws)
+                            except Exception as e:
+                                logger.exception(f'{pretty_modulename(e)}: {e}')
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         break
         except (

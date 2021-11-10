@@ -153,3 +153,21 @@ async def test_client_ws_connect_json(mocker: pytest_mock.MockerFixture):
     assert coro.called
     assert task.called
     assert ret == task.return_value
+
+
+@pytest.mark.asyncio
+async def test_client_ws_connect_bytes(mocker: pytest_mock.MockerFixture):
+    event = asyncio.Event()
+    event.set()
+    mocker.patch('asyncio.Event', return_value=event)
+    task = mocker.patch('asyncio.create_task')
+    coro = mocker.patch('pybotters.client.ws_run_forever')
+    async with pybotters.Client() as client:
+        ret = await client.ws_connect(
+            'ws://test.org',
+            send_bytes=b'{"foo":"bar"}',
+            hdlr_bytes=lambda msg, ws: ...,
+        )
+    assert coro.called
+    assert task.called
+    assert ret == task.return_value
