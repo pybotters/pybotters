@@ -161,13 +161,13 @@ class BybitDataStore(DataStoreManager):
 
     @property
     def position_usdt(self) -> 'PositionUSDT':
+        """
+        USDT契約用のポジション
+        """
         return self.get('position_usdt', PositionUSDT)
 
     @property
     def execution(self) -> 'Execution':
-        """
-        USDT契約用のポジション
-        """
         return self.get('execution', Execution)
 
     @property
