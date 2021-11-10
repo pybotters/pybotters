@@ -289,6 +289,9 @@ class TickerStore(DataStore):
 class OrderBookStore(DataStore):
     _KEYS = ["symbol", "side", "price"]
 
+    def _init(self) -> None:
+        self.timestamp: Optional[datetime] = None
+
     def sorted(self, query: Optional[Item] = None) -> dict[OrderSide, list[OrderLevel]]:
         if query is None:
             query = {}
@@ -308,6 +311,7 @@ class OrderBookStore(DataStore):
         result = self.find({"symbol": mes["symbol"]})
         self._delete(result)
         self._insert(cast(list[Item], data))
+        self.timestamp = mes["timestamp"]
 
 
 class TradeStore(DataStore):
