@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 class BybitInverseDataStore(DataStoreManager):
+    """
+    Bybit Inverse契約のデータストアマネージャー
+    """
+
     def _init(self) -> None:
         self.create("orderbook", datastore_class=OrderBookInverse)
         self.create("trade", datastore_class=TradeInverse)
@@ -28,6 +32,16 @@ class BybitInverseDataStore(DataStoreManager):
         self.timestamp_e6: Optional[int] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /v2/private/order (DataStore: order)
+        - GET /futures/private/order (DataStore: order)
+        - GET /v2/private/stop-order (DataStore: stoporder)
+        - GET /futures/private/stop-order (DataStore: stoporder)
+        - GET /v2/private/position/list (DataStore: position)
+        - GET /futures/private/position/list (DataStore: position)
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -116,6 +130,9 @@ class BybitInverseDataStore(DataStoreManager):
 
     @property
     def position(self) -> "PositionInverse":
+        """
+        インバース契約(無期限/先物)用のポジション
+        """
         return self.get("position", PositionInverse)
 
     @property
@@ -124,14 +141,24 @@ class BybitInverseDataStore(DataStoreManager):
 
     @property
     def order(self) -> "OrderInverse":
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get("order", OrderInverse)
 
     @property
     def stoporder(self) -> "StopOrderInverse":
+        """
+        アクティブオーダーのみ(トリガー済みは削除される)
+        """
         return self.get("stoporder", StopOrderInverse)
 
 
 class BybitUSDTDataStore(DataStoreManager):
+    """
+    Bybit USDT契約のデータストアマネージャー
+    """
+
     def _init(self) -> None:
         self.create("orderbook", datastore_class=OrderBookUSDT)
         self.create("trade", datastore_class=TradeUSDT)
@@ -147,6 +174,13 @@ class BybitUSDTDataStore(DataStoreManager):
         self.timestamp_e6: Optional[int] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /private/linear/order/search (DataStore: order)
+        - GET /private/linear/stop-order/search (DataStore: stoporder)
+        - GET /private/linear/position/list (DataStore: position)
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -222,6 +256,9 @@ class BybitUSDTDataStore(DataStoreManager):
 
     @property
     def position(self) -> "PositionUSDT":
+        """
+        USDT契約用のポジション
+        """
         return self.get("position", PositionUSDT)
 
     @property
@@ -230,10 +267,16 @@ class BybitUSDTDataStore(DataStoreManager):
 
     @property
     def order(self) -> "OrderUSDT":
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get("order", OrderUSDT)
 
     @property
     def stoporder(self) -> "StopOrderUSDT":
+        """
+        アクティブオーダーのみ(トリガー済みは削除される)
+        """
         return self.get("stoporder", StopOrderUSDT)
 
     @property
