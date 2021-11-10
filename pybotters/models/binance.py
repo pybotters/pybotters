@@ -13,6 +13,10 @@ from ..ws import ClientWebSocketResponse
 
 
 class BinanceDataStore(DataStoreManager):
+    """
+    Binanceのデータストアマネージャー(※v0.4.0: Binance Futures USDⓈ-Mのみ)
+    """
+
     def _init(self) -> None:
         self.create('trade', datastore_class=Trade)
         self.create('markprice', datastore_class=MarkPrice)
@@ -28,6 +32,22 @@ class BinanceDataStore(DataStoreManager):
         self.listenkey: Optional[str] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /fapi/v1/depth (DataStore: orderbook)
+
+            - Binance APIドキュメントに従ってWebSocket接続後にinitializeすること。
+            - orderbook データストアの initialized がTrueになる。
+
+        - GET /fapi/v2/balance (DataStore: balance)
+        - GET /fapi/v2/positionRisk (DataStore: position)
+        - GET /fapi/v1/openOrders (DataStore: order)
+        - POST /fapi/v1/listenKey (Property: listenkey)
+
+            - プロパティ listenkey にlistenKeyが格納され30分ごとに PUT /fapi/v1/listenKey
+              のリクエストがスケジュールされる。
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -121,6 +141,9 @@ class BinanceDataStore(DataStoreManager):
 
     @property
     def order(self) -> 'Order':
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get('order', Order)
 
 

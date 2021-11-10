@@ -16,6 +16,15 @@ Welcome to pybotters's documentation!
    Exchanges
    Contributing
 
+API Reference
+-------------
+
+.. autosummary::
+   :toctree: generated
+   :recursive:
+
+   pybotters
+
 Indices and tables
 ==================
 

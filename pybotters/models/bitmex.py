@@ -7,6 +7,10 @@ logger = logging.getLogger(__name__)
 
 
 class BitMEXDataStore(DataStoreManager):
+    """
+    BitMEXのデータストアマネージャー
+    """
+
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if 'error' in msg:
             logger.warning(msg)
@@ -73,6 +77,9 @@ class BitMEXDataStore(DataStoreManager):
 
     @property
     def order(self) -> DataStore:
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get('order', DataStore)
 
     @property

@@ -245,6 +245,10 @@ TDataStore = TypeVar('TDataStore', bound=DataStore)
 
 
 class DataStoreManager:
+    """
+    データストアマネージャーの抽象クラスです。 データストアの作成・参照・ハンドリングなどの役割を持ちます。 それぞれの取引所のクラスが継承します。
+    """
+
     def __init__(self, auto_cast: bool = False) -> None:
         self._stores: dict[str, DataStore] = {}
         self._events: list[asyncio.Event] = []
@@ -280,6 +284,9 @@ class DataStoreManager:
         print(msg)
 
     def onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+        """
+        Clientクラスws_connectメソッドの引数send_jsonに渡すハンドラです。
+        """
         self._onmessage(msg, ws)
         self._set()
 
@@ -289,6 +296,9 @@ class DataStoreManager:
         self._events.clear()
 
     async def wait(self) -> None:
+        """
+        非同期メソッド。onmessageのイベントがあるまで待機します。
+        """
         event = asyncio.Event()
         self._events.append(event)
         await event.wait()
