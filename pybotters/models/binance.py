@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from collections import deque
-from typing import Any, Awaitable, Dict, List, Optional, Union
+from typing import Any, Awaitable, Optional, Union
 
 import aiohttp
 
@@ -11,6 +13,10 @@ from ..ws import ClientWebSocketResponse
 
 
 class BinanceDataStore(DataStoreManager):
+    """
+    Binanceのデータストアマネージャー(※v0.4.0: Binance Futures USDⓈ-Mのみ)
+    """
+
     def _init(self) -> None:
         self.create('trade', datastore_class=Trade)
         self.create('markprice', datastore_class=MarkPrice)
@@ -26,6 +32,22 @@ class BinanceDataStore(DataStoreManager):
         self.listenkey: Optional[str] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /fapi/v1/depth (DataStore: orderbook)
+
+            - Binance APIドキュメントに従ってWebSocket接続後にinitializeすること。
+            - orderbook データストアの initialized がTrueになる。
+
+        - GET /fapi/v2/balance (DataStore: balance)
+        - GET /fapi/v2/positionRisk (DataStore: position)
+        - GET /fapi/v1/openOrders (DataStore: order)
+        - POST /fapi/v1/listenKey (Property: listenkey)
+
+            - プロパティ listenkey にlistenKeyが格納され30分ごとに PUT /fapi/v1/listenKey
+              のリクエストがスケジュールされる。
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -119,6 +141,9 @@ class BinanceDataStore(DataStoreManager):
 
     @property
     def order(self) -> 'Order':
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get('order', Order)
 
 
@@ -132,7 +157,7 @@ class Trade(DataStore):
 class MarkPrice(DataStore):
     _KEYS = ['s']
 
-    def _onmessage(self, data: Union[Item, List[Item]]) -> None:
+    def _onmessage(self, data: Union[Item, list[Item]]) -> None:
         if isinstance(data, list):
             self._update(data)
         else:
@@ -156,7 +181,7 @@ class ContinuousKline(DataStore):
 class Ticker(DataStore):
     _KEYS = ['s']
 
-    def _onmessage(self, data: Union[Item, List[Item]]) -> None:
+    def _onmessage(self, data: Union[Item, list[Item]]) -> None:
         if isinstance(data, list):
             self._update(data)
         else:
@@ -183,7 +208,9 @@ class OrderBook(DataStore):
         self.initialized = False
         self._buff = deque(maxlen=200)
 
-    def sorted(self, query: Item = {}) -> Dict[str, List[float]]:
+    def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
+        if query is None:
+            query = {}
         result = {self._MAPSIDE[k]: [] for k in self._MAPSIDE}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
@@ -220,7 +247,7 @@ class Balance(DataStore):
     def _onmessage(self, item: Item) -> None:
         self._update(item['a']['B'])
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         for item in data:
             self._update(
                 [
@@ -239,7 +266,7 @@ class Position(DataStore):
     def _onmessage(self, item: Item) -> None:
         self._update(item['a']['P'])
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         for item in data:
             self._update(
                 [
@@ -264,7 +291,7 @@ class Order(DataStore):
         else:
             self._delete([item['o']])
 
-    def _onresponse(self, symbol: Optional[str], data: List[Item]) -> None:
+    def _onresponse(self, symbol: Optional[str], data: list[Item]) -> None:
         if symbol is not None:
             self._delete(self.find({'symbol': symbol}))
         else:

@@ -1,16 +1,11 @@
+from __future__ import annotations
+
 import asyncio
 import logging
 from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum, auto
-from typing import (
-    Any,
-    Awaitable,
-    Dict,
-    List,
-    Optional,
-    cast,
-)
+from typing import Any, Awaitable, Optional, cast
 
 import aiohttp
 from pybotters.store import DataStore, DataStoreManager
@@ -211,8 +206,8 @@ class OrderLevel(TypedDict):
 
 
 class OrderBook(TypedDict):
-    asks: List[OrderLevel]
-    bids: List[OrderLevel]
+    asks: list[OrderLevel]
+    bids: list[OrderLevel]
     symbol: Symbol
     timestamp: datetime
 
@@ -294,8 +289,13 @@ class TickerStore(DataStore):
 class OrderBookStore(DataStore):
     _KEYS = ["symbol", "side", "price"]
 
-    def sorted(self, query: Item = {}) -> Dict[OrderSide, List[OrderLevel]]:
-        result: Dict[OrderSide, List[OrderLevel]] = {
+    def _init(self) -> None:
+        self.timestamp: Optional[datetime] = None
+
+    def sorted(self, query: Optional[Item] = None) -> dict[OrderSide, list[OrderLevel]]:
+        if query is None:
+            query = {}
+        result: dict[OrderSide, list[OrderLevel]] = {
             OrderSide.BUY: [],
             OrderSide.SELL: [],
         }
@@ -310,7 +310,8 @@ class OrderBookStore(DataStore):
         data = mes["asks"] + mes["bids"]
         result = self.find({"symbol": mes["symbol"]})
         self._delete(result)
-        self._insert(cast(List[Item], data))
+        self._insert(cast(list[Item], data))
+        self.timestamp = mes["timestamp"]
 
 
 class TradeStore(DataStore):
@@ -321,8 +322,8 @@ class TradeStore(DataStore):
 class OrderStore(DataStore):
     _KEYS = ["order_id"]
 
-    def _onresponse(self, data: List[Order]) -> None:
-        self._insert(cast(List[Item], data))
+    def _onresponse(self, data: list[Order]) -> None:
+        self._insert(cast(list[Item], data))
 
     def _onmessage(self, mes: Order) -> None:
         if mes["order_status"] in (OrderStatus.WAITING, OrderStatus.ORDERED):
@@ -348,7 +349,9 @@ class OrderStore(DataStore):
 class ExecutionStore(DataStore):
     _KEYS = ["execution_id"]
 
-    def sorted(self, query: Item = {}) -> List[Execution]:
+    def sorted(self, query: Optional[Item] = None) -> list[Execution]:
+        if query is None:
+            query = {}
         result = []
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
@@ -356,8 +359,8 @@ class ExecutionStore(DataStore):
         result.sort(key=lambda x: x["execution_id"], reverse=True)
         return result
 
-    def _onresponse(self, data: List[Execution]) -> None:
-        self._insert(cast(List[Item], data))
+    def _onresponse(self, data: list[Execution]) -> None:
+        self._insert(cast(list[Item], data))
 
     def _onmessage(self, mes: Execution) -> None:
         self._insert([cast(Item, mes)])
@@ -366,8 +369,8 @@ class ExecutionStore(DataStore):
 class PositionStore(DataStore):
     _KEYS = ["position_id"]
 
-    def _onresponse(self, data: List[Position]) -> None:
-        self._update(cast(List[Item], data))
+    def _onresponse(self, data: list[Position]) -> None:
+        self._update(cast(list[Item], data))
 
     def _onmessage(self, mes: Position, type: MessageType) -> None:
         if type == MessageType.OPR:
@@ -381,8 +384,8 @@ class PositionStore(DataStore):
 class PositionSummaryStore(DataStore):
     _KEYS = ["symbol", "side"]
 
-    def _onresponse(self, data: List[PositionSummary]) -> None:
-        self._update(cast(List[Item], data))
+    def _onresponse(self, data: list[PositionSummary]) -> None:
+        self._update(cast(list[Item], data))
 
     def _onmessage(self, mes: PositionSummary) -> None:
         self._update([cast(Item, mes)])
@@ -390,7 +393,7 @@ class PositionSummaryStore(DataStore):
 
 class MessageHelper:
     @staticmethod
-    def to_tickers(data: List[Item]) -> List["Ticker"]:
+    def to_tickers(data: list[Item]) -> list["Ticker"]:
         return [MessageHelper.to_ticker(x) for x in data]
 
     @staticmethod
@@ -432,7 +435,7 @@ class MessageHelper:
         )
 
     @staticmethod
-    def to_trades(data: List[Item]) -> List["Trade"]:
+    def to_trades(data: list[Item]) -> list["Trade"]:
         return [MessageHelper.to_trade(x) for x in data]
 
     @staticmethod
@@ -446,7 +449,7 @@ class MessageHelper:
         )
 
     @staticmethod
-    def to_executions(data: List[Item]) -> List["Execution"]:
+    def to_executions(data: list[Item]) -> list["Execution"]:
         return [MessageHelper.to_execution(x) for x in data]
 
     @staticmethod
@@ -481,7 +484,7 @@ class MessageHelper:
         )
 
     @staticmethod
-    def to_orders(data: List[Item]) -> List["Order"]:
+    def to_orders(data: list[Item]) -> list["Order"]:
         return [MessageHelper.to_order(x) for x in data]
 
     @staticmethod
@@ -507,7 +510,7 @@ class MessageHelper:
         )
 
     @staticmethod
-    def to_positions(data: List[Item]) -> List["Position"]:
+    def to_positions(data: list[Item]) -> list["Position"]:
         return [MessageHelper.to_position(x) for x in data]
 
     @staticmethod
@@ -526,7 +529,7 @@ class MessageHelper:
         )
 
     @staticmethod
-    def to_position_summaries(data: List[Item]) -> List["PositionSummary"]:
+    def to_position_summaries(data: list[Item]) -> list["PositionSummary"]:
         return [MessageHelper.to_position_summary(x) for x in data]
 
     @staticmethod
@@ -545,6 +548,10 @@ class MessageHelper:
 
 
 class GMOCoinDataStore(DataStoreManager):
+    """
+    GMOコインのデータストアマネージャー
+    """
+
     def _init(self) -> None:
         self.create("ticker", datastore_class=TickerStore)
         self.create("orderbooks", datastore_class=OrderBookStore)
@@ -555,6 +562,14 @@ class GMOCoinDataStore(DataStoreManager):
         self.create("position_summary", datastore_class=PositionSummaryStore)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /private/v1/latestExecutions (DataStore: executions)
+        - GET /private/v1/activeOrders (DataStore: orders)
+        - GET /private/v1/openPositions (DataStore: positions)
+        - GET /private/v1/positionSummary (DataStore: position_summary)
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -615,6 +630,9 @@ class GMOCoinDataStore(DataStoreManager):
 
     @property
     def orders(self) -> OrderStore:
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get("orders", OrderStore)
 
     @property

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 import logging
-from typing import Any, Awaitable, Dict, List
+from typing import Any, Awaitable, Optional
 
 import aiohttp
 
@@ -13,6 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class FTXDataStore(DataStoreManager):
+    """
+    FTXのデータストアマネージャー
+    """
+
     def _init(self) -> None:
         self.create('ticker', datastore_class=Ticker)
         self.create('markets', datastore_class=Markets)
@@ -23,6 +29,15 @@ class FTXDataStore(DataStoreManager):
         self.create('positions', datastore_class=Positions)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /orders (DataStore: orders)
+        - GET /conditional_orders (DataStore: orders)
+        - GET /positions (DataStore: positions)
+
+            - fills 受信時に GET /positions の自動フェッチする機能が有効化される。
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -83,6 +98,9 @@ class FTXDataStore(DataStoreManager):
 
     @property
     def orders(self) -> 'Orders':
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get('orders', Orders)
 
     @property
@@ -109,7 +127,7 @@ class Markets(DataStore):
 class Trades(DataStore):
     _MAXLEN = 99999
 
-    def _onmessage(self, market: str, data: List[Item]) -> None:
+    def _onmessage(self, market: str, data: list[Item]) -> None:
         for item in data:
             self._insert([{'market': market, **item}])
 
@@ -118,7 +136,9 @@ class OrderBook(DataStore):
     _KEYS = ['market', 'side', 'price']
     _BDSIDE = {'sell': 'asks', 'buy': 'bids'}
 
-    def sorted(self, query: Item = {}) -> Dict[str, List[float]]:
+    def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
+        if query is None:
+            query = {}
         result = {'asks': [], 'bids': []}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
@@ -127,7 +147,7 @@ class OrderBook(DataStore):
         result['bids'].sort(key=lambda x: x[0], reverse=True)
         return result
 
-    def _onmessage(self, market: str, data: List[Item]) -> None:
+    def _onmessage(self, market: str, data: list[Item]) -> None:
         if data['action'] == 'partial':
             result = self.find({'market': market})
             self._delete(result)
@@ -156,7 +176,7 @@ class Fills(DataStore):
 class Orders(DataStore):
     _KEYS = ['id']
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if data:
             results = self.find({'market': data[0]['market']})
             self._delete(results)
@@ -175,7 +195,7 @@ class Positions(DataStore):
     def _init(self) -> None:
         self._fetch = False
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         self._update(data)
 
     async def _onfills(self, session: aiohttp.ClientSession) -> None:

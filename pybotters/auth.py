@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import base64
 import hashlib
 import hmac
 import json
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import aiohttp
 from aiohttp.formdata import FormData
@@ -16,10 +18,10 @@ from yarl import URL
 
 class Auth:
     @staticmethod
-    def bybit(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+    def bybit(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         method: str = args[0]
         url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
+        data: dict[str, Any] = kwargs['data'] or {}
 
         session: aiohttp.ClientSession = kwargs['session']
         key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
@@ -58,10 +60,10 @@ class Auth:
         return args
 
     @staticmethod
-    def binance(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+    def binance(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         method: str = args[0]
         url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
+        data: dict[str, Any] = kwargs['data'] or {}
         headers: CIMultiDict = kwargs['headers']
 
         session: aiohttp.ClientSession = kwargs['session']
@@ -95,10 +97,10 @@ class Auth:
         return args
 
     @staticmethod
-    def bitflyer(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+    def bitflyer(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         method: str = args[0]
         url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
+        data: dict[str, Any] = kwargs['data'] or {}
         headers: CIMultiDict = kwargs['headers']
 
         session: aiohttp.ClientSession = kwargs['session']
@@ -118,10 +120,10 @@ class Auth:
         return args
 
     @staticmethod
-    def gmocoin(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+    def gmocoin(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         method: str = args[0]
         url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
+        data: dict[str, Any] = kwargs['data'] or {}
         headers: CIMultiDict = kwargs['headers']
 
         session: aiohttp.ClientSession = kwargs['session']
@@ -145,9 +147,9 @@ class Auth:
         return args
 
     @staticmethod
-    def liquid(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+    def liquid(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
+        data: dict[str, Any] = kwargs['data'] or {}
         headers: CIMultiDict = kwargs['headers']
 
         session: aiohttp.ClientSession = kwargs['session']
@@ -181,10 +183,10 @@ class Auth:
         return args
 
     @staticmethod
-    def bitbank(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+    def bitbank(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         method: str = args[0]
         url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
+        data: dict[str, Any] = kwargs['data'] or {}
         headers: CIMultiDict = kwargs['headers']
 
         session: aiohttp.ClientSession = kwargs['session']
@@ -207,10 +209,10 @@ class Auth:
         return args
 
     @staticmethod
-    def ftx(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+    def ftx(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         method: str = args[0]
         url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
+        data: dict[str, Any] = kwargs['data'] or {}
         headers: CIMultiDict = kwargs['headers']
 
         session: aiohttp.ClientSession = kwargs['session']
@@ -228,10 +230,10 @@ class Auth:
         return args
 
     @staticmethod
-    def bitmex(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+    def bitmex(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         method: str = args[0]
         url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
+        data: dict[str, Any] = kwargs['data'] or {}
         headers: CIMultiDict = kwargs['headers']
 
         session: aiohttp.ClientSession = kwargs['session']
@@ -251,9 +253,9 @@ class Auth:
         return args
 
     @staticmethod
-    def phemex(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+    def phemex(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
+        data: dict[str, Any] = kwargs['data'] or {}
         headers: CIMultiDict = kwargs['headers']
 
         session: aiohttp.ClientSession = kwargs['session']
@@ -278,9 +280,9 @@ class Auth:
         return args
 
     @staticmethod
-    def coincheck(args: Tuple[str, URL], kwargs: Dict[str, Any]) -> Tuple[str, URL]:
+    def coincheck(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         url: URL = args[1]
-        data: Dict[str, Any] = kwargs['data'] or {}
+        data: dict[str, Any] = kwargs['data'] or {}
         headers: CIMultiDict = kwargs['headers']
 
         session: aiohttp.ClientSession = kwargs['session']

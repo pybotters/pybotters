@@ -1,17 +1,23 @@
+from __future__ import annotations
+
 import asyncio
 import logging
-from typing import Awaitable, Dict, List, Optional, Union
+from typing import Awaitable, Optional, Union
 
 import aiohttp
 
-from ..store import DataStore, DataStoreManager
-from ..typedefs import Item
-from ..ws import ClientWebSocketResponse
+from ...store import DataStore, DataStoreManager
+from ...typedefs import Item
+from ...ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
 class BybitInverseDataStore(DataStoreManager):
+    """
+    Bybit Inverse契約のデータストアマネージャー
+    """
+
     def _init(self) -> None:
         self.create("orderbook", datastore_class=OrderBookInverse)
         self.create("trade", datastore_class=TradeInverse)
@@ -26,6 +32,16 @@ class BybitInverseDataStore(DataStoreManager):
         self.timestamp_e6: Optional[int] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /v2/private/order (DataStore: order)
+        - GET /futures/private/order (DataStore: order)
+        - GET /v2/private/stop-order (DataStore: stoporder)
+        - GET /futures/private/stop-order (DataStore: stoporder)
+        - GET /v2/private/position/list (DataStore: position)
+        - GET /futures/private/position/list (DataStore: position)
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -114,6 +130,9 @@ class BybitInverseDataStore(DataStoreManager):
 
     @property
     def position(self) -> "PositionInverse":
+        """
+        インバース契約(無期限/先物)用のポジション
+        """
         return self.get("position", PositionInverse)
 
     @property
@@ -122,14 +141,24 @@ class BybitInverseDataStore(DataStoreManager):
 
     @property
     def order(self) -> "OrderInverse":
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get("order", OrderInverse)
 
     @property
     def stoporder(self) -> "StopOrderInverse":
+        """
+        アクティブオーダーのみ(トリガー済みは削除される)
+        """
         return self.get("stoporder", StopOrderInverse)
 
 
 class BybitUSDTDataStore(DataStoreManager):
+    """
+    Bybit USDT契約のデータストアマネージャー
+    """
+
     def _init(self) -> None:
         self.create("orderbook", datastore_class=OrderBookUSDT)
         self.create("trade", datastore_class=TradeUSDT)
@@ -145,6 +174,13 @@ class BybitUSDTDataStore(DataStoreManager):
         self.timestamp_e6: Optional[int] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /private/linear/order/search (DataStore: order)
+        - GET /private/linear/stop-order/search (DataStore: stoporder)
+        - GET /private/linear/position/list (DataStore: position)
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -220,6 +256,9 @@ class BybitUSDTDataStore(DataStoreManager):
 
     @property
     def position(self) -> "PositionUSDT":
+        """
+        USDT契約用のポジション
+        """
         return self.get("position", PositionUSDT)
 
     @property
@@ -228,10 +267,16 @@ class BybitUSDTDataStore(DataStoreManager):
 
     @property
     def order(self) -> "OrderUSDT":
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
         return self.get("order", OrderUSDT)
 
     @property
     def stoporder(self) -> "StopOrderUSDT":
+        """
+        アクティブオーダーのみ(トリガー済みは削除される)
+        """
         return self.get("stoporder", StopOrderUSDT)
 
     @property
@@ -239,42 +284,12 @@ class BybitUSDTDataStore(DataStoreManager):
         return self.get("wallet", Wallet)
 
 
-class CastDataStore(DataStore):
-    _CAST_TYPES = {}
-
-    def _cast(self, data: List[Item]) -> None:
-        for item in data:
-            for x in self._CAST_TYPES:
-                for k in self._CAST_TYPES[x]:
-                    try:
-                        item[k] = x(item[k])
-                    except KeyError:
-                        pass
-                    except TypeError:
-                        pass
-
-    def _insert(self, data: List[Item]) -> None:
-        self._cast(data)
-        super()._insert(data)
-
-    def _update(self, data: List[Item]) -> None:
-        self._cast(data)
-        super()._update(data)
-
-    def _delete(self, data: List[Item]) -> None:
-        self._cast(data)
-        super()._delete(data)
-
-
-class OrderBookInverse(CastDataStore):
+class OrderBookInverse(DataStore):
     _KEYS = ["symbol", "id", "side"]
-    _CAST_TYPES = {
-        float: [
-            "price",
-        ],
-    }
 
-    def sorted(self, query: Item = {}) -> Dict[str, List[Item]]:
+    def sorted(self, query: Optional[Item] = None) -> dict[str, list[Item]]:
+        if query is None:
+            query = {}
         result = {"Sell": [], "Buy": []}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
@@ -283,7 +298,7 @@ class OrderBookInverse(CastDataStore):
         result["Buy"].sort(key=lambda x: x["id"], reverse=True)
         return result
 
-    def _onmessage(self, topic: str, type_: str, data: Union[List[Item], Item]) -> None:
+    def _onmessage(self, topic: str, type_: str, data: Union[list[Item], Item]) -> None:
         if type_ == "snapshot":
             symbol = topic.split(".")[-1]
             # ex: "orderBookL2_25.BTCUSD", "orderBook_200.100ms.BTCUSD"
@@ -297,16 +312,7 @@ class OrderBookInverse(CastDataStore):
 
 
 class OrderBookUSDT(OrderBookInverse):
-    _CAST_TYPES = {
-        float: [
-            "price",
-        ],
-        int: [
-            "id",
-        ],
-    }
-
-    def _onmessage(self, topic: str, type_: str, data: Union[List[Item], Item]) -> None:
+    def _onmessage(self, topic: str, type_: str, data: Union[list[Item], Item]) -> None:
         if type_ == "snapshot":
             symbol = topic.split(".")[-1]
             # ex: "orderBookL2_25.BTCUSDT", "orderBook_200.100ms.BTCUSDT"
@@ -319,47 +325,27 @@ class OrderBookUSDT(OrderBookInverse):
             self._insert(data["insert"])
 
 
-class TradeInverse(CastDataStore):
+class TradeInverse(DataStore):
     _KEYS = ['trade_id']
     _MAXLEN = 99999
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._insert(data)
 
 
 class TradeUSDT(TradeInverse):
-    _CAST_TYPES = {
-        float: [
-            "price",
-        ],
-        int: [
-            "trade_time_ms",
-        ],
-    }
+    ...
 
 
-class Insurance(CastDataStore):
+class Insurance(DataStore):
     _KEYS = ["currency"]
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
-class InstrumentInverse(CastDataStore):
+class InstrumentInverse(DataStore):
     _KEYS = ["symbol"]
-    _CAST_TYPES = {
-        float: [
-            "last_price",
-            "bid1_price",
-            "ask1_price",
-            "prev_price_24h",
-            "high_price_24h",
-            "low_price_24h",
-            "prev_price_1h",
-            "mark_price",
-            "index_price",
-        ],
-    }
 
     def _onmessage(self, topic: str, type_: str, data: Item) -> None:
         if type_ == "snapshot":
@@ -372,77 +358,30 @@ class InstrumentInverse(CastDataStore):
 
 
 class InstrumentUSDT(InstrumentInverse):
-    _CAST_TYPES = {
-        float: [
-            "last_price",
-            "prev_price_24h",
-            "high_price_24h",
-            "low_price_24h",
-            "prev_price_1h",
-            "mark_price",
-            "index_price",
-            "bid1_price",
-            "ask1_price",
-        ],
-        int: [
-            "last_price_e4",
-            "prev_price_24h_e4",
-            "price_24h_pcnt_e6",
-            "high_price_24h_e4",
-            "low_price_24h_e4",
-            "prev_price_1h_e4",
-            "price_1h_pcnt_e6",
-            "mark_price_e4",
-            "index_price_e4",
-            "open_interest_e8",
-            "total_turnover_e8",
-            "turnover_24h_e8",
-            "total_volume_e8",
-            "volume_24h_e8",
-            "funding_rate_e6",
-            "predicted_funding_rate_e6",
-            "cross_seq",
-            "count_down_hour",
-            "bid1_price_e4",
-            "ask1_price_e4",
-        ],
-    }
+    ...
 
 
-class KlineInverse(CastDataStore):
+class KlineInverse(DataStore):
     _KEYS = ["start", "symbol", "interval"]
 
-    def _onmessage(self, topic: str, data: List[Item]) -> None:
+    def _onmessage(self, topic: str, data: list[Item]) -> None:
         topic_split = topic.split(".")  # ex:"klineV2.1.BTCUSD"
         for item in data:
             item["symbol"] = topic_split[-1]
             item["interval"] = topic_split[-2]
         self._update(data)
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         for item in data:
             item["start"] = item.pop("open_time")
         self._update(data)
 
 
 class KlineUSDT(KlineInverse):
-    _CAST_TYPES = {
-        float: [
-            "volume",
-            "turnover",
-        ],
-    }
+    ...
 
 
-class LiquidationInverse(CastDataStore):
-    _CAST_TYPES = {
-        float: [
-            "price",
-        ],
-        int: [
-            "qty",
-        ],
-    }
+class LiquidationInverse(DataStore):
     _MAXLEN = 99999
 
     def _onmessage(self, item: Item) -> None:
@@ -450,51 +389,22 @@ class LiquidationInverse(CastDataStore):
 
 
 class LiquidationUSDT(LiquidationInverse):
-    _CAST_TYPES = {
-        float: [
-            "price",
-            "qty",
-        ],
-        int: [
-            "qty",
-        ],
-    }
+    ...
 
 
-class PositionInverse(CastDataStore):
+class PositionInverse(DataStore):
     _KEYS = ["symbol", "position_idx"]
-    _CAST_TYPES = {
-        float: [
-            "position_value",
-            "entry_price",
-            "liq_price",
-            "bust_price",
-            "leverage",
-            "order_margin",
-            "position_margin",
-            "available_balance",
-            "take_profit",
-            "stop_loss",
-            "realised_pnl",
-            "trailing_stop",
-            "trailing_active",
-            "wallet_balance",
-            "occ_closing_fee",
-            "occ_funding_fee",
-            "cum_realised_pnl",
-        ],
-    }
 
     def one(self, symbol: str) -> Optional[Item]:
         return self.get({"symbol": symbol, "position_idx": 0})
 
-    def both(self, symbol: str) -> Dict[str, Optional[Item]]:
+    def both(self, symbol: str) -> dict[str, Optional[Item]]:
         return {
             "Sell": self.get({"symbol": symbol, "position_idx": 2}),
             "Buy": self.get({"symbol": symbol, "position_idx": 1}),
         }
 
-    def _onresponse(self, data: Union[Item, List[Item]]) -> None:
+    def _onresponse(self, data: Union[Item, list[Item]]) -> None:
         if isinstance(data, dict):
             self._update([data])  # ex: {"symbol": "BTCUSD", ...}
         elif isinstance(data, list):
@@ -514,68 +424,47 @@ class PositionInverse(CastDataStore):
                     self._update([item])
                     # ex: [{"symbol": "BTCUSDT", ...}, ...]
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
 class PositionUSDT(PositionInverse):
     _KEYS = ["symbol", "side"]
-    _CAST_TYPES = {
-        int: [
-            "user_id",
-            "auto_add_margin",
-            "position_id",
-            "position_seq",
-            "adl_rank_indicator",
-            "risk_id",
-        ],
-    }
 
-    def both(self, symbol: str) -> Dict[str, Optional[Item]]:
+    def one(self, symbol: str) -> dict[str, Optional[Item]]:
+        return {
+            "Sell": self.get({"symbol": symbol, "side": "Sell"}),
+            "Buy": self.get({"symbol": symbol, "side": "Buy"}),
+        }
+
+    def both(self, symbol: str) -> dict[str, Optional[Item]]:
         return {
             "Sell": self.get({"symbol": symbol, "side": "Sell"}),
             "Buy": self.get({"symbol": symbol, "side": "Buy"}),
         }
 
 
-class ExecutionInverse(CastDataStore):
+class ExecutionInverse(DataStore):
     _KEYS = ["exec_id"]
-    _CAST_TYPES = {
-        float: [
-            "price",
-            "exec_fee",
-        ],
-    }
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
 class ExecutionUSDT(ExecutionInverse):
-    _CAST_TYPES = {}
+    ...
 
 
-class OrderInverse(CastDataStore):
+class OrderInverse(DataStore):
     _KEYS = ["order_id"]
-    _CAST_TYPES = {
-        float: [
-            "price",
-            "cum_exec_value",
-            "cum_exec_fee",
-            "take_profit",
-            "stop_loss",
-            "trailing_stop",
-            "last_exec_price",
-        ],
-    }
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if isinstance(data, list):
             self._update(data)
         elif isinstance(data, dict):
             self._update([data])
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         for item in data:
             if item["order_status"] in ("Created", "New", "PartiallyFilled"):
                 self._update([item])
@@ -584,25 +473,19 @@ class OrderInverse(CastDataStore):
 
 
 class OrderUSDT(OrderInverse):
-    _CAST_TYPES = {}
+    ...
 
 
-class StopOrderInverse(CastDataStore):
+class StopOrderInverse(DataStore):
     _KEYS = ["order_id"]
-    _CAST_TYPES = {
-        float: [
-            "price",
-            "trigger_price",
-        ],
-    }
 
-    def _onresponse(self, data: List[Item]) -> None:
+    def _onresponse(self, data: list[Item]) -> None:
         if isinstance(data, list):
             self._update(data)
         elif isinstance(data, dict):
             self._update([data])
 
-    def _onmessage(self, data: List[Item]) -> None:
+    def _onmessage(self, data: list[Item]) -> None:
         for item in data:
             if item["order_status"] in ("Active", "Untriggered"):
                 self._update([item])
@@ -612,14 +495,9 @@ class StopOrderInverse(CastDataStore):
 
 class StopOrderUSDT(StopOrderInverse):
     _KEYS = ["stop_order_id"]
-    _CAST_TYPES = {
-        int: [
-            "user_id",
-        ],
-    }
 
 
-class Wallet(CastDataStore):
-    def _onmessage(self, data: List[Item]) -> None:
+class Wallet(DataStore):
+    def _onmessage(self, data: list[Item]) -> None:
         self._clear()
         self._update(data)

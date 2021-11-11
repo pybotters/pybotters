@@ -1,13 +1,16 @@
+from __future__ import annotations
+
 import asyncio
 import base64
 import datetime
 import hashlib
 import hmac
+import inspect
 import logging
 import time
 from dataclasses import dataclass
 from secrets import token_hex
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 
 import aiohttp
 from aiohttp.http_websocket import json
@@ -20,14 +23,24 @@ from .auth import Auth as _Auth
 logger = logging.getLogger(__name__)
 
 
+def pretty_modulename(e: Exception) -> str:
+    modulename = e.__class__.__name__
+    module = inspect.getmodule(e)
+    if module:
+        modulename = f'{module.__name__}.{modulename}'
+    return modulename
+
+
 async def ws_run_forever(
     url: StrOrURL,
     session: aiohttp.ClientSession,
     event: asyncio.Event,
     *,
-    send_str: Optional[Union[str, List[str]]] = None,
+    send_str: Optional[Union[str, list[str]]] = None,
+    send_bytes: Optional[Union[bytes, list[bytes]]] = None,
     send_json: Any = None,
     hdlr_str=None,
+    hdlr_bytes=None,
     hdlr_json=None,
     auth=_Auth,
     **kwargs: Any,
@@ -35,6 +48,7 @@ async def ws_run_forever(
     if all([hdlr_str is None, hdlr_json is None]):
         hdlr_json = pybotters.print_handler
     iscorofunc_str = asyncio.iscoroutinefunction(hdlr_str)
+    iscorofunc_bytes = asyncio.iscoroutinefunction(hdlr_bytes)
     iscorofunc_json = asyncio.iscoroutinefunction(hdlr_json)
     while not session.closed:
         cooldown = asyncio.create_task(asyncio.sleep(60.0))
@@ -48,6 +62,13 @@ async def ws_run_forever(
                         await asyncio.gather(*[ws.send_str(item) for item in send_str])
                     else:
                         await ws.send_str(send_str)
+                if send_bytes is not None:
+                    if isinstance(send_bytes, list):
+                        await asyncio.gather(
+                            *[ws.send_bytes(item) for item in send_bytes]
+                        )
+                    else:
+                        await ws.send_bytes(send_bytes)
                 if send_json is not None:
                     if isinstance(send_json, list):
                         await asyncio.gather(
@@ -64,7 +85,7 @@ async def ws_run_forever(
                                 else:
                                     hdlr_str(msg.data, ws)
                             except Exception as e:
-                                logger.error(repr(e))
+                                logger.exception(f'{pretty_modulename(e)}: {e}')
                         if hdlr_json is not None:
                             try:
                                 data = msg.json()
@@ -77,11 +98,24 @@ async def ws_run_forever(
                                     else:
                                         hdlr_json(data, ws)
                                 except Exception as e:
-                                    logger.error(repr(e))
+                                    logger.exception(f'{pretty_modulename(e)}: {e}')
+                    elif msg.type == aiohttp.WSMsgType.BINARY:
+                        if hdlr_bytes is not None:
+                            try:
+                                if iscorofunc_bytes:
+                                    await hdlr_bytes(msg.data, ws)
+                                else:
+                                    hdlr_bytes(msg.data, ws)
+                            except Exception as e:
+                                logger.exception(f'{pretty_modulename(e)}: {e}')
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         break
-        except (aiohttp.WSServerHandshakeError, aiohttp.ClientOSError) as e:
-            logger.warning(repr(e))
+        except (
+            aiohttp.WSServerHandshakeError,
+            aiohttp.ClientOSError,
+            ConnectionResetError,
+        ) as e:
+            logger.warning(f'{pretty_modulename(e)}: {e}')
         await cooldown
 
 

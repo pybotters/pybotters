@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import asyncio
-from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
+from typing import Any, Mapping, Optional, Tuple, Union
 
 import aiohttp
 from aiohttp import hdrs
@@ -9,8 +11,10 @@ from .client import Client
 from .models import experimental
 from .models.binance import BinanceDataStore
 from .models.bitbank import bitbankDataStore
+from .models.bitflyer import bitFlyerDataStore
 from .models.bitmex import BitMEXDataStore
 from .models.bybit import BybitDataStore
+from .models.experimental.bybit import BybitInverseDataStore, BybitUSDTDataStore
 from .models.ftx import FTXDataStore
 from .models.gmocoin import GMOCoinDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
@@ -23,9 +27,12 @@ __all__: Tuple[str, ...] = (
     'put',
     'delete',
     'BybitDataStore',
+    'BybitInverseDataStore',
+    'BybitUSDTDataStore',
     'FTXDataStore',
     'BinanceDataStore',
     'bitbankDataStore',
+    'bitFlyerDataStore',
     'BitMEXDataStore',
     'GMOCoinDataStore',
     'experimental',
@@ -52,9 +59,11 @@ async def _request(
     *,
     params: Optional[Mapping[str, str]] = None,
     data: Any = None,
-    apis: Union[Dict[str, List[str]], str] = {},
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
+    if apis is None:
+        apis = {}
     async with Client(apis=apis, response_class=SyncClientResponse) as client:
         async with client.request(
             method, url, params=params, data=data, **kwargs
@@ -69,7 +78,7 @@ def request(
     *,
     params: Optional[Mapping[str, str]] = None,
     data: Any = None,
-    apis: Union[Dict[str, List[str]], str] = {},
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
     loop = asyncio.get_event_loop()
@@ -82,7 +91,7 @@ def get(
     url: str,
     *,
     params: Optional[Mapping[str, str]] = None,
-    apis: Union[Dict[str, List[str]], str] = {},
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
     loop = asyncio.get_event_loop()
@@ -95,7 +104,7 @@ def post(
     url: str,
     *,
     data: Any = None,
-    apis: Union[Dict[str, List[str]], str] = {},
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
     loop = asyncio.get_event_loop()
@@ -108,7 +117,7 @@ def put(
     url: str,
     *,
     data: Any = None,
-    apis: Union[Dict[str, List[str]], str] = {},
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
     loop = asyncio.get_event_loop()
@@ -121,7 +130,7 @@ def delete(
     url: str,
     *,
     data: Any = None,
-    apis: Union[Dict[str, List[str]], str] = {},
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> SyncClientResponse:
     loop = asyncio.get_event_loop()
@@ -133,13 +142,15 @@ def delete(
 async def _ws_connect(
     url: str,
     *,
-    send_str: Optional[Union[str, List[str]]] = None,
+    send_str: Optional[Union[str, list[str]]] = None,
     send_json: Any = None,
     hdlr_str: Optional[WsStrHandler] = None,
     hdlr_json: Optional[WsJsonHandler] = None,
-    apis: Union[Dict[str, List[str]], str] = {},
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> None:
+    if apis is None:
+        apis = {}
     async with Client(apis=apis) as client:
         wstask = await client.ws_connect(
             url,
@@ -155,11 +166,11 @@ async def _ws_connect(
 def ws_connect(
     url: str,
     *,
-    send_str: Optional[Union[str, List[str]]] = None,
+    send_str: Optional[Union[str, list[str]]] = None,
     send_json: Any = None,
     hdlr_str: Optional[WsStrHandler] = None,
     hdlr_json: Optional[WsJsonHandler] = None,
-    apis: Union[Dict[str, List[str]], str] = {},
+    apis: Optional[Union[dict[str, list[str]], str]] = None,
     **kwargs: Any,
 ) -> None:
     loop = asyncio.get_event_loop()
