@@ -29,7 +29,7 @@ An advanced api client for python botters.
     - 取引所別データモデルの実装
 - ✨ Developer Experience
     - `asyncio`ライブラリを利用した非同期プログラミング
-    - `typing`モジュールによる型ヒントのサポート
+    - 型ヒントのサポート
 
 ## 🏦 Exchanges
 
@@ -40,7 +40,7 @@ An advanced api client for python botters.
 | FTX | ✅ | ✅ | [Official](https://docs.ftx.com/) |
 | Phemex | ✅ | WIP | [Official](https://github.com/phemex/phemex-api-docs) |
 | BitMEX | ✅ | ✅ | [Official](https://www.bitmex.com/app/apiOverview) |
-| bitFlyer | ✅ | WIP | [Official](https://lightning.bitflyer.com/docs) |
+| bitFlyer | ✅ | ✅ | [Official](https://lightning.bitflyer.com/docs) |
 | GMO Coin | ✅ | ✅ | [Official](https://api.coin.z.com/docs/) |
 | Liquid | ✅ | WIP | [Official](https://document.liquid.com/) |
 | bitbank | ✅ | ✅ | [Official](https://docs.bitbank.cc/) |
