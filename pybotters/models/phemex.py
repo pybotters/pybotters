@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Awaitable, Optional, Union
+from typing import Awaitable, Optional
 import urllib.parse
 
 import aiohttp
@@ -122,7 +122,7 @@ class OrderBook(DataStore):
     _KEYS = ['symbol', 'side', 'price']
 
     def _init(self) -> None:
-        self.timestamp: Optional[datetime] = None
+        self.timestamp: Optional[int] = None
 
     def sorted(self, query: Item = None) -> dict[str, list[Item]]:
         if query is None:
@@ -137,7 +137,6 @@ class OrderBook(DataStore):
 
     def _onmessage(self, message: Item) -> None:
         symbol = message['symbol']
-        type = message['type']
         book = message['book']
         for key, side in (('bids', 'BUY'), ('asks', 'SELL')):
             for item in book[key]:
@@ -164,7 +163,6 @@ class OrderBook(DataStore):
                         ]
                     )
 
-        board = self.sorted({'symbol': symbol})
         self.timestamp = message["timestamp"]
 
 
@@ -186,7 +184,6 @@ class Kline(DataStore):
     _KEYS = ['symbol', 'interval', 'timestamp']
 
     def _onmessage(self, message: Item) -> None:
-        k = message.get('kline', [])
         symbol = message.get('symbol')
         self._insert(
             [
