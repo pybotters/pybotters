@@ -17,6 +17,7 @@ from .models.bybit import BybitDataStore
 from .models.experimental.bybit import BybitInverseDataStore, BybitUSDTDataStore
 from .models.ftx import FTXDataStore
 from .models.gmocoin import GMOCoinDataStore
+from .models.phemex import PhemexDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
 
 __all__: Tuple[str, ...] = (
@@ -35,6 +36,7 @@ __all__: Tuple[str, ...] = (
     'bitFlyerDataStore',
     'BitMEXDataStore',
     'GMOCoinDataStore',
+    'PhemexDataStore',
     'experimental',
     'print',
     'print_handler',
