@@ -38,29 +38,31 @@ class PhemexDataStore(DataStoreManager):
         """
         for f in asyncio.as_completed(aws):
             resp = await f
-            symbol = urllib.parse.parse_qs(urllib.parse.urlparse(str(resp.url)).query)['symbol'][0]
+            symbol = urllib.parse.parse_qs(urllib.parse.urlparse(str(resp.url)).query)[
+                'symbol'
+            ][0]
             data = await resp.json()
             if resp.url.path in ('/exchange/public/md/kline',):
-                self.kline._onmessage({'symbol':symbol, 'kline': data['data']['rows']})
+                self.kline._onmessage({'symbol': symbol, 'kline': data['data']['rows']})
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if not msg.get('id'):
-            if 'trades' in msg :
+            if 'trades' in msg:
                 self.trade._onmessage(msg)
-            elif 'book' in msg :
+            elif 'book' in msg:
                 self.orderbook._onmessage(msg)
-            elif 'tick' in msg :
+            elif 'tick' in msg:
                 self.ticker._onmessage(msg)
-            elif 'market24h' in msg :
+            elif 'market24h' in msg:
                 self.market24h._onmessage(msg['market24h'])
-            elif 'kline' in msg :
+            elif 'kline' in msg:
                 self.kline._onmessage(msg)
 
-            if 'accounts' in msg :
+            if 'accounts' in msg:
                 self.accounts._onmessage(msg.get('accounts'))
-            if 'orders' in msg :
+            if 'orders' in msg:
                 self.orders._onmessage(msg.get('orders'))
-            if 'positions' in msg :
+            if 'positions' in msg:
                 self.positions._onmessage(msg.get('positions'))
 
     @property
@@ -101,10 +103,20 @@ class Trade(DataStore):
     _MAXLEN = 99999
 
     def _onmessage(self, message: Item) -> None:
-        symbol= message.get('symbol')
-        self._insert([{'symbol':symbol, 'timestamp':item[0],
-                       'side':item[1], 'price':item[2]/10000,
-                       'size':item[3]} for item in message.get('trades',[])])
+        symbol = message.get('symbol')
+        self._insert(
+            [
+                {
+                    'symbol': symbol,
+                    'timestamp': item[0],
+                    'side': item[1],
+                    'price': item[2] / 10000,
+                    'size': item[3],
+                }
+                for item in message.get('trades', [])
+            ]
+        )
+
 
 class OrderBook(DataStore):
     _KEYS = ['symbol', 'side', 'price']
@@ -124,18 +136,37 @@ class OrderBook(DataStore):
         return result
 
     def _onmessage(self, message: Item) -> None:
-        symbol=message['symbol']
-        type=message['type']
-        book=message['book']
+        symbol = message['symbol']
+        type = message['type']
+        book = message['book']
         for key, side in (('bids', 'BUY'), ('asks', 'SELL')):
             for item in book[key]:
-                if item[1]!=0:
-                    self._insert([{'symbol': symbol, 'side': side, 'price': item[0], 'size': item[1]}])
+                if item[1] != 0:
+                    self._insert(
+                        [
+                            {
+                                'symbol': symbol,
+                                'side': side,
+                                'price': item[0],
+                                'size': item[1],
+                            }
+                        ]
+                    )
                 else:
-                    self._delete([{'symbol': symbol, 'side': side, 'price': item[0], 'size': item[1]}])
+                    self._delete(
+                        [
+                            {
+                                'symbol': symbol,
+                                'side': side,
+                                'price': item[0],
+                                'size': item[1],
+                            }
+                        ]
+                    )
 
         board = self.sorted({'symbol': symbol})
         self.timestamp = message["timestamp"]
+
 
 class Ticker(DataStore):
     _KEYS = ['symbol']
@@ -143,21 +174,37 @@ class Ticker(DataStore):
     def _onmessage(self, message):
         self._update([message.get('tick')])
 
+
 class Market24h(DataStore):
     _KEYS = ['symbol']
 
     def _onmessage(self, item: Item) -> None:
         self._update([item])
 
+
 class Kline(DataStore):
     _KEYS = ['symbol', 'interval', 'timestamp']
 
     def _onmessage(self, message: Item) -> None:
-        k = message.get('kline',[])
-        symbol= message.get('symbol')
-        self._insert([{'symbol':symbol, 'interval':item[1],
-                       'timestamp':item[0], 'open':item[3]/10000, 'high':item[4]/10000, 'low':item[5]/10000, 'close':item[6]/10000,
-                       'volume':item[7], 'turnover':item[8]/10000} for item in message.get('kline',[])])
+        k = message.get('kline', [])
+        symbol = message.get('symbol')
+        self._insert(
+            [
+                {
+                    'symbol': symbol,
+                    'interval': item[1],
+                    'timestamp': item[0],
+                    'open': item[3] / 10000,
+                    'high': item[4] / 10000,
+                    'low': item[5] / 10000,
+                    'close': item[6] / 10000,
+                    'volume': item[7],
+                    'turnover': item[8] / 10000,
+                }
+                for item in message.get('kline', [])
+            ]
+        )
+
 
 class Accounts(DataStore):
     _KEYS = ['accountID', 'currency']
@@ -165,26 +212,28 @@ class Accounts(DataStore):
     def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
+
 class Orders(DataStore):
     _KEYS = ['orderID']
 
     def _onmessage(self, data: list[Item]) -> None:
         for item in data:
-            if item['ordStatus']=='New':
+            if item['ordStatus'] == 'New':
                 self._insert([item])
-            elif item['ordStatus']=='PartiallyFilled':
+            elif item['ordStatus'] == 'PartiallyFilled':
                 self._update([item])
-            elif item['ordStatus']=='Filled':
+            elif item['ordStatus'] == 'Filled':
                 self._delete([item])
-            elif item['ordStatus']=='Canceled' and item['action']!='Replace':
+            elif item['ordStatus'] == 'Canceled' and item['action'] != 'Replace':
                 self._delete([item])
+
 
 class Positions(DataStore):
     _KEYS = ['accountID', 'symbol']
 
     def _onmessage(self, data: list[Item]) -> None:
         for item in data:
-            if item['size']==0:
+            if item['size'] == 0:
                 self._delete([item])
             else:
                 self._insert([item])
