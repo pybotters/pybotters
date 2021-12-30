@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime, timezone
+from dateutil import parser
 from decimal import Decimal
 from enum import Enum, auto
 from typing import Any, Awaitable, Optional, cast
@@ -23,7 +24,14 @@ logger = logging.getLogger(__name__)
 
 def parse_datetime(x: Any) -> datetime:
     if isinstance(x, str):
-        return datetime.strptime(x, "%Y-%m-%dT%H:%M:%S.%f%z")
+        try:
+            exec_date = x.replace('T', ' ')[:-1]
+            exec_date = exec_date + '00000000'
+            dt = datetime(int(exec_date[0:4]), int(exec_date[5:7]), int(exec_date[8:10]),
+                        int(exec_date[11:13]), int(exec_date[14:16]), int(exec_date[17:19]), int(exec_date[20:26]))
+        except Exception as e:
+            dt = parser.parse(x)
+        return dt
     else:
         raise ValueError(f'x only support str, but {type(x)} passed.')
 
