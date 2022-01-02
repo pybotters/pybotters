@@ -10,7 +10,7 @@ from typing import Any
 
 import aiohttp
 from aiohttp.formdata import FormData
-from aiohttp.hdrs import METH_GET
+from aiohttp.hdrs import METH_DELETE, METH_GET
 from aiohttp.payload import JsonPayload
 from multidict import CIMultiDict, MultiDict
 from yarl import URL
@@ -28,7 +28,7 @@ class Auth:
         secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
 
         expires = str(int((time.time() - 1.0) * 1000))
-        if method == METH_GET:
+        if method in (METH_GET, METH_DELETE):
             query = MultiDict(url.query)
             if url.scheme == 'https':
                 query.extend({'api_key': key, 'timestamp': expires})
