@@ -324,6 +324,7 @@ class Hosts:
         'stream.binance.com': Item('binance', Auth.binance),
         'fapi.binance.com': Item('binance', Auth.binance),
         'fstream.binance.com': Item('binance', Auth.binance),
+        'fstream-auth.binance.com': Item('binance', Auth.binance),
         'dapi.binance.com': Item('binance', Auth.binance),
         'dstream.binance.com': Item('binance', Auth.binance),
         'vapi.binance.com': Item('binance', Auth.binance),
