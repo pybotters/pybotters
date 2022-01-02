@@ -108,7 +108,7 @@ class Auth:
         secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
 
         path = url.raw_path_qs
-        body = FormData(data)()
+        body = JsonPayload(data) if data else FormData(data)()
         timestamp = str(int(time.time()))
         text = f'{timestamp}{method}{path}'.encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
