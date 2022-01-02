@@ -382,20 +382,20 @@ def test_bitflyer_post(mock_session, mocker: pytest_mock.MockerFixture):
     }
     expected_args = ('POST', URL('https://api.bitflyer.com/v1/me/sendchildorder'))
     expected_kwargs = {
-        'data': aiohttp.formdata.FormData(
+        'data': aiohttp.payload.JsonPayload(
             {
                 'product_code': 'FX_BTC_JPY',
                 'child_order_type': 'MARKET',
                 'side': 'BUY',
                 'size': 0.01,
             }
-        )(),
+        ),
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
                 'ACCESS-TIMESTAMP': '2085848896',
                 'ACCESS-SIGN': (
-                    '6f7f1d1e348788362015d5b283fc97649a0f9173dc85fe7ba4668f4ab1a1f9a8'
+                    '6d72609c20e29d9fcc963abac766aaa03ba7dff01ef9cf425aa2294c00b78d81'
                 ),
             }
         ),
