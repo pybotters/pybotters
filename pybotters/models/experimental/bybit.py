@@ -198,6 +198,8 @@ class BybitUSDTDataStore(DataStoreManager):
                 self.position._onresponse(data["result"])
             elif resp.url.path == "/v2/public/kline/list":
                 self.kline._onresponse(data["result"])
+            elif resp.url.path == "/v2/private/wallet/balance":
+                self.wallet._onresponse(data["result"])
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if "success" in msg:
@@ -498,6 +500,18 @@ class StopOrderUSDT(StopOrderInverse):
 
 
 class Wallet(DataStore):
+    def _onresponse(self, data: dict[str, Item]) -> None:
+        if "USDT" in data:
+            self._clear()
+            self._update(
+                [
+                    {
+                        "wallet_balance": data["USDT"]["wallet_balance"],
+                        "available_balance": data["USDT"]["available_balance"],
+                    }
+                ]
+            )
+
     def _onmessage(self, data: list[Item]) -> None:
         self._clear()
         self._update(data)
