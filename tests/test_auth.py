@@ -597,9 +597,9 @@ def test_bitbank_get(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'l5HGaEzIC3KiMqbYwtAl1r48',
-                'ACCESS-NONCE': '2085848896',
+                'ACCESS-NONCE': '2085848896000',
                 'ACCESS-SIGNATURE': (
-                    'ad1de787eef27d0d3f594c33b13c6df90bef4926466d77386f39a8c951baf67a'
+                    '87c0358b092b78c4ac8f46bbd447665acbe9c8a136068473d14f8143ac9ac6aa'
                 ),
             }
         ),
@@ -640,9 +640,9 @@ def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'l5HGaEzIC3KiMqbYwtAl1r48',
-                'ACCESS-NONCE': '2085848896',
+                'ACCESS-NONCE': '2085848896000',
                 'ACCESS-SIGNATURE': (
-                    '56cc247424153a185c53bd0c4d1614f2321b2a424c9db12ff4cd2f7b89361219'
+                    'd3f190a3707dae355edf4cc38252c02d6aa360d8c3b84f2a734f1ac306b88812'
                 ),
             }
         ),

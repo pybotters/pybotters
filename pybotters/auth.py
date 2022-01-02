@@ -195,7 +195,7 @@ class Auth:
 
         path = url.raw_path_qs
         body = JsonPayload(data) if data else FormData(data)()
-        nonce = str(int(time.time()))
+        nonce = str(int(time.time() * 1000))
         if method == METH_GET:
             text = f'{nonce}{path}'.encode()
         else:
