@@ -138,8 +138,8 @@ def test_bybit_get(mock_session, mocker: pytest_mock.MockerFixture):
         URL(
             'https://api.bybit.com/v2/private/order/list?symbol=BTCUSD&cursor=w01XFyyZc'
             '8lhtCLl6NgAaYBRfsN9Qtpp1f2AUy3AS4%2BfFDzNSlVKa0od8DKCqgAn&api_key=77SQfUG7'
-            'X33JhYZ3Jswpx5To&timestamp=2085848895000&sign=885c1dcbbcb5a0edb5f6298e0aa4'
-            '0e23b7c6bc7f1acab600739962cfd7e7c0ac'
+            'X33JhYZ3Jswpx5To&timestamp=2085848891000&recv_window=10000&sign=4f21ff83f9'
+            '243422333d12905b167e075516a978307ff14899b90dd14091a0a9'
         ),
     )
     expected_kwargs = {
@@ -174,12 +174,13 @@ def test_bybit_post(mock_session, mocker: pytest_mock.MockerFixture):
                 'api_key': '77SQfUG7X33JhYZ3Jswpx5To',
                 'order_type': 'Market',
                 'qty': '100',
+                'recv_window': '10000',
                 'side': 'Buy',
                 'symbol': 'BTCUSD',
                 'time_in_force': 'GoodTillCancel',
-                'timestamp': '2085848895000',
+                'timestamp': '2085848891000',
                 'sign': (
-                    'c377e178195d2e4b9316cf085e21e2881cc1b413c9a23873ea0c9d57d8e2b685'
+                    '1547e15445903b6c4cb541f79830fd502c843c7d88f90022f122bca8a311819e'
                 ),
             }
         )(),
@@ -204,8 +205,8 @@ def test_bybit_ws(mock_session, mocker: pytest_mock.MockerFixture):
         'GET',
         URL(
             'wss://stream.bybit.com/realtime?api_key=77SQfUG7X33JhYZ3Jswpx5To&expires=2'
-            '085848897000&signature=ea0eb717f560e0ad7a6104e3e9a6dd6ae8e3cdd96b43f0a449d'
-            '35aff16e1fdf6'
+            '085848901000&signature=a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667'
+            'fb181ecbc29a4'
         ),
     )
     expected_kwargs = {

@@ -28,10 +28,14 @@ class Auth:
         secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
 
         if url.scheme == 'https':
-            expires = str(int((time.time() - 1.0) * 1000))
+            expires = str(int((time.time() - 5.0) * 1000))
+            recv_window = (
+                'recv_window' if not url.path.startswith("/spot") else "recvWindow"
+            )
+            auth_params = {'api_key': key, 'timestamp': expires, recv_window: 10000}
             if method in (METH_GET, METH_DELETE):
                 query = MultiDict(url.query)
-                query.extend({'api_key': key, 'timestamp': expires})
+                query.extend(auth_params)
                 query_string = '&'.join(f'{k}={v}' for k, v in sorted(query.items()))
                 sign = hmac.new(
                     secret, query_string.encode(), hashlib.sha256
@@ -40,7 +44,7 @@ class Auth:
                 url = url.with_query(query)
                 args = (method, url)
             else:
-                data.update({'api_key': key, 'timestamp': expires})
+                data.update(auth_params)
                 body = FormData(sorted(data.items()))()
                 sign = hmac.new(secret, body._value, hashlib.sha256).hexdigest()
                 body._value += f'&sign={sign}'.encode()
@@ -48,7 +52,7 @@ class Auth:
                 kwargs.update({'data': body})
         elif url.scheme == 'wss':
             query = MultiDict(url.query)
-            expires = str(int((time.time() + 1.0) * 1000))
+            expires = str(int((time.time() + 5.0) * 1000))
             path = f'{method}/realtime{expires}'
             signature = hmac.new(secret, path.encode(), hashlib.sha256).hexdigest()
             query.extend({'api_key': key, 'expires': expires, 'signature': signature})
