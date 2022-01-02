@@ -60,8 +60,8 @@ class Depth(DataStore):
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
                 result[self._BDSIDE[item['side']]].append([item['price'], item['size']])
-        result['asks'].sort(key=lambda x: x[0])
-        result['bids'].sort(key=lambda x: x[0], reverse=True)
+        result['asks'].sort(key=lambda x: float(x[0]))
+        result['bids'].sort(key=lambda x: float(x[0]), reverse=True)
         return result
 
     def _onmessage(self, room_name: str, data: list[Item]) -> None:
