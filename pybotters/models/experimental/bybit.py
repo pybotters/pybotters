@@ -431,19 +431,10 @@ class PositionInverse(DataStore):
 
 
 class PositionUSDT(PositionInverse):
-    _KEYS = ["symbol", "side"]
-
-    def one(self, symbol: str) -> dict[str, Optional[Item]]:
-        return {
-            "Sell": self.get({"symbol": symbol, "side": "Sell"}),
-            "Buy": self.get({"symbol": symbol, "side": "Buy"}),
-        }
-
-    def both(self, symbol: str) -> dict[str, Optional[Item]]:
-        return {
-            "Sell": self.get({"symbol": symbol, "side": "Sell"}),
-            "Buy": self.get({"symbol": symbol, "side": "Buy"}),
-        }
+    def _onmessage(self, data: list[Item]) -> None:
+        for item in data:
+            item['position_idx'] = int(item['position_idx'])
+            self._update([item])
 
 
 class ExecutionInverse(DataStore):
