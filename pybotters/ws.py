@@ -369,8 +369,29 @@ class RequestLimit:
                 if delta.total_seconds() >= 1.0:
                     break
 
+    @staticmethod
+    async def binance(ws: ClientWebSocketResponse, send_str):
+        async with ws._lock:
+            await send_str
+            r = await ws._response._session.get(
+                'https://api.binance.com/api/v3/time', auth=None
+            )
+            data = await r.json()
+            before = datetime.datetime.fromtimestamp(data['serverTime'] / 1000)
+            while True:
+                await asyncio.sleep(0.25)  # limit of 5 incoming messages per second
+                r = await ws._response._session.get(
+                    'https://api.binance.com/api/v3/time', auth=None
+                )
+                data = await r.json()
+                after = datetime.datetime.fromtimestamp(data['serverTime'] / 1000)
+                delta = after - before
+                if delta.total_seconds() > 0.25:
+                    break
+
 
 class RequestLimitHosts:
     items = {
         'api.coin.z.com': RequestLimit.gmocoin,
+        'stream.binance.com': RequestLimit.binance,
     }

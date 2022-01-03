@@ -10,7 +10,7 @@ from typing import Any
 
 import aiohttp
 from aiohttp.formdata import FormData
-from aiohttp.hdrs import METH_GET
+from aiohttp.hdrs import METH_DELETE, METH_GET
 from aiohttp.payload import JsonPayload
 from multidict import CIMultiDict, MultiDict
 from yarl import URL
@@ -27,35 +27,37 @@ class Auth:
         key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
         secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
 
-        expires = str(int((time.time() - 1.0) * 1000))
-        if method == METH_GET:
-            query = MultiDict(url.query)
-            if url.scheme == 'https':
-                query.extend({'api_key': key, 'timestamp': expires})
+        if url.scheme == 'https':
+            expires = str(int((time.time() - 5.0) * 1000))
+            recv_window = (
+                'recv_window' if not url.path.startswith("/spot") else "recvWindow"
+            )
+            auth_params = {'api_key': key, 'timestamp': expires, recv_window: 10000}
+            if method in (METH_GET, METH_DELETE):
+                query = MultiDict(url.query)
+                query.extend(auth_params)
                 query_string = '&'.join(f'{k}={v}' for k, v in sorted(query.items()))
                 sign = hmac.new(
                     secret, query_string.encode(), hashlib.sha256
                 ).hexdigest()
                 query.extend({'sign': sign})
+                url = url.with_query(query)
+                args = (method, url)
             else:
-                expires = str(int((time.time() + 1.0) * 1000))
-                path = f'{method}/realtime{expires}'
-                signature = hmac.new(secret, path.encode(), hashlib.sha256).hexdigest()
-                query.extend(
-                    {'api_key': key, 'expires': expires, 'signature': signature}
-                )
+                data.update(auth_params)
+                body = FormData(sorted(data.items()))()
+                sign = hmac.new(secret, body._value, hashlib.sha256).hexdigest()
+                body._value += f'&sign={sign}'.encode()
+                body._size = len(body._value)
+                kwargs.update({'data': body})
+        elif url.scheme == 'wss':
+            query = MultiDict(url.query)
+            expires = str(int((time.time() + 5.0) * 1000))
+            path = f'{method}/realtime{expires}'
+            signature = hmac.new(secret, path.encode(), hashlib.sha256).hexdigest()
+            query.extend({'api_key': key, 'expires': expires, 'signature': signature})
             url = url.with_query(query)
-            args = (
-                method,
-                url,
-            )
-        else:
-            data.update({'api_key': key, 'timestamp': expires})
-            body = FormData(sorted(data.items()))()
-            sign = hmac.new(secret, body._value, hashlib.sha256).hexdigest()
-            body._value += f'&sign={sign}'.encode()
-            body._size = len(body._value)
-            kwargs.update({'data': body})
+            args = (method, url)
 
         return args
 
@@ -108,7 +110,7 @@ class Auth:
         secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
 
         path = url.raw_path_qs
-        body = FormData(data)()
+        body = JsonPayload(data) if data else FormData(data)()
         timestamp = str(int(time.time()))
         text = f'{timestamp}{method}{path}'.encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
@@ -195,7 +197,7 @@ class Auth:
 
         path = url.raw_path_qs
         body = JsonPayload(data) if data else FormData(data)()
-        nonce = str(int(time.time()))
+        nonce = str(int(time.time() * 1000))
         if method == METH_GET:
             text = f'{nonce}{path}'.encode()
         else:
@@ -322,6 +324,7 @@ class Hosts:
         'stream.binance.com': Item('binance', Auth.binance),
         'fapi.binance.com': Item('binance', Auth.binance),
         'fstream.binance.com': Item('binance', Auth.binance),
+        'fstream-auth.binance.com': Item('binance', Auth.binance),
         'dapi.binance.com': Item('binance', Auth.binance),
         'dstream.binance.com': Item('binance', Auth.binance),
         'vapi.binance.com': Item('binance', Auth.binance),

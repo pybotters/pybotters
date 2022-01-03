@@ -138,8 +138,8 @@ def test_bybit_get(mock_session, mocker: pytest_mock.MockerFixture):
         URL(
             'https://api.bybit.com/v2/private/order/list?symbol=BTCUSD&cursor=w01XFyyZc'
             '8lhtCLl6NgAaYBRfsN9Qtpp1f2AUy3AS4%2BfFDzNSlVKa0od8DKCqgAn&api_key=77SQfUG7'
-            'X33JhYZ3Jswpx5To&timestamp=2085848895000&sign=885c1dcbbcb5a0edb5f6298e0aa4'
-            '0e23b7c6bc7f1acab600739962cfd7e7c0ac'
+            'X33JhYZ3Jswpx5To&timestamp=2085848891000&recv_window=10000&sign=4f21ff83f9'
+            '243422333d12905b167e075516a978307ff14899b90dd14091a0a9'
         ),
     )
     expected_kwargs = {
@@ -174,12 +174,13 @@ def test_bybit_post(mock_session, mocker: pytest_mock.MockerFixture):
                 'api_key': '77SQfUG7X33JhYZ3Jswpx5To',
                 'order_type': 'Market',
                 'qty': '100',
+                'recv_window': '10000',
                 'side': 'Buy',
                 'symbol': 'BTCUSD',
                 'time_in_force': 'GoodTillCancel',
-                'timestamp': '2085848895000',
+                'timestamp': '2085848891000',
                 'sign': (
-                    'c377e178195d2e4b9316cf085e21e2881cc1b413c9a23873ea0c9d57d8e2b685'
+                    '1547e15445903b6c4cb541f79830fd502c843c7d88f90022f122bca8a311819e'
                 ),
             }
         )(),
@@ -204,8 +205,8 @@ def test_bybit_ws(mock_session, mocker: pytest_mock.MockerFixture):
         'GET',
         URL(
             'wss://stream.bybit.com/realtime?api_key=77SQfUG7X33JhYZ3Jswpx5To&expires=2'
-            '085848897000&signature=ea0eb717f560e0ad7a6104e3e9a6dd6ae8e3cdd96b43f0a449d'
-            '35aff16e1fdf6'
+            '085848901000&signature=a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667'
+            'fb181ecbc29a4'
         ),
     )
     expected_kwargs = {
@@ -382,20 +383,20 @@ def test_bitflyer_post(mock_session, mocker: pytest_mock.MockerFixture):
     }
     expected_args = ('POST', URL('https://api.bitflyer.com/v1/me/sendchildorder'))
     expected_kwargs = {
-        'data': aiohttp.formdata.FormData(
+        'data': aiohttp.payload.JsonPayload(
             {
                 'product_code': 'FX_BTC_JPY',
                 'child_order_type': 'MARKET',
                 'side': 'BUY',
                 'size': 0.01,
             }
-        )(),
+        ),
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
                 'ACCESS-TIMESTAMP': '2085848896',
                 'ACCESS-SIGN': (
-                    '6f7f1d1e348788362015d5b283fc97649a0f9173dc85fe7ba4668f4ab1a1f9a8'
+                    '6d72609c20e29d9fcc963abac766aaa03ba7dff01ef9cf425aa2294c00b78d81'
                 ),
             }
         ),
@@ -597,9 +598,9 @@ def test_bitbank_get(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'l5HGaEzIC3KiMqbYwtAl1r48',
-                'ACCESS-NONCE': '2085848896',
+                'ACCESS-NONCE': '2085848896000',
                 'ACCESS-SIGNATURE': (
-                    'ad1de787eef27d0d3f594c33b13c6df90bef4926466d77386f39a8c951baf67a'
+                    '87c0358b092b78c4ac8f46bbd447665acbe9c8a136068473d14f8143ac9ac6aa'
                 ),
             }
         ),
@@ -640,9 +641,9 @@ def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'l5HGaEzIC3KiMqbYwtAl1r48',
-                'ACCESS-NONCE': '2085848896',
+                'ACCESS-NONCE': '2085848896000',
                 'ACCESS-SIGNATURE': (
-                    '56cc247424153a185c53bd0c4d1614f2321b2a424c9db12ff4cd2f7b89361219'
+                    'd3f190a3707dae355edf4cc38252c02d6aa360d8c3b84f2a734f1ac306b88812'
                 ),
             }
         ),

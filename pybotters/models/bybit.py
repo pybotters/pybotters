@@ -18,7 +18,7 @@ class BybitDataStore(DataStoreManager):
     Bybitのデータストアマネージャー
     """
 
-    def __new__(cls) -> BybitDataStore:
+    def __new__(cls, *args, **kwargs) -> BybitDataStore:
         logger.warning(
             'DEPRECATION WARNING: BybitDataStore will be changed to '
             'BybitInverseDataStore and BybitUSDTDataStore'
