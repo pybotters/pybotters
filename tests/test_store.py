@@ -1,4 +1,5 @@
 import asyncio
+import sys
 import uuid
 
 import pytest
@@ -283,6 +284,23 @@ def test__iter__():
     assert next(data_iter) == {'foo': 'bar4'}
     with pytest.raises(StopIteration):
         next(data_iter)
+
+
+def test__reversed__():
+    data = [{'foo': f'bar{i}'} for i in range(5)]
+    ds = pybotters.store.DataStore(keys=['foo'], data=data)
+    if sys.version_info.major == 3 and sys.version_info.minor >= 8:
+        data_iter = reversed(ds)
+        assert next(data_iter) == {'foo': 'bar4'}
+        assert next(data_iter) == {'foo': 'bar3'}
+        assert next(data_iter) == {'foo': 'bar2'}
+        assert next(data_iter) == {'foo': 'bar1'}
+        assert next(data_iter) == {'foo': 'bar0'}
+        with pytest.raises(StopIteration):
+            next(data_iter)
+    else:
+        with pytest.raises(TypeError):
+            data_iter = reversed(ds)
 
 
 def test_set():
