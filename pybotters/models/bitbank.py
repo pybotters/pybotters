@@ -53,7 +53,7 @@ class Depth(DataStore):
     _KEYS = ['pair', 'side', 'price']
     _BDSIDE = {'sell': 'asks', 'buy': 'bids'}
 
-    def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
+    def sorted(self, query: Optional[Item] = None) -> dict[str, list[list[str]]]:
         if query is None:
             query = {}
         result = {'asks': [], 'bids': []}
