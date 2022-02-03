@@ -327,7 +327,7 @@ class OrderBookStore(DataStore):
         data = mes["asks"] + mes["bids"]
         result = self.find({"symbol": mes["symbol"]})
         self._delete(result)
-        self._insert(cast(list[Item], data))
+        self._insert(cast("list[Item]", data))
         self.timestamp = mes["timestamp"]
 
 
@@ -340,7 +340,7 @@ class OrderStore(DataStore):
     _KEYS = ["order_id"]
 
     def _onresponse(self, data: list[Order]) -> None:
-        self._insert(cast(list[Item], data))
+        self._insert(cast("list[Item]", data))
 
     def _onmessage(self, mes: Order) -> None:
         if mes["order_status"] in (OrderStatus.WAITING, OrderStatus.ORDERED):
@@ -377,7 +377,7 @@ class ExecutionStore(DataStore):
         return result
 
     def _onresponse(self, data: list[Execution]) -> None:
-        self._insert(cast(list[Item], data))
+        self._insert(cast("list[Item]", data))
 
     def _onmessage(self, mes: Execution) -> None:
         self._insert([cast(Item, mes)])
@@ -387,7 +387,7 @@ class PositionStore(DataStore):
     _KEYS = ["position_id"]
 
     def _onresponse(self, data: list[Position]) -> None:
-        self._update(cast(list[Item], data))
+        self._update(cast("list[Item]", data))
 
     def _onmessage(self, mes: Position, type: MessageType) -> None:
         if type == MessageType.OPR:
@@ -402,7 +402,7 @@ class PositionSummaryStore(DataStore):
     _KEYS = ["symbol", "side"]
 
     def _onresponse(self, data: list[PositionSummary]) -> None:
-        self._update(cast(list[Item], data))
+        self._update(cast("list[Item]", data))
 
     def _onmessage(self, mes: PositionSummary) -> None:
         self._update([cast(Item, mes)])
