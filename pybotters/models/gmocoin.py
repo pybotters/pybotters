@@ -297,6 +297,8 @@ class PositionSummary(TypedDict):
 
 
 class TickerStore(DataStore):
+    _KEYS = ["symbol"]
+
     def _onmessage(self, mes: Ticker) -> None:
         self._update([cast(Item, mes)])
 
