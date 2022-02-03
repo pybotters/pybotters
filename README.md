@@ -44,7 +44,7 @@ An advanced api client for python botters.
 | GMO Coin | ✅ | ✅ | [Official](https://api.coin.z.com/docs/) |
 | Liquid | ✅ | WIP | [Official](https://document.liquid.com/) |
 | bitbank | ✅ | ✅ | [Official](https://docs.bitbank.cc/) |
-| Coincheck | ✅ | WIP | [Official](https://coincheck.com/documents/exchange/api) |
+| Coincheck | ✅ | ✅ | [Official](https://coincheck.com/documents/exchange/api) |
 
 ## 🐍 Requires
 
