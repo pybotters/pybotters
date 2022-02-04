@@ -36,6 +36,9 @@ class DataStore:
     def __iter__(self) -> Iterator[Item]:
         return iter(self._data.values())
 
+    def __reversed__(self) -> Iterator[Item]:
+        return reversed(self._data.values())
+
     @staticmethod
     def _hash(item: dict[str, Hashable]) -> int:
         return hash(tuple(item.items()))

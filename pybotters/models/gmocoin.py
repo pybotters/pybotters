@@ -12,6 +12,7 @@ import aiohttp
 from pybotters.store import DataStore, DataStoreManager
 from pybotters.typedefs import Item
 
+from ..auth import Auth
 from ..ws import ClientWebSocketResponse
 
 try:
@@ -297,6 +298,8 @@ class PositionSummary(TypedDict):
 
 
 class TickerStore(DataStore):
+    _KEYS = ["symbol"]
+
     def _onmessage(self, mes: Ticker) -> None:
         self._update([cast(Item, mes)])
 
@@ -325,7 +328,7 @@ class OrderBookStore(DataStore):
         data = mes["asks"] + mes["bids"]
         result = self.find({"symbol": mes["symbol"]})
         self._delete(result)
-        self._insert(cast(list[Item], data))
+        self._insert(cast("list[Item]", data))
         self.timestamp = mes["timestamp"]
 
 
@@ -338,7 +341,7 @@ class OrderStore(DataStore):
     _KEYS = ["order_id"]
 
     def _onresponse(self, data: list[Order]) -> None:
-        self._insert(cast(list[Item], data))
+        self._insert(cast("list[Item]", data))
 
     def _onmessage(self, mes: Order) -> None:
         if mes["order_status"] in (OrderStatus.WAITING, OrderStatus.ORDERED):
@@ -375,7 +378,7 @@ class ExecutionStore(DataStore):
         return result
 
     def _onresponse(self, data: list[Execution]) -> None:
-        self._insert(cast(list[Item], data))
+        self._insert(cast("list[Item]", data))
 
     def _onmessage(self, mes: Execution) -> None:
         self._insert([cast(Item, mes)])
@@ -385,7 +388,7 @@ class PositionStore(DataStore):
     _KEYS = ["position_id"]
 
     def _onresponse(self, data: list[Position]) -> None:
-        self._update(cast(list[Item], data))
+        self._update(cast("list[Item]", data))
 
     def _onmessage(self, mes: Position, type: MessageType) -> None:
         if type == MessageType.OPR:
@@ -400,7 +403,7 @@ class PositionSummaryStore(DataStore):
     _KEYS = ["symbol", "side"]
 
     def _onresponse(self, data: list[PositionSummary]) -> None:
-        self._update(cast(list[Item], data))
+        self._update(cast("list[Item]", data))
 
     def _onmessage(self, mes: PositionSummary) -> None:
         self._update([cast(Item, mes)])
@@ -575,6 +578,7 @@ class GMOCoinDataStore(DataStoreManager):
         self.create("positions", datastore_class=PositionStore)
         self.create("executions", datastore_class=ExecutionStore)
         self.create("position_summary", datastore_class=PositionSummaryStore)
+        self.token: Optional[str] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """
@@ -584,6 +588,7 @@ class GMOCoinDataStore(DataStoreManager):
         - GET /private/v1/activeOrders (DataStore: orders)
         - GET /private/v1/openPositions (DataStore: positions)
         - GET /private/v1/positionSummary (DataStore: position_summary)
+        - POST /private/v1/ws-auth (Property: token)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -608,6 +613,9 @@ class GMOCoinDataStore(DataStoreManager):
                 self.position_summary._onresponse(
                     MessageHelper.to_position_summaries(data["data"]["list"])
                 )
+            if resp.url.path == "/private/v1/ws-auth":
+                self.token = data["data"]
+                asyncio.create_task(self._token(resp.__dict__['_raw_session']))
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if "channel" in msg:
@@ -630,6 +638,15 @@ class GMOCoinDataStore(DataStoreManager):
                 self.positions._onmessage(MessageHelper.to_position(msg), msg_type)
             elif channel == Channel.POSITION_SUMMARY_EVENTS:
                 self.position_summary._onmessage(MessageHelper.to_position_summary(msg))
+
+    async def _token(self, session: aiohttp.ClientSession):
+        while not session.closed:
+            await session.put(
+                'https://api.coin.z.com/private/v1/ws-auth',
+                data={"token": self.token},
+                auth=Auth,
+            )
+            await asyncio.sleep(1800.0)  # 30 minutes
 
     @property
     def ticker(self) -> TickerStore:

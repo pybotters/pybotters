@@ -29,6 +29,7 @@ class BybitInverseDataStore(DataStoreManager):
         self.create("execution", datastore_class=ExecutionInverse)
         self.create("order", datastore_class=OrderInverse)
         self.create("stoporder", datastore_class=StopOrderInverse)
+        self.create("wallet", datastore_class=WalletInverse)
         self.timestamp_e6: Optional[int] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
@@ -41,6 +42,7 @@ class BybitInverseDataStore(DataStoreManager):
         - GET /futures/private/stop-order (DataStore: stoporder)
         - GET /v2/private/position/list (DataStore: position)
         - GET /futures/private/position/list (DataStore: position)
+        - GET /v2/private/wallet/balance (DataStore: wallet)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -68,6 +70,8 @@ class BybitInverseDataStore(DataStoreManager):
                 self.position._onresponse(data["result"])
             elif resp.url.path == "/v2/public/kline/list":
                 self.kline._onresponse(data["result"])
+            elif resp.url.path == "/v2/private/wallet/balance":
+                self.wallet._onresponse(data["result"])
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if "success" in msg:
@@ -101,6 +105,8 @@ class BybitInverseDataStore(DataStoreManager):
                 self.order._onmessage(data)
             elif topic == "stop_order":
                 self.stoporder._onmessage(data)
+            elif topic == "wallet":
+                self.wallet._onmessage(data)
         if "timestamp_e6" in msg:
             self.timestamp_e6 = int(msg["timestamp_e6"])
 
@@ -153,6 +159,10 @@ class BybitInverseDataStore(DataStoreManager):
         """
         return self.get("stoporder", StopOrderInverse)
 
+    @property
+    def wallet(self) -> "WalletInverse":
+        return self.get("wallet", WalletInverse)
+
 
 class BybitUSDTDataStore(DataStoreManager):
     """
@@ -170,7 +180,7 @@ class BybitUSDTDataStore(DataStoreManager):
         self.create("execution", datastore_class=ExecutionUSDT)
         self.create("order", datastore_class=OrderUSDT)
         self.create("stoporder", datastore_class=StopOrderUSDT)
-        self.create("wallet", datastore_class=Wallet)
+        self.create("wallet", datastore_class=WalletUSDT)
         self.timestamp_e6: Optional[int] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
@@ -180,6 +190,8 @@ class BybitUSDTDataStore(DataStoreManager):
         - GET /private/linear/order/search (DataStore: order)
         - GET /private/linear/stop-order/search (DataStore: stoporder)
         - GET /private/linear/position/list (DataStore: position)
+        - GET /private/linear/position/list (DataStore: position)
+        - GET /v2/private/wallet/balance (DataStore: wallet)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -282,8 +294,8 @@ class BybitUSDTDataStore(DataStoreManager):
         return self.get("stoporder", StopOrderUSDT)
 
     @property
-    def wallet(self) -> "Wallet":
-        return self.get("wallet", Wallet)
+    def wallet(self) -> "WalletUSDT":
+        return self.get("wallet", WalletUSDT)
 
 
 class OrderBookInverse(DataStore):
@@ -490,13 +502,33 @@ class StopOrderUSDT(StopOrderInverse):
     _KEYS = ["stop_order_id"]
 
 
-class Wallet(DataStore):
+class WalletInverse(DataStore):
+    _KEYS = ["coin"]
+
     def _onresponse(self, data: dict[str, Item]) -> None:
-        if "USDT" in data:
-            self._clear()
+        data.pop("USDT", None)
+        for coin in data:
             self._update(
                 [
                     {
+                        "coin": coin,
+                        "available_balance": data[coin]["available_balance"],
+                        "wallet_balance": data[coin]["wallet_balance"],
+                    }
+                ]
+            )
+
+    def _onmessage(self, data: list[Item]) -> None:
+        self._update(data)
+
+
+class WalletUSDT(WalletInverse):
+    def _onresponse(self, data: dict[str, Item]) -> None:
+        if "USDT" in data:
+            self._update(
+                [
+                    {
+                        "coin": "USDT",
                         "wallet_balance": data["USDT"]["wallet_balance"],
                         "available_balance": data["USDT"]["available_balance"],
                     }
@@ -504,5 +536,5 @@ class Wallet(DataStore):
             )
 
     def _onmessage(self, data: list[Item]) -> None:
-        self._clear()
-        self._update(data)
+        for item in data:
+            self._update([{"coin": "USDT", **item}])

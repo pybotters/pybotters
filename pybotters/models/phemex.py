@@ -65,6 +65,9 @@ class PhemexDataStore(DataStoreManager):
             if 'positions' in msg:
                 self.positions._onmessage(msg.get('positions'))
 
+        if msg.get('error'):
+            logger.warning(msg)
+
     @property
     def trade(self) -> 'Trade':
         return self.get('trade', Trade)
