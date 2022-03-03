@@ -53,6 +53,9 @@ class Depth(DataStore):
     _KEYS = ['pair', 'side', 'price']
     _BDSIDE = {'sell': 'asks', 'buy': 'bids'}
 
+    def _init(self) -> None:
+        self.timestamp: Optional[int] = None
+
     def sorted(self, query: Optional[Item] = None) -> dict[str, list[list[str]]]:
         if query is None:
             query = {}
@@ -70,9 +73,11 @@ class Depth(DataStore):
             result = self.find({'pair': pair})
             self._delete(result)
             tuples = (('bids', 'buy'), ('asks', 'sell'))
+            self.timestamp = data["timestamp"]
         else:
             pair = room_name.replace('depth_diff_', '')
             tuples = (('b', 'buy'), ('a', 'sell'))
+            self.timestamp = data["t"]
 
         for boardside, side in tuples:
             for item in data[boardside]:
