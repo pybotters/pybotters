@@ -270,7 +270,10 @@ async def test_phemex_ws(mocker: pytest_mock.MockerFixture):
 
 def test_websocketrunner(mocker: pytest_mock.MockerFixture):
     create_task = mocker.patch('asyncio.create_task')
-    run_forever = mocker.patch('pybotters.ws.WebSocketRunner._run_forever')
+    ret_run_forever = mocker.Mock()
+    run_forever = mocker.patch.object(
+        pybotters.ws.WebSocketRunner, '_run_forever', ret_run_forever
+    )
     session = mocker.Mock()
     send_str = mocker.Mock()
     send_bytes = mocker.Mock()
@@ -303,4 +306,4 @@ def test_websocketrunner(mocker: pytest_mock.MockerFixture):
         },
     ]
     assert create_task.called
-    assert create_task.call_args == [(run_forever.return_value,)]
+    assert create_task.call_args == [(ret_run_forever.return_value,)]
