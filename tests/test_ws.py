@@ -266,3 +266,41 @@ async def test_phemex_ws(mocker: pytest_mock.MockerFixture):
         await pybotters.ws.Auth.phemex(ws)
     else:
         raise RuntimeError(f'Unsupported Python version: {sys.version}')
+
+
+def test_websocketrunner(mocker: pytest_mock.MockerFixture):
+    create_task = mocker.patch('asyncio.create_task')
+    run_forever = mocker.patch('pybotters.ws.WebSocketRunner._run_forever')
+    session = mocker.Mock()
+    send_str = mocker.Mock()
+    send_bytes = mocker.Mock()
+    send_json = mocker.Mock()
+    hdlr_str = mocker.Mock()
+    hdlr_bytes = mocker.Mock()
+    hdlr_json = mocker.Mock()
+    ws = pybotters.ws.WebSocketRunner(
+        'wss://example.com',
+        session,
+        send_str=send_str,
+        send_bytes=send_bytes,
+        send_json=send_json,
+        hdlr_str=hdlr_str,
+        hdlr_bytes=hdlr_bytes,
+        hdlr_json=hdlr_json,
+    )
+    assert isinstance(ws, pybotters.ws.WebSocketRunner)
+    assert run_forever.called
+    assert run_forever.call_args == [
+        ('wss://example.com', session),
+        {
+            'send_str': send_str,
+            'send_bytes': send_bytes,
+            'send_json': send_json,
+            'hdlr_str': hdlr_str,
+            'hdlr_bytes': hdlr_bytes,
+            'hdlr_json': hdlr_json,
+            'auth': pybotters.auth.Auth,
+        },
+    ]
+    assert create_task.called
+    assert create_task.call_args == [(run_forever.return_value,)]
