@@ -13,7 +13,7 @@ from aiohttp.client import _RequestContextManager
 from .auth import Auth
 from .request import ClientRequest
 from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
-from .ws import ClientWebSocketResponse, ws_run_forever
+from .ws import ClientWebSocketResponse, WebSocketRunner
 
 logger = logging.getLogger(__name__)
 
@@ -191,7 +191,7 @@ class Client:
         hdlr_bytes: Optional[WsBytesHandler] = None,
         hdlr_json: Optional[WsJsonHandler] = None,
         **kwargs: Any,
-    ) -> asyncio.Task:
+    ) -> WebSocketRunner:
         """
         :param url: WebSocket URL
         :param send_str: WebSocketで送信する文字列。文字列、または文字列のリスト形式(optional)
@@ -205,23 +205,19 @@ class Client:
         :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)
         :param ``**kwargs``: aiohttp.ClientSession.ws_connectに渡されるキーワード引数(optional)
         """
-        event = asyncio.Event()
-        task = asyncio.create_task(
-            ws_run_forever(
-                url,
-                self._session,
-                event,
-                send_str=send_str,
-                send_bytes=send_bytes,
-                send_json=send_json,
-                hdlr_str=hdlr_str,
-                hdlr_bytes=hdlr_bytes,
-                hdlr_json=hdlr_json,
-                **kwargs,
-            )
+        ws = WebSocketRunner(
+            url,
+            self._session,
+            send_str=send_str,
+            send_bytes=send_bytes,
+            send_json=send_json,
+            hdlr_str=hdlr_str,
+            hdlr_bytes=hdlr_bytes,
+            hdlr_json=hdlr_json,
+            **kwargs,
         )
-        await event.wait()
-        return task
+        await ws.wait()
+        return ws
 
     @staticmethod
     def _load_apis(
