@@ -351,9 +351,9 @@ def test_bitflyer_get(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
-                'ACCESS-TIMESTAMP': '2085848896',
+                'ACCESS-TIMESTAMP': '2085848896000',
                 'ACCESS-SIGN': (
-                    'd264cf935540b434b7073e0341d0d43dc1450c4c1cbcc47024931486dbd5a785'
+                    '7413e237eee917f1a2a276f6d1553a82fc8ca7b1b3353ff02a070b5e3c3deda5'
                 ),
             }
         ),
@@ -394,9 +394,9 @@ def test_bitflyer_post(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
-                'ACCESS-TIMESTAMP': '2085848896',
+                'ACCESS-TIMESTAMP': '2085848896000',
                 'ACCESS-SIGN': (
-                    '6d72609c20e29d9fcc963abac766aaa03ba7dff01ef9cf425aa2294c00b78d81'
+                    '0e391462aad928c8152201a8854b095f084d1b9f6bd9c0d9b8b026c9963711b4'
                 ),
             }
         ),
@@ -753,10 +753,10 @@ def test_bitmex_get(mock_session, mocker: pytest_mock.MockerFixture):
         'data': aiohttp.formdata.FormData({})(),
         'headers': CIMultiDict(
             {
-                'api-expires': '2085848901',
+                'api-expires': '2085848901000',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
                 'api-signature': (
-                    '7547642ac62bdda8349dc38c247c8cf96ea1cb8bbfc317aacf6713d274c36928'
+                    '62760c6f7c194d1b3aca1fd80cbf5d75a1adb154c593b6562be7f33b7d29a5dd'
                 ),
             }
         ),
@@ -796,10 +796,10 @@ def test_bitmex_post(mock_session, mocker: pytest_mock.MockerFixture):
         )(),
         'headers': CIMultiDict(
             {
-                'api-expires': '2085848901',
+                'api-expires': '2085848901000',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
                 'api-signature': (
-                    '245198eb7d480a695feeb3c6cc349895578738e9358e508315b6649c05ef2b33'
+                    '2193e9dbfa05580140238a29822d8d6154b529a42efc4461cf767db56bbe4fc6'
                 ),
             }
         ),
@@ -830,10 +830,10 @@ def test_bitmex_ws(mock_session, mocker: pytest_mock.MockerFixture):
         'data': aiohttp.formdata.FormData({})(),
         'headers': CIMultiDict(
             {
-                'api-expires': '2085848901',
+                'api-expires': '2085848901000',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
                 'api-signature': (
-                    '8c3c2b72035229be2fbc5daa9a93b59a5e7dcbb96d26eeaa4a1e42d74425847b'
+                    '367f193b6d183f55edc2973611bc3f93cbc99ac9a4f9dac11185108d40052dee'
                 ),
             }
         ),
@@ -871,9 +871,9 @@ def test_phemex_get(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'x-phemex-access-token': '9kYxQXZ6PrR8h17lsVdDcpnJ',
-                'x-phemex-request-expiry': '2085848956',
+                'x-phemex-request-expiry': '2085848956000',
                 'x-phemex-request-signature': (
-                    'abe7afcaaff085715ad26615b315007bdc4590390efcf5267b4317ce832ca6b5'
+                    'bbc33a69685bc3c78d4eb75e73be2e12854eba3e3323fa40992af7d0302dc293'
                 ),
             }
         ),
@@ -926,9 +926,9 @@ def test_phemex_post(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'x-phemex-access-token': '9kYxQXZ6PrR8h17lsVdDcpnJ',
-                'x-phemex-request-expiry': '2085848956',
+                'x-phemex-request-expiry': '2085848956000',
                 'x-phemex-request-signature': (
-                    '5a02dc2e10c613256eec342d1833229fa00e5c7f58e522c70fd7ee12613ce7d6'
+                    'a2cdd3a2d8e74ea6b43905410a0276b7346017ac7c418792721c8ee6a7de3149'
                 ),
             }
         ),
@@ -964,9 +964,9 @@ def test_coincheck_get(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'FASfaGggPBYDtiIHu6XoJgK6',
-                'ACCESS-NONCE': '2085848896',
+                'ACCESS-NONCE': '2085848896000',
                 'ACCESS-SIGNATURE': (
-                    'c6824f3b989aaea044bbd76de19962aeea754167d8c4790b452904bd5fd5cf2e'
+                    '8c5b1d6bcfb18f031955c33e9134143d3ab39187de7c50c020df446bbdd19b28'
                 ),
             }
         ),
@@ -1007,9 +1007,9 @@ def test_coincheck_post(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'FASfaGggPBYDtiIHu6XoJgK6',
-                'ACCESS-NONCE': '2085848896',
+                'ACCESS-NONCE': '2085848896000',
                 'ACCESS-SIGNATURE': (
-                    '4ae0b6c9a2c5c94bb2756f8c435933137d9d889812f28a0aa8f4c924449c7eb0'
+                    'e2fb003781e70de254c0bce4f15ebed979175bdfca88c3839dafa17e48df94e0'
                 ),
             }
         ),

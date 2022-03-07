@@ -111,7 +111,7 @@ class Auth:
 
         path = url.raw_path_qs
         body = JsonPayload(data) if data else FormData(data)()
-        timestamp = str(int(time.time()))
+        timestamp = str(int(time.time() * 1000))
         text = f'{timestamp}{method}{path}'.encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
@@ -244,7 +244,7 @@ class Auth:
 
         path = url.raw_path_qs if url.scheme == 'https' else '/realtime'
         body = FormData(data)()
-        expires = str(int(time.time() + 5.0))
+        expires = str(int((time.time() + 5.0) * 1000))
         message = f'{method}{path}{expires}'.encode() + body._value
         signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
@@ -267,7 +267,7 @@ class Auth:
         path = url.raw_path
         query = url.query_string
         body = JsonPayload(data) if data else FormData(data)()
-        expiry = str(int(time.time() + 60.0))
+        expiry = str(int((time.time() + 60.0) * 1000))
         formula = f'{path}{query}{expiry}'.encode() + body._value
         signature = hmac.new(secret, formula, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
@@ -291,7 +291,7 @@ class Auth:
         key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
         secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
 
-        nonce = str(int(time.time()))
+        nonce = str(int(time.time() * 1000))
         body = FormData(data)()
         message = f'{nonce}{url}'.encode() + body._value
         signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
