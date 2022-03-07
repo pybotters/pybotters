@@ -116,4 +116,8 @@ MIT
 
 ## 💖 Author
 
+Twitter:
 https://twitter.com/MtkN1XBt
+
+Discord:
+https://discord.com/invite/CxuWSX9U69
