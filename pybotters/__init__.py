@@ -13,9 +13,9 @@ from .models.binance import BinanceDataStore
 from .models.bitbank import bitbankDataStore
 from .models.bitflyer import bitFlyerDataStore
 from .models.bitmex import BitMEXDataStore
-from .models.bybit import BybitDataStore
+from .models.bybit import BybitInverseDataStore, BybitUSDTDataStore
 from .models.coincheck import CoincheckDataStore
-from .models.experimental.bybit import BybitInverseDataStore, BybitUSDTDataStore
+from .models.deprecated.bybit import BybitDataStore
 from .models.ftx import FTXDataStore
 from .models.gmocoin import GMOCoinDataStore
 from .models.phemex import PhemexDataStore
