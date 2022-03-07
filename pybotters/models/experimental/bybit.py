@@ -43,6 +43,7 @@ class BybitInverseDataStore(DataStoreManager):
         - GET /v2/private/position/list (DataStore: position)
         - GET /futures/private/position/list (DataStore: position)
         - GET /v2/private/wallet/balance (DataStore: wallet)
+        - GET /v2/public/kline/list (DataStore: kline)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -191,6 +192,7 @@ class BybitUSDTDataStore(DataStoreManager):
         - GET /private/linear/stop-order/search (DataStore: stoporder)
         - GET /private/linear/position/list (DataStore: position)
         - GET /private/linear/position/list (DataStore: position)
+        - GET /public/linear/kline (DataStore: kline)
         - GET /v2/private/wallet/balance (DataStore: wallet)
         """
         for f in asyncio.as_completed(aws):
@@ -208,7 +210,7 @@ class BybitUSDTDataStore(DataStoreManager):
                 self.stoporder._onresponse(data["result"])
             elif resp.url.path == "/private/linear/position/list":
                 self.position._onresponse(data["result"])
-            elif resp.url.path == "/v2/public/kline/list":
+            elif resp.url.path == "/public/linear/kline":
                 self.kline._onresponse(data["result"])
             elif resp.url.path == "/v2/private/wallet/balance":
                 self.wallet._onresponse(data["result"])
