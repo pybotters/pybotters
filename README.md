@@ -39,6 +39,7 @@ An advanced api client for python botters.
 | Binance | ✅ | ✅(USDⓈ-M) | [Official](https://binance-docs.github.io/apidocs/spot/en/) |
 | FTX | ✅ | ✅ | [Official](https://docs.ftx.com/) |
 | Phemex | ✅ | ✅ | [Official](https://github.com/phemex/phemex-api-docs) |
+| OKX | ✅ | WIP | [Official](https://www.okx.com/docs-v5/en/) |
 | BitMEX | ✅ | ✅ | [Official](https://www.bitmex.com/app/apiOverview) |
 | bitFlyer | ✅ | ✅ | [Official](https://lightning.bitflyer.com/docs) |
 | GMO Coin | ✅ | ✅ | [Official](https://api.coin.z.com/docs/) |
