@@ -8,7 +8,6 @@ from aiohttp import hdrs
 from rich import print
 
 from .client import Client
-from .models import experimental
 from .models.binance import BinanceDataStore
 from .models.bitbank import bitbankDataStore
 from .models.bitflyer import bitFlyerDataStore
