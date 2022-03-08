@@ -216,7 +216,7 @@ class Auth:
             AuthHosts.items[ws._response.url.host].name
         ][1]
 
-        timestamp = int(time.time())
+        timestamp = int(time.time() * 1000)
         nonce = token_hex(16)
         sign = hmac.new(
             secret, f'{timestamp}{nonce}'.encode(), digestmod=hashlib.sha256

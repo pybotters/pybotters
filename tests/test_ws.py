@@ -133,10 +133,10 @@ async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
             'method': 'auth',
             'params': {
                 'api_key': 'Pcm1rbtSRqKxTvirZDDOct1k',
-                'timestamp': 2085848896,
+                'timestamp': 2085848896000,
                 'nonce': 'd73b41172d6deca2285e8e58533db082',
                 'signature': (
-                    '62781062bd2edd3ece50fa5adca3987869f7446ab7af0f47c9679d76a6cbeb73'
+                    'f47526dec80c4773815fb1121058c2e3bcc531d1224b683e8babf76e52b0ba9c'
                 ),
             },
             'id': 'auth',
