@@ -268,7 +268,7 @@ class Auth:
         path = url.raw_path
         query = url.query_string
         body = JsonPayload(data) if data else FormData(data)()
-        expiry = str(int((time.time() + 60.0) * 1000))
+        expiry = str(int((time.time() + 60.0)))
         formula = f'{path}{query}{expiry}'.encode() + body._value
         signature = hmac.new(secret, formula, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})

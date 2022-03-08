@@ -877,9 +877,9 @@ def test_phemex_get(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'x-phemex-access-token': '9kYxQXZ6PrR8h17lsVdDcpnJ',
-                'x-phemex-request-expiry': '2085848956000',
+                'x-phemex-request-expiry': '2085848956',
                 'x-phemex-request-signature': (
-                    'bbc33a69685bc3c78d4eb75e73be2e12854eba3e3323fa40992af7d0302dc293'
+                    'abe7afcaaff085715ad26615b315007bdc4590390efcf5267b4317ce832ca6b5'
                 ),
             }
         ),
@@ -932,9 +932,9 @@ def test_phemex_post(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'x-phemex-access-token': '9kYxQXZ6PrR8h17lsVdDcpnJ',
-                'x-phemex-request-expiry': '2085848956000',
+                'x-phemex-request-expiry': '2085848956',
                 'x-phemex-request-signature': (
-                    'a2cdd3a2d8e74ea6b43905410a0276b7346017ac7c418792721c8ee6a7de3149'
+                    '5a02dc2e10c613256eec342d1833229fa00e5c7f58e522c70fd7ee12613ce7d6'
                 ),
             }
         ),
