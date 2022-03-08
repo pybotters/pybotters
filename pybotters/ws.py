@@ -199,6 +199,12 @@ class Heartbeat:
             await ws.send_str('{"method":"server.ping","params":[],"id":123}')
             await asyncio.sleep(10.0)
 
+    @staticmethod
+    async def okx(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('ping')
+            await asyncio.sleep(15.0)
+
 
 class Auth:
     @staticmethod
@@ -327,6 +333,49 @@ class Auth:
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 break
 
+    @staticmethod
+    async def okx(ws: aiohttp.ClientWebSocketResponse):
+        if not ws._response.url.path.endswith('private'):
+            return
+
+        key: str = ws._response._session.__dict__['_apis'][
+            AuthHosts.items[ws._response.url.host].name
+        ][0]
+        secret: bytes = ws._response._session.__dict__['_apis'][
+            AuthHosts.items[ws._response.url.host].name
+        ][1]
+        passphrase: bytes = ws._response._session.__dict__['_apis'][
+            AuthHosts.items[ws._response.url.host].name
+        ][2]
+
+        timestamp = str(int(time.time()))
+        text = f'{timestamp}GET/users/self/verify'
+        sign = base64.b64encode(
+            hmac.new(secret, text.encode(), digestmod=hashlib.sha256).digest()
+        ).decode()
+        msg = {
+            'op': 'login',
+            'args': [
+                {
+                    'apiKey': key,
+                    'passphrase': passphrase,
+                    'timestamp': timestamp,
+                    'sign': sign,
+                }
+            ],
+        }
+        await ws.send_json(msg)
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                try:
+                    data = msg.json()
+                    if data['event'] == 'login':
+                        break
+                except json.JSONDecodeError:
+                    pass
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                break
+
 
 @dataclass
 class Item:
@@ -352,6 +401,9 @@ class HeartbeatHosts:
         'testnetws.binanceops.com': Heartbeat.binance,
         'phemex.com': Heartbeat.phemex,
         'testnet.phemex.com': Heartbeat.phemex,
+        'ws.okx.com': Heartbeat.okx,
+        'wsaws.okx.com': Heartbeat.okx,
+        'wspap.okx.com': Heartbeat.okx,
     }
 
 
@@ -362,6 +414,9 @@ class AuthHosts:
         'ftx.com': Item('ftx', Auth.ftx),
         'phemex.com': Item('phemex', Auth.phemex),
         'testnet.phemex.com': Item('phemex_testnet', Auth.phemex),
+        'ws.okx.com': Item('okx', Auth.okx),
+        'wsaws.okx.com': Item('okx', Auth.okx),
+        'wspap.okx.com': Item('okx', Auth.okx),
     }
 
 
