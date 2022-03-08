@@ -22,6 +22,7 @@ pytest-aiohttp = "^0.3.0"
 black = "^21.6b0"
 flake8 = "^3.9.2"
 asyncmock = "^0.4.2"
+pytest-freezegun = "^0.4.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

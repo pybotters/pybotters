@@ -1,3 +1,4 @@
+import datetime
 import random
 
 import aiohttp.formdata
@@ -87,6 +88,11 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         'coincheck': (
             'FASfaGggPBYDtiIHu6XoJgK6',
             b'NNT34iDK8Qr2P6nlAt4XTuw42nQUdqzHaj3337Qlz4i5l4zu',
+        ),
+        'okx': (
+            'gYmX9fr0kqqxptUlDKESxetg',
+            b'YUJHBdFNrbz7atmV3f261ZhdRffTo4S9KZKC7C7qdqcHbRR4',
+            'MyPassphrase123',
         ),
     }
     assert set(apis.keys()) == set(
@@ -1016,6 +1022,90 @@ def test_coincheck_post(mock_session, mocker: pytest_mock.MockerFixture):
         'session': mock_session,
     }
     args = pybotters.auth.Auth.coincheck(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+@pytest.mark.freeze_time(datetime.datetime(2036, 2, 5, 18, 28, 16))
+def test_okx_get(mock_session, mocker: pytest_mock.MockerFixture):
+    args = (
+        'GET',
+        URL('https://www.okx.com/api/v5/account/balance').with_query(
+            {
+                'ccy': 'BTC,ETH',
+            }
+        ),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://www.okx.com/api/v5/account/balance?ccy=BTC,ETH'),
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict(
+            {
+                'OK-ACCESS-KEY': 'gYmX9fr0kqqxptUlDKESxetg',
+                'OK-ACCESS-SIGN': 'fWIucRPbzCxgeO2g9g0nV+FJyX1tr5/LKSypAyiVpQI=',
+                'OK-ACCESS-TIMESTAMP': '2036-02-05T18:28:16.000Z',
+                'OK-ACCESS-PASSPHRASE': 'MyPassphrase123',
+                'Content-Type': 'application/json',
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.okx(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+@pytest.mark.freeze_time(datetime.datetime(2036, 2, 5, 18, 28, 16))
+def test_okx_post(mock_session, mocker: pytest_mock.MockerFixture):
+    args = ('POST', URL('https://www.okx.com/api/v5/trade/order'))
+    kwargs = {
+        'data': {
+            'instId': 'BTC-USDT',
+            'tdMode': 'cash',
+            'clOrdId': 'b15',
+            'side': 'buy',
+            'ordType': 'limit',
+            'px': '2.15',
+            'sz': '2',
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = ('POST', URL('https://www.okx.com/api/v5/trade/order'))
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload(
+            {
+                'instId': 'BTC-USDT',
+                'tdMode': 'cash',
+                'clOrdId': 'b15',
+                'side': 'buy',
+                'ordType': 'limit',
+                'px': '2.15',
+                'sz': '2',
+            }
+        ),
+        'headers': CIMultiDict(
+            {
+                'OK-ACCESS-KEY': 'gYmX9fr0kqqxptUlDKESxetg',
+                'OK-ACCESS-SIGN': 'iIYMZ8i1gUDjJ2RNinu6VGMIuJwbdSFFVe6OYjzlh0Q=',
+                'OK-ACCESS-TIMESTAMP': '2036-02-05T18:28:16.000Z',
+                'OK-ACCESS-PASSPHRASE': 'MyPassphrase123',
+                'Content-Type': 'application/json',
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.okx(args, kwargs)
     assert args == expected_args
     assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']

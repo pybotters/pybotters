@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import datetime
 import hashlib
 import hmac
 import json
@@ -302,6 +303,37 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def okx(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+        passphrase: str = session.__dict__['_apis'][Hosts.items[url.host].name][2]
+
+        timestamp = f'{datetime.datetime.utcnow().isoformat(timespec="milliseconds")}Z'
+        body = JsonPayload(data) if data else FormData(data)()
+        text = f'{timestamp}{method}{url.raw_path_qs}'.encode() + body._value
+        sign = base64.b64encode(
+            hmac.new(secret, text, hashlib.sha256).digest()
+        ).decode()
+        kwargs.update({'data': body})
+        headers.update(
+            {
+                'OK-ACCESS-KEY': key,
+                'OK-ACCESS-SIGN': sign,
+                'OK-ACCESS-TIMESTAMP': timestamp,
+                'OK-ACCESS-PASSPHRASE': passphrase,
+                'Content-Type': 'application/json',
+            }
+        )
+
+        return args
+
 
 @dataclass
 class Item:
@@ -344,4 +376,6 @@ class Hosts:
         'api.phemex.com': Item('phemex', Auth.phemex),
         'testnet-api.phemex.com': Item('phemex_testnet', Auth.phemex),
         'coincheck.com': Item('coincheck', Auth.coincheck),
+        'www.okx.com': Item('okx', Auth.okx),
+        'aws.okx.com': Item('okx', Auth.okx),
     }
