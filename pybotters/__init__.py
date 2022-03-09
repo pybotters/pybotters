@@ -19,6 +19,7 @@ from .models.ftx import FTXDataStore
 from .models.gmocoin import GMOCoinDataStore
 from .models.okx import OKXDataStore
 from .models.phemex import PhemexDataStore
+from .models.bitget import BitgetDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
 
 __all__: Tuple[str, ...] = (
@@ -40,6 +41,7 @@ __all__: Tuple[str, ...] = (
     'GMOCoinDataStore',
     'OKXDataStore',
     'PhemexDataStore',
+    'BitgetDataStore',
     'experimental',
     'print',
     'print_handler',

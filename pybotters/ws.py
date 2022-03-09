@@ -205,6 +205,13 @@ class Heartbeat:
             await ws.send_str('ping')
             await asyncio.sleep(15.0)
 
+    @staticmethod
+    async def bitget(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('ping')
+            # �����T���v����25�b���Ƃɑ����Ă����̂�25�b�ɐݒ�
+            # https://github.com/BitgetLimited/v3-bitget-api-sdk/blob/master/bitget-python-sdk-api/bitget/ws/bitget_ws_client.py
+            await asyncio.sleep(25.0)
 
 class Auth:
     @staticmethod
@@ -376,6 +383,19 @@ class Auth:
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 break
 
+    @staticmethod
+    async def bitget(ws: aiohttp.ClientWebSocketResponse):
+        key: str = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][0][0]
+        secret: bytes = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][1]
+        passphrase: bytes = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][0][1]
+
+        timestamp = int(round(time.time()))
+        sign = base64.b64encode(hmac.new(secret, f'{timestamp}GET/user/verify'.encode(), digestmod='sha256').digest()).decode('utf8')
+        msg = {
+            'op': 'login',
+            'args': [{"api_key": key, "passphrase": passphrase, "timestamp": str(timestamp), "sign": sign}]
+        }
+        await ws.send_json(msg)
 
 @dataclass
 class Item:
@@ -404,6 +424,7 @@ class HeartbeatHosts:
         'ws.okx.com': Heartbeat.okx,
         'wsaws.okx.com': Heartbeat.okx,
         'wspap.okx.com': Heartbeat.okx,
+        'ws.bitget.com': Heartbeat.bitget,
     }
 
 
@@ -417,6 +438,7 @@ class AuthHosts:
         'ws.okx.com': Item('okx', Auth.okx),
         'wsaws.okx.com': Item('okx', Auth.okx),
         'wspap.okx.com': Item('okx', Auth.okx),
+        'ws.bitget.com': Item('bitget', Auth.bitget),
     }
 
 
