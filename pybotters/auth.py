@@ -349,20 +349,18 @@ class Auth:
 
         path = url.raw_path_qs
         body = JsonPayload(data) if data else FormData(data)()
-
-        expiry = str(int(time.time() * 1000))
-        formula = f'{expiry}{method}{path}'.encode() + body._value
-        signature = base64.b64encode(
-            hmac.new(secret, formula, digestmod='sha256').digest()
-        ).decode('utf8')
-
+        timestamp = str(int(time.time() * 1000))
+        msg = f'{timestamp}{method}{path}'.encode() + body._value
+        sign = base64.b64encode(
+            hmac.new(secret, msg, digestmod=hashlib.sha256).digest()
+        ).decode()
         kwargs.update({'data': body})
         headers.update(
             {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': key,
-                'ACCESS-SIGN': signature,
-                'ACCESS-TIMESTAMP': expiry,
+                'ACCESS-SIGN': sign,
+                'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': passphase,
             }
         )

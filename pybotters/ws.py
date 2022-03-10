@@ -399,17 +399,17 @@ class Auth:
         timestamp = int(round(time.time()))
         sign = base64.b64encode(
             hmac.new(
-                secret, f'{timestamp}GET/user/verify'.encode(), digestmod='sha256'
+                secret, f'{timestamp}GET/user/verify'.encode(), digestmod=hashlib.sha256
             ).digest()
-        ).decode('utf8')
+        ).decode()
         msg = {
             'op': 'login',
             'args': [
                 {
-                    "api_key": key,
-                    "passphrase": passphrase,
-                    "timestamp": str(timestamp),
-                    "sign": sign,
+                    'api_key': key,
+                    'passphrase': passphrase,
+                    'timestamp': str(timestamp),
+                    'sign': sign,
                 }
             ],
         }
