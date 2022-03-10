@@ -209,7 +209,7 @@ class Heartbeat:
     async def bitget(ws: aiohttp.ClientWebSocketResponse):
         while not ws.closed:
             await ws.send_str('ping')
-            # �����T���v����25�b���Ƃɑ����Ă����̂�25�b�ɐݒ�
+            # 公式サンプルが25秒ごとに送っていたので25秒に設定
             # https://github.com/BitgetLimited/v3-bitget-api-sdk/blob/master/bitget-python-sdk-api/bitget/ws/bitget_ws_client.py
             await asyncio.sleep(25.0)
 
