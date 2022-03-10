@@ -13,6 +13,7 @@ from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
+
 class BitgetDataStore(DataStoreManager):
     """
     Bitgetのデータストアマネージャー
@@ -43,22 +44,22 @@ class BitgetDataStore(DataStoreManager):
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if 'arg' in msg and 'data' in msg:
             channel = msg['arg'].get('channel')
-            if channel == 'trade' :
+            if channel == 'trade':
                 self.trade._onmessage(msg)
-            elif channel == 'ticker' :
+            elif channel == 'ticker':
                 self.ticker._onmessage(msg)
-            elif channel == 'candle1m' :
+            elif channel == 'candle1m':
                 self.candlesticks._onmessage(msg)
-            elif channel == 'books' :
+            elif channel == 'books':
                 self.orderbook._onmessage(msg)
-            elif channel == 'account' :
+            elif channel == 'account':
                 self.account._onmessage(msg.get('data', []))
-            elif channel == 'positions' :
+            elif channel == 'positions':
                 self.positions._onmessage(msg.get('data', []))
-            elif channel == 'orders' :
+            elif channel == 'orders':
                 self.orders._onmessage(msg.get('data', []))
 
-        if msg.get('event','')=='error':
+        if msg.get('event', '') == 'error':
             logger.warning(msg)
 
     @property
@@ -131,7 +132,7 @@ class OrderBook(DataStore):
         instId = message['arg']['instId']
         books = message['data']
         for key, side in (('bids', 'BUY'), ('asks', 'SELL')):
-            for book in books :
+            for book in books:
                 for item in book[key]:
                     if item[1] != '0':
                         self._insert(
@@ -156,11 +157,13 @@ class OrderBook(DataStore):
                             ]
                         )
 
+
 class Ticker(DataStore):
     _KEYS = ['instId']
 
     def _onmessage(self, message):
         self._update(message.get('data'))
+
 
 class CandleSticks(DataStore):
     _KEYS = ['instId', 'interval', 'ts']
@@ -183,6 +186,7 @@ class CandleSticks(DataStore):
                 for item in message.get('data', [])
             ]
         )
+
 
 class Account(DataStore):
     _KEYS = ['marginCoin']
@@ -207,22 +211,30 @@ class Orders(DataStore):
 
     def _onresponse(self, data: list[Item]) -> None:
         # wsから配信される情報とAPIレスポンスで得られる情報の辞書キーが違うのでwsから配信される情報に合わせて格納
-        self._insert([{
-          'accFillSz': str(item['filledQty']),
-          'cTime': int(item['cTime']),
-          'clOrdId': item['clientOid'],
-          'force': item['timeInForce'],
-          'instId': item['symbol'],
-          'ordId': item['orderId'],
-          'ordType': item['orderType'],
-          'posSide': item['posSide'],
-          'px': str(item['price']),
-          'side': 'buy' if item['side'] in ('close_short', 'open_long') else 'sell',
-          'status': item['state'],
-          'sz': str(item['size']),
-          'tgtCcy': item['marginCoin'],
-          'uTime': int(item['uTime'])}
-          for item in data])
+        self._insert(
+            [
+                {
+                    'accFillSz': str(item['filledQty']),
+                    'cTime': int(item['cTime']),
+                    'clOrdId': item['clientOid'],
+                    'force': item['timeInForce'],
+                    'instId': item['symbol'],
+                    'ordId': item['orderId'],
+                    'ordType': item['orderType'],
+                    'posSide': item['posSide'],
+                    'px': str(item['price']),
+                    'side': 'buy'
+                    if item['side'] in ('close_short', 'open_long')
+                    else 'sell',
+                    'status': item['state'],
+                    'sz': str(item['size']),
+                    'tgtCcy': item['marginCoin'],
+                    'uTime': int(item['uTime']),
+                }
+                for item in data
+            ]
+        )
+
 
 class Positions(DataStore):
     _KEYS = ['posId', 'instId']

@@ -213,6 +213,7 @@ class Heartbeat:
             # https://github.com/BitgetLimited/v3-bitget-api-sdk/blob/master/bitget-python-sdk-api/bitget/ws/bitget_ws_client.py
             await asyncio.sleep(25.0)
 
+
 class Auth:
     @staticmethod
     async def bitflyer(ws: aiohttp.ClientWebSocketResponse):
@@ -385,17 +386,35 @@ class Auth:
 
     @staticmethod
     async def bitget(ws: aiohttp.ClientWebSocketResponse):
-        key: str = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][0][0]
-        secret: bytes = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][1]
-        passphrase: bytes = ws._response._session.__dict__['_apis'][AuthHosts.items[ws._response.url.host].name][0][1]
+        key: str = ws._response._session.__dict__['_apis'][
+            AuthHosts.items[ws._response.url.host].name
+        ][0][0]
+        secret: bytes = ws._response._session.__dict__['_apis'][
+            AuthHosts.items[ws._response.url.host].name
+        ][1]
+        passphrase: bytes = ws._response._session.__dict__['_apis'][
+            AuthHosts.items[ws._response.url.host].name
+        ][0][1]
 
         timestamp = int(round(time.time()))
-        sign = base64.b64encode(hmac.new(secret, f'{timestamp}GET/user/verify'.encode(), digestmod='sha256').digest()).decode('utf8')
+        sign = base64.b64encode(
+            hmac.new(
+                secret, f'{timestamp}GET/user/verify'.encode(), digestmod='sha256'
+            ).digest()
+        ).decode('utf8')
         msg = {
             'op': 'login',
-            'args': [{"api_key": key, "passphrase": passphrase, "timestamp": str(timestamp), "sign": sign}]
+            'args': [
+                {
+                    "api_key": key,
+                    "passphrase": passphrase,
+                    "timestamp": str(timestamp),
+                    "sign": sign,
+                }
+            ],
         }
         await ws.send_json(msg)
+
 
 @dataclass
 class Item:
