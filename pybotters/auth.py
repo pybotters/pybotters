@@ -7,7 +7,7 @@ import hmac
 import json
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 import aiohttp
 from aiohttp.formdata import FormData
@@ -311,9 +311,10 @@ class Auth:
         headers: CIMultiDict = kwargs['headers']
 
         session: aiohttp.ClientSession = kwargs['session']
-        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
-        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
-        passphrase: str = session.__dict__['_apis'][Hosts.items[url.host].name][2]
+        api_name = NameSelector.okx(headers)
+        key: str = session.__dict__['_apis'][api_name][0]
+        secret: bytes = session.__dict__['_apis'][api_name][1]
+        passphrase: str = session.__dict__['_apis'][api_name][2]
 
         timestamp = f'{datetime.datetime.utcnow().isoformat(timespec="milliseconds")}Z'
         body = JsonPayload(data) if data else FormData(data)()
@@ -337,8 +338,17 @@ class Auth:
 
 @dataclass
 class Item:
-    name: str
+    name: str | Callable[[CIMultiDict], str]
     func: Any
+
+
+class NameSelector:
+    @staticmethod
+    def okx(headers: CIMultiDict) -> str:
+        if 'x-simulated-trading' in headers:
+            if headers['x-simulated-trading'] == '1':
+                return 'okx_demo'
+        return 'okx'
 
 
 class Hosts:
@@ -376,6 +386,6 @@ class Hosts:
         'api.phemex.com': Item('phemex', Auth.phemex),
         'testnet-api.phemex.com': Item('phemex_testnet', Auth.phemex),
         'coincheck.com': Item('coincheck', Auth.coincheck),
-        'www.okx.com': Item('okx', Auth.okx),
-        'aws.okx.com': Item('okx', Auth.okx),
+        'www.okx.com': Item(NameSelector.okx, Auth.okx),
+        'aws.okx.com': Item(NameSelector.okx, Auth.okx),
     }

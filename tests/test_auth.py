@@ -96,7 +96,8 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         ),
     }
     assert set(apis.keys()) == set(
-        item.name for item in pybotters.auth.Hosts.items.values()
+        item.name if isinstance(item.name, str) else item.name({})
+        for item in pybotters.auth.Hosts.items.values()
     )
     m_sess.__dict__['_apis'] = apis
     return m_sess
@@ -107,7 +108,7 @@ def test_hosts():
     assert isinstance(pybotters.auth.Hosts.items, dict)
     for host, item in pybotters.auth.Hosts.items.items():
         assert isinstance(host, str)
-        assert isinstance(item.name, str)
+        assert isinstance(item.name, str) | callable(item.name)
         assert callable(item.func)
 
 
@@ -120,6 +121,12 @@ def test_item():
     item = pybotters.auth.Item(name, func)
     assert item.name == name
     assert item.func == func
+
+
+def test_selector_okx():
+    assert pybotters.auth.NameSelector.okx({}) == 'okx'
+    assert pybotters.auth.NameSelector.okx({'foo': 'bar'}) == 'okx'
+    assert pybotters.auth.NameSelector.okx({'x-simulated-trading': '1'}) == 'okx_demo'
 
 
 def test_bybit_get(mock_session, mocker: pytest_mock.MockerFixture):
