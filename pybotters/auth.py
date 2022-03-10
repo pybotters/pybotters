@@ -347,12 +347,11 @@ class Auth:
         secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
         passphase: str = session.__dict__['_apis'][Hosts.items[url.host].name][0][1]
 
-        path = url.raw_path
-        query = ('?' if method == 'GET' else '') + url.query_string
+        path = url.raw_path_qs
         body = JsonPayload(data) if data else FormData(data)()
 
         expiry = str(int(time.time() * 1000))
-        formula = f'{expiry}{method}{path}{query}'.encode() + body._value
+        formula = f'{expiry}{method}{path}'.encode() + body._value
         signature = base64.b64encode(
             hmac.new(secret, formula, digestmod='sha256').digest()
         ).decode('utf8')
