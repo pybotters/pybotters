@@ -94,6 +94,11 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             b'YUJHBdFNrbz7atmV3f261ZhdRffTo4S9KZKC7C7qdqcHbRR4',
             'MyPassphrase123',
         ),
+        'bitget': (
+            'jbcfbye8AJzXxXwMKluXM12t',
+            b'mVd40qhnarPtxk3aqg0FCyY1qlTgBOKOXEcmMYfkerGUKmvr',
+            'MyPassphrase123',
+        ),
     }
     assert set(apis.keys()) == set(
         item.name if isinstance(item.name, str) else item.name({})
@@ -1113,6 +1118,88 @@ def test_okx_post(mock_session, mocker: pytest_mock.MockerFixture):
         'session': mock_session,
     }
     args = pybotters.auth.Auth.okx(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitget_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://api.bitget.com/api/spot/v1/account/assets').with_query(
+            {
+                'symbol': 'BTCUSDT_SPBL',
+            }
+        ),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://api.bitget.com/api/spot/v1/account/assets?symbol=BTCUSDT_SPBL'),
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict(
+            {
+                'Content-Type': 'application/json',
+                'ACCESS-KEY': 'jbcfbye8AJzXxXwMKluXM12t',
+                'ACCESS-SIGN': 'OGmz3F0LHbvSri0tCmgDYdxclRnsf29hZ5/qi0IOxGA=',
+                'ACCESS-TIMESTAMP': '2085848896000',
+                'ACCESS-PASSPHRASE': 'MyPassphrase123',
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitget(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitget_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL(
+            'https://api.bitget.com/api/spot/v1/account/assets/api/spot/v1/trade/fills'
+        ),
+    )
+    kwargs = {
+        'data': {
+            'symbol': 'BTCUSDT_SPBL-USDT',
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL(
+            'https://api.bitget.com/api/spot/v1/account/assets/api/spot/v1/trade/fills'
+        ),
+    )
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload(
+            {
+                'symbol': 'BTCUSDT_SPBL-USDT',
+            }
+        ),
+        'headers': CIMultiDict(
+            {
+                'Content-Type': 'application/json',
+                'ACCESS-KEY': 'jbcfbye8AJzXxXwMKluXM12t',
+                'ACCESS-SIGN': '+EzKoSg9aBmeokTWaboMdWxLQes/K0ZAuaYIYNtKtLw=',
+                'ACCESS-TIMESTAMP': '2085848896000',
+                'ACCESS-PASSPHRASE': 'MyPassphrase123',
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitget(args, kwargs)
     assert args == expected_args
     assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']

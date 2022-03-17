@@ -335,6 +335,38 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def bitget(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+        passphase: str = session.__dict__['_apis'][Hosts.items[url.host].name][2]
+
+        path = url.raw_path_qs
+        body = JsonPayload(data) if data else FormData(data)()
+        timestamp = str(int(time.time() * 1000))
+        msg = f'{timestamp}{method}{path}'.encode() + body._value
+        sign = base64.b64encode(
+            hmac.new(secret, msg, digestmod=hashlib.sha256).digest()
+        ).decode()
+        kwargs.update({'data': body})
+        headers.update(
+            {
+                'Content-Type': 'application/json',
+                'ACCESS-KEY': key,
+                'ACCESS-SIGN': sign,
+                'ACCESS-TIMESTAMP': timestamp,
+                'ACCESS-PASSPHRASE': passphase,
+            }
+        )
+
+        return args
+
 
 @dataclass
 class Item:
@@ -388,4 +420,5 @@ class Hosts:
         'coincheck.com': Item('coincheck', Auth.coincheck),
         'www.okx.com': Item(NameSelector.okx, Auth.okx),
         'aws.okx.com': Item(NameSelector.okx, Auth.okx),
+        'api.bitget.com': Item('bitget', Auth.bitget),
     }

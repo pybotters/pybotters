@@ -11,6 +11,7 @@ from .client import Client
 from .models.binance import BinanceDataStore
 from .models.bitbank import bitbankDataStore
 from .models.bitflyer import bitFlyerDataStore
+from .models.bitget import BitgetDataStore
 from .models.bitmex import BitMEXDataStore
 from .models.bybit import BybitInverseDataStore, BybitUSDTDataStore
 from .models.coincheck import CoincheckDataStore
@@ -36,6 +37,7 @@ __all__: Tuple[str, ...] = (
     'BinanceDataStore',
     'bitbankDataStore',
     'bitFlyerDataStore',
+    'BitgetDataStore',
     'BitMEXDataStore',
     'GMOCoinDataStore',
     'OKXDataStore',
