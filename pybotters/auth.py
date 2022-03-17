@@ -343,9 +343,9 @@ class Auth:
         headers: CIMultiDict = kwargs['headers']
 
         session: aiohttp.ClientSession = kwargs['session']
-        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0][0]
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
         secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
-        passphase: str = session.__dict__['_apis'][Hosts.items[url.host].name][0][1]
+        passphase: str = session.__dict__['_apis'][Hosts.items[url.host].name][2]
 
         path = url.raw_path_qs
         body = JsonPayload(data) if data else FormData(data)()
