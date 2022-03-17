@@ -244,6 +244,8 @@ class Auth:
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 data = msg.json()
+                if 'error' in data:
+                    logger.warning(data)
                 if 'id' in data:
                     if data['id'] == 'auth':
                         break
@@ -336,6 +338,9 @@ class Auth:
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 data = msg.json()
+                if 'error' in data:
+                    if data['error'] is not None:
+                        logger.warning(data)
                 if data['result'] == {'status': 'success'}:
                     break
             elif msg.type == aiohttp.WSMsgType.ERROR:
@@ -377,6 +382,8 @@ class Auth:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 try:
                     data = msg.json()
+                    if data['event'] == 'error':
+                        logger.warning(data)
                     if data['event'] == 'login':
                         break
                 except json.JSONDecodeError:
