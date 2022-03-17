@@ -306,6 +306,44 @@ async def test_okx_ws(mocker: pytest_mock.MockerFixture):
         raise RuntimeError(f'Unsupported Python version: {sys.version}')
 
 
+@pytest.mark.asyncio
+async def test_bitget_ws(mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+
+    async def dummy_send(msg):
+        expected = {
+            'op': 'login',
+            'args': [
+                {
+                    'apiKey': 'jbcfbye8AJzXxXwMKluXM12t',
+                    'passphrase': 'MyPassphrase123',
+                    'timestamp': '2085848896',
+                    'sign': 'QAyHX41dxONjr5Wx/SVfHGxEo5Q+NECtOh22tZ7ledA=',
+                }
+            ],
+        }
+        assert msg == expected
+
+    ws = MagicMock()
+    ws._response.url.host = 'ws.okx.com'
+    ws._response._session.__dict__['_apis'] = {
+        'okx': (
+            'jbcfbye8AJzXxXwMKluXM12t',
+            b'mVd40qhnarPtxk3aqg0FCyY1qlTgBOKOXEcmMYfkerGUKmvr',
+            'MyPassphrase123',
+        ),
+    }
+    ws.send_json.side_effect = dummy_send
+    # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
+    if sys.version_info.major == 3 and sys.version_info.minor == 7:
+        with pytest.raises(TypeError):
+            await pybotters.ws.Auth.okx(ws)
+    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
+        await pybotters.ws.Auth.okx(ws)
+    else:
+        raise RuntimeError(f'Unsupported Python version: {sys.version}')
+
+
 def test_websocketrunner(mocker: pytest_mock.MockerFixture):
     create_task = mocker.patch('asyncio.create_task')
     ret_run_forever = mocker.Mock()
