@@ -25,7 +25,11 @@ class ClientRequest(aiohttp.ClientRequest):
         if kwargs['auth'] is Auth:
             kwargs['auth'] = None
             if url.host in Hosts.items:
-                if Hosts.items[url.host].name in kwargs['session'].__dict__['_apis']:
+                if isinstance(Hosts.items[url.host].name, str):
+                    api_name = Hosts.items[url.host].name
+                elif callable(Hosts.items[url.host].name):
+                    api_name = Hosts.items[url.host].name(kwargs['headers'])
+                if api_name in kwargs['session'].__dict__['_apis']:
                     args = Hosts.items[url.host].func(args, kwargs)
 
         super().__init__(*args, **kwargs)

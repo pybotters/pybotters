@@ -50,7 +50,7 @@ class Trades(DataStore):
 class Orderbook(DataStore):
     _KEYS = ["side", "rate"]
 
-    def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
+    def sorted(self, query: Optional[Item] = None) -> dict[str, list[list[str]]]:
         if query is None:
             query = {}
         result = {"asks": [], "bids": []}

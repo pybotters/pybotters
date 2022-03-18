@@ -8,16 +8,17 @@ from aiohttp import hdrs
 from rich import print
 
 from .client import Client
-from .models import experimental
 from .models.binance import BinanceDataStore
 from .models.bitbank import bitbankDataStore
 from .models.bitflyer import bitFlyerDataStore
+from .models.bitget import BitgetDataStore
 from .models.bitmex import BitMEXDataStore
-from .models.bybit import BybitDataStore
+from .models.bybit import BybitInverseDataStore, BybitUSDTDataStore
 from .models.coincheck import CoincheckDataStore
-from .models.experimental.bybit import BybitInverseDataStore, BybitUSDTDataStore
+from .models.deprecated.bybit import BybitDataStore
 from .models.ftx import FTXDataStore
 from .models.gmocoin import GMOCoinDataStore
+from .models.okx import OKXDataStore
 from .models.phemex import PhemexDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
 
@@ -36,8 +37,10 @@ __all__: Tuple[str, ...] = (
     'BinanceDataStore',
     'bitbankDataStore',
     'bitFlyerDataStore',
+    'BitgetDataStore',
     'BitMEXDataStore',
     'GMOCoinDataStore',
+    'OKXDataStore',
     'PhemexDataStore',
     'experimental',
     'print',

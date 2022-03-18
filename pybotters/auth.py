@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import base64
+import datetime
 import hashlib
 import hmac
 import json
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 import aiohttp
 from aiohttp.formdata import FormData
@@ -111,7 +112,7 @@ class Auth:
 
         path = url.raw_path_qs
         body = JsonPayload(data) if data else FormData(data)()
-        timestamp = str(int(time.time()))
+        timestamp = str(int(time.time() * 1000))
         text = f'{timestamp}{method}{path}'.encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
@@ -244,7 +245,7 @@ class Auth:
 
         path = url.raw_path_qs if url.scheme == 'https' else '/realtime'
         body = FormData(data)()
-        expires = str(int(time.time() + 5.0))
+        expires = str(int((time.time() + 5.0) * 1000))
         message = f'{method}{path}{expires}'.encode() + body._value
         signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
@@ -267,7 +268,7 @@ class Auth:
         path = url.raw_path
         query = url.query_string
         body = JsonPayload(data) if data else FormData(data)()
-        expiry = str(int(time.time() + 60.0))
+        expiry = str(int((time.time() + 60.0)))
         formula = f'{path}{query}{expiry}'.encode() + body._value
         signature = hmac.new(secret, formula, hashlib.sha256).hexdigest()
         kwargs.update({'data': body})
@@ -291,7 +292,7 @@ class Auth:
         key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
         secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
 
-        nonce = str(int(time.time()))
+        nonce = str(int(time.time() * 1000))
         body = FormData(data)()
         message = f'{nonce}{url}'.encode() + body._value
         signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
@@ -302,11 +303,84 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def okx(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        api_name = NameSelector.okx(headers)
+        key: str = session.__dict__['_apis'][api_name][0]
+        secret: bytes = session.__dict__['_apis'][api_name][1]
+        passphrase: str = session.__dict__['_apis'][api_name][2]
+
+        timestamp = f'{datetime.datetime.utcnow().isoformat(timespec="milliseconds")}Z'
+        body = JsonPayload(data) if data else FormData(data)()
+        text = f'{timestamp}{method}{url.raw_path_qs}'.encode() + body._value
+        sign = base64.b64encode(
+            hmac.new(secret, text, hashlib.sha256).digest()
+        ).decode()
+        kwargs.update({'data': body})
+        headers.update(
+            {
+                'OK-ACCESS-KEY': key,
+                'OK-ACCESS-SIGN': sign,
+                'OK-ACCESS-TIMESTAMP': timestamp,
+                'OK-ACCESS-PASSPHRASE': passphrase,
+                'Content-Type': 'application/json',
+            }
+        )
+
+        return args
+
+    @staticmethod
+    def bitget(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: dict[str, Any] = kwargs['data'] or {}
+        headers: CIMultiDict = kwargs['headers']
+
+        session: aiohttp.ClientSession = kwargs['session']
+        key: str = session.__dict__['_apis'][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__['_apis'][Hosts.items[url.host].name][1]
+        passphase: str = session.__dict__['_apis'][Hosts.items[url.host].name][2]
+
+        path = url.raw_path_qs
+        body = JsonPayload(data) if data else FormData(data)()
+        timestamp = str(int(time.time() * 1000))
+        msg = f'{timestamp}{method}{path}'.encode() + body._value
+        sign = base64.b64encode(
+            hmac.new(secret, msg, digestmod=hashlib.sha256).digest()
+        ).decode()
+        kwargs.update({'data': body})
+        headers.update(
+            {
+                'Content-Type': 'application/json',
+                'ACCESS-KEY': key,
+                'ACCESS-SIGN': sign,
+                'ACCESS-TIMESTAMP': timestamp,
+                'ACCESS-PASSPHRASE': passphase,
+            }
+        )
+
+        return args
+
 
 @dataclass
 class Item:
-    name: str
+    name: str | Callable[[CIMultiDict], str]
     func: Any
+
+
+class NameSelector:
+    @staticmethod
+    def okx(headers: CIMultiDict) -> str:
+        if 'x-simulated-trading' in headers:
+            if headers['x-simulated-trading'] == '1':
+                return 'okx_demo'
+        return 'okx'
 
 
 class Hosts:
@@ -344,4 +418,7 @@ class Hosts:
         'api.phemex.com': Item('phemex', Auth.phemex),
         'testnet-api.phemex.com': Item('phemex_testnet', Auth.phemex),
         'coincheck.com': Item('coincheck', Auth.coincheck),
+        'www.okx.com': Item(NameSelector.okx, Auth.okx),
+        'aws.okx.com': Item(NameSelector.okx, Auth.okx),
+        'api.bitget.com': Item('bitget', Auth.bitget),
     }

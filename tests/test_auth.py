@@ -1,3 +1,4 @@
+import datetime
 import random
 
 import aiohttp.formdata
@@ -88,9 +89,20 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             'FASfaGggPBYDtiIHu6XoJgK6',
             b'NNT34iDK8Qr2P6nlAt4XTuw42nQUdqzHaj3337Qlz4i5l4zu',
         ),
+        'okx': (
+            'gYmX9fr0kqqxptUlDKESxetg',
+            b'YUJHBdFNrbz7atmV3f261ZhdRffTo4S9KZKC7C7qdqcHbRR4',
+            'MyPassphrase123',
+        ),
+        'bitget': (
+            'jbcfbye8AJzXxXwMKluXM12t',
+            b'mVd40qhnarPtxk3aqg0FCyY1qlTgBOKOXEcmMYfkerGUKmvr',
+            'MyPassphrase123',
+        ),
     }
     assert set(apis.keys()) == set(
-        item.name for item in pybotters.auth.Hosts.items.values()
+        item.name if isinstance(item.name, str) else item.name({})
+        for item in pybotters.auth.Hosts.items.values()
     )
     m_sess.__dict__['_apis'] = apis
     return m_sess
@@ -101,7 +113,7 @@ def test_hosts():
     assert isinstance(pybotters.auth.Hosts.items, dict)
     for host, item in pybotters.auth.Hosts.items.items():
         assert isinstance(host, str)
-        assert isinstance(item.name, str)
+        assert isinstance(item.name, str) | callable(item.name)
         assert callable(item.func)
 
 
@@ -114,6 +126,12 @@ def test_item():
     item = pybotters.auth.Item(name, func)
     assert item.name == name
     assert item.func == func
+
+
+def test_selector_okx():
+    assert pybotters.auth.NameSelector.okx({}) == 'okx'
+    assert pybotters.auth.NameSelector.okx({'foo': 'bar'}) == 'okx'
+    assert pybotters.auth.NameSelector.okx({'x-simulated-trading': '1'}) == 'okx_demo'
 
 
 def test_bybit_get(mock_session, mocker: pytest_mock.MockerFixture):
@@ -351,9 +369,9 @@ def test_bitflyer_get(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
-                'ACCESS-TIMESTAMP': '2085848896',
+                'ACCESS-TIMESTAMP': '2085848896000',
                 'ACCESS-SIGN': (
-                    'd264cf935540b434b7073e0341d0d43dc1450c4c1cbcc47024931486dbd5a785'
+                    '7413e237eee917f1a2a276f6d1553a82fc8ca7b1b3353ff02a070b5e3c3deda5'
                 ),
             }
         ),
@@ -394,9 +412,9 @@ def test_bitflyer_post(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'Pcm1rbtSRqKxTvirZDDOct1k',
-                'ACCESS-TIMESTAMP': '2085848896',
+                'ACCESS-TIMESTAMP': '2085848896000',
                 'ACCESS-SIGN': (
-                    '6d72609c20e29d9fcc963abac766aaa03ba7dff01ef9cf425aa2294c00b78d81'
+                    '0e391462aad928c8152201a8854b095f084d1b9f6bd9c0d9b8b026c9963711b4'
                 ),
             }
         ),
@@ -753,10 +771,10 @@ def test_bitmex_get(mock_session, mocker: pytest_mock.MockerFixture):
         'data': aiohttp.formdata.FormData({})(),
         'headers': CIMultiDict(
             {
-                'api-expires': '2085848901',
+                'api-expires': '2085848901000',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
                 'api-signature': (
-                    '7547642ac62bdda8349dc38c247c8cf96ea1cb8bbfc317aacf6713d274c36928'
+                    '62760c6f7c194d1b3aca1fd80cbf5d75a1adb154c593b6562be7f33b7d29a5dd'
                 ),
             }
         ),
@@ -796,10 +814,10 @@ def test_bitmex_post(mock_session, mocker: pytest_mock.MockerFixture):
         )(),
         'headers': CIMultiDict(
             {
-                'api-expires': '2085848901',
+                'api-expires': '2085848901000',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
                 'api-signature': (
-                    '245198eb7d480a695feeb3c6cc349895578738e9358e508315b6649c05ef2b33'
+                    '2193e9dbfa05580140238a29822d8d6154b529a42efc4461cf767db56bbe4fc6'
                 ),
             }
         ),
@@ -830,10 +848,10 @@ def test_bitmex_ws(mock_session, mocker: pytest_mock.MockerFixture):
         'data': aiohttp.formdata.FormData({})(),
         'headers': CIMultiDict(
             {
-                'api-expires': '2085848901',
+                'api-expires': '2085848901000',
                 'api-key': 'fSvgi9a85yDFx3efr94tmJpH',
                 'api-signature': (
-                    '8c3c2b72035229be2fbc5daa9a93b59a5e7dcbb96d26eeaa4a1e42d74425847b'
+                    '367f193b6d183f55edc2973611bc3f93cbc99ac9a4f9dac11185108d40052dee'
                 ),
             }
         ),
@@ -964,9 +982,9 @@ def test_coincheck_get(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'FASfaGggPBYDtiIHu6XoJgK6',
-                'ACCESS-NONCE': '2085848896',
+                'ACCESS-NONCE': '2085848896000',
                 'ACCESS-SIGNATURE': (
-                    'c6824f3b989aaea044bbd76de19962aeea754167d8c4790b452904bd5fd5cf2e'
+                    '8c5b1d6bcfb18f031955c33e9134143d3ab39187de7c50c020df446bbdd19b28'
                 ),
             }
         ),
@@ -1007,15 +1025,181 @@ def test_coincheck_post(mock_session, mocker: pytest_mock.MockerFixture):
         'headers': CIMultiDict(
             {
                 'ACCESS-KEY': 'FASfaGggPBYDtiIHu6XoJgK6',
-                'ACCESS-NONCE': '2085848896',
+                'ACCESS-NONCE': '2085848896000',
                 'ACCESS-SIGNATURE': (
-                    '4ae0b6c9a2c5c94bb2756f8c435933137d9d889812f28a0aa8f4c924449c7eb0'
+                    'e2fb003781e70de254c0bce4f15ebed979175bdfca88c3839dafa17e48df94e0'
                 ),
             }
         ),
         'session': mock_session,
     }
     args = pybotters.auth.Auth.coincheck(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+@pytest.mark.freeze_time(datetime.datetime(2036, 2, 5, 18, 28, 16))
+def test_okx_get(mock_session, mocker: pytest_mock.MockerFixture):
+    args = (
+        'GET',
+        URL('https://www.okx.com/api/v5/account/balance').with_query(
+            {
+                'ccy': 'BTC,ETH',
+            }
+        ),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://www.okx.com/api/v5/account/balance?ccy=BTC,ETH'),
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict(
+            {
+                'OK-ACCESS-KEY': 'gYmX9fr0kqqxptUlDKESxetg',
+                'OK-ACCESS-SIGN': 'fWIucRPbzCxgeO2g9g0nV+FJyX1tr5/LKSypAyiVpQI=',
+                'OK-ACCESS-TIMESTAMP': '2036-02-05T18:28:16.000Z',
+                'OK-ACCESS-PASSPHRASE': 'MyPassphrase123',
+                'Content-Type': 'application/json',
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.okx(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+@pytest.mark.freeze_time(datetime.datetime(2036, 2, 5, 18, 28, 16))
+def test_okx_post(mock_session, mocker: pytest_mock.MockerFixture):
+    args = ('POST', URL('https://www.okx.com/api/v5/trade/order'))
+    kwargs = {
+        'data': {
+            'instId': 'BTC-USDT',
+            'tdMode': 'cash',
+            'clOrdId': 'b15',
+            'side': 'buy',
+            'ordType': 'limit',
+            'px': '2.15',
+            'sz': '2',
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = ('POST', URL('https://www.okx.com/api/v5/trade/order'))
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload(
+            {
+                'instId': 'BTC-USDT',
+                'tdMode': 'cash',
+                'clOrdId': 'b15',
+                'side': 'buy',
+                'ordType': 'limit',
+                'px': '2.15',
+                'sz': '2',
+            }
+        ),
+        'headers': CIMultiDict(
+            {
+                'OK-ACCESS-KEY': 'gYmX9fr0kqqxptUlDKESxetg',
+                'OK-ACCESS-SIGN': 'iIYMZ8i1gUDjJ2RNinu6VGMIuJwbdSFFVe6OYjzlh0Q=',
+                'OK-ACCESS-TIMESTAMP': '2036-02-05T18:28:16.000Z',
+                'OK-ACCESS-PASSPHRASE': 'MyPassphrase123',
+                'Content-Type': 'application/json',
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.okx(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitget_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'GET',
+        URL('https://api.bitget.com/api/spot/v1/account/assets').with_query(
+            {
+                'symbol': 'BTCUSDT_SPBL',
+            }
+        ),
+    )
+    kwargs = {
+        'data': None,
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'GET',
+        URL('https://api.bitget.com/api/spot/v1/account/assets?symbol=BTCUSDT_SPBL'),
+    )
+    expected_kwargs = {
+        'data': aiohttp.formdata.FormData({})(),
+        'headers': CIMultiDict(
+            {
+                'Content-Type': 'application/json',
+                'ACCESS-KEY': 'jbcfbye8AJzXxXwMKluXM12t',
+                'ACCESS-SIGN': 'OGmz3F0LHbvSri0tCmgDYdxclRnsf29hZ5/qi0IOxGA=',
+                'ACCESS-TIMESTAMP': '2085848896000',
+                'ACCESS-PASSPHRASE': 'MyPassphrase123',
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitget(args, kwargs)
+    assert args == expected_args
+    assert kwargs['data']._value == expected_kwargs['data']._value
+    assert kwargs['headers'] == expected_kwargs['headers']
+
+
+def test_bitget_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+    args = (
+        'POST',
+        URL(
+            'https://api.bitget.com/api/spot/v1/account/assets/api/spot/v1/trade/fills'
+        ),
+    )
+    kwargs = {
+        'data': {
+            'symbol': 'BTCUSDT_SPBL-USDT',
+        },
+        'headers': CIMultiDict(),
+        'session': mock_session,
+    }
+    expected_args = (
+        'POST',
+        URL(
+            'https://api.bitget.com/api/spot/v1/account/assets/api/spot/v1/trade/fills'
+        ),
+    )
+    expected_kwargs = {
+        'data': aiohttp.payload.JsonPayload(
+            {
+                'symbol': 'BTCUSDT_SPBL-USDT',
+            }
+        ),
+        'headers': CIMultiDict(
+            {
+                'Content-Type': 'application/json',
+                'ACCESS-KEY': 'jbcfbye8AJzXxXwMKluXM12t',
+                'ACCESS-SIGN': '+EzKoSg9aBmeokTWaboMdWxLQes/K0ZAuaYIYNtKtLw=',
+                'ACCESS-TIMESTAMP': '2085848896000',
+                'ACCESS-PASSPHRASE': 'MyPassphrase123',
+            }
+        ),
+        'session': mock_session,
+    }
+    args = pybotters.auth.Auth.bitget(args, kwargs)
     assert args == expected_args
     assert kwargs['data']._value == expected_kwargs['data']._value
     assert kwargs['headers'] == expected_kwargs['headers']

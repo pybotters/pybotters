@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybotters"
-version = "0.10.0"
+version = "0.11.0"
 description = "An advanced api client for python botters."
 license = "MIT"
 authors = ["MtkN1 <51289448+MtkN1@users.noreply.github.com>"]
@@ -21,6 +21,8 @@ pytest-asyncio = "^0.14.0"
 pytest-aiohttp = "^0.3.0"
 black = "^21.6b0"
 flake8 = "^3.9.2"
+asyncmock = "^0.4.2"
+pytest-freezegun = "^0.4.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

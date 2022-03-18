@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections import deque
 from typing import Any, Awaitable, Optional, Union
 
@@ -10,6 +11,8 @@ from ..auth import Auth
 from ..store import DataStore, DataStoreManager
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
+
+logger = logging.getLogger(__name__)
 
 
 class BinanceDataStore(DataStoreManager):
@@ -68,6 +71,8 @@ class BinanceDataStore(DataStoreManager):
                 asyncio.create_task(self._listenkey(resp.__dict__['_raw_session']))
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+        if 'error' in msg:
+            logger.warning(msg)
         if 'result' not in msg:
             data = msg['data'] if 'data' in msg else msg
             event = data['e'] if isinstance(data, dict) else data[0]['e']

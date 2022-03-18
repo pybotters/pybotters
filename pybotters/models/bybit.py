@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Awaitable, Optional, Union
+from typing import Awaitable, Optional, Union
 
 import aiohttp
 
@@ -13,31 +13,23 @@ from ..ws import ClientWebSocketResponse
 logger = logging.getLogger(__name__)
 
 
-class BybitDataStore(DataStoreManager):
+class BybitInverseDataStore(DataStoreManager):
     """
-    Bybitのデータストアマネージャー
+    Bybit Inverse契約のデータストアマネージャー
     """
-
-    def __new__(cls, *args, **kwargs) -> BybitDataStore:
-        logger.warning(
-            'DEPRECATION WARNING: BybitDataStore will be changed to '
-            'BybitInverseDataStore and BybitUSDTDataStore'
-        )
-        return super().__new__(cls)
 
     def _init(self) -> None:
-        self.create('orderbook', datastore_class=OrderBook)
-        self.create('trade', datastore_class=Trade)
-        self.create('insurance', datastore_class=Insurance)
-        self.create('instrument', datastore_class=Instrument)
-        self.create('kline', datastore_class=Kline)
-        self.create('liquidation', datastore_class=Liquidation)
-        self.create('position_inverse', datastore_class=PositionInverse)
-        self.create('position_usdt', datastore_class=PositionUSDT)
-        self.create('execution', datastore_class=Execution)
-        self.create('order', datastore_class=Order)
-        self.create('stoporder', datastore_class=StopOrder)
-        self.create('wallet', datastore_class=Wallet)
+        self.create("orderbook", datastore_class=OrderBookInverse)
+        self.create("trade", datastore_class=TradeInverse)
+        self.create("insurance", datastore_class=Insurance)
+        self.create("instrument", datastore_class=InstrumentInverse)
+        self.create("kline", datastore_class=KlineInverse)
+        self.create("liquidation", datastore_class=LiquidationInverse)
+        self.create("position", datastore_class=PositionInverse)
+        self.create("execution", datastore_class=ExecutionInverse)
+        self.create("order", datastore_class=OrderInverse)
+        self.create("stoporder", datastore_class=StopOrderInverse)
+        self.create("wallet", datastore_class=WalletInverse)
         self.timestamp_e6: Optional[int] = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
@@ -45,179 +37,311 @@ class BybitDataStore(DataStoreManager):
         対応エンドポイント
 
         - GET /v2/private/order (DataStore: order)
-        - GET /private/linear/order/search (DataStore: order)
         - GET /futures/private/order (DataStore: order)
         - GET /v2/private/stop-order (DataStore: stoporder)
-        - GET /private/linear/stop-order/search (DataStore: stoporder)
         - GET /futures/private/stop-order (DataStore: stoporder)
-        - GET /v2/private/position/list (DataStore: position_inverse)
-        - GET /futures/private/position/list (DataStore: position_inverse)
-        - GET /private/linear/position/list (DataStore: position_usdt)
+        - GET /v2/private/position/list (DataStore: position)
+        - GET /futures/private/position/list (DataStore: position)
+        - GET /v2/private/wallet/balance (DataStore: wallet)
+        - GET /v2/public/kline/list (DataStore: kline)
+        """
+        for f in asyncio.as_completed(aws):
+            resp = await f
+            data = await resp.json()
+            if data["ret_code"] != 0:
+                raise ValueError(
+                    "Response error at DataStore initialization\n"
+                    f"URL: {resp.url}\n"
+                    f"Data: {data}"
+                )
+            if resp.url.path in (
+                "/v2/private/order",
+                "/futures/private/order",
+            ):
+                self.order._onresponse(data["result"])
+            elif resp.url.path in (
+                "/v2/private/stop-order",
+                "/futures/private/stop-order",
+            ):
+                self.stoporder._onresponse(data["result"])
+            elif resp.url.path in (
+                "/v2/private/position/list",
+                "/futures/private/position/list",
+            ):
+                self.position._onresponse(data["result"])
+            elif resp.url.path == "/v2/public/kline/list":
+                self.kline._onresponse(data["result"])
+            elif resp.url.path == "/v2/private/wallet/balance":
+                self.wallet._onresponse(data["result"])
+
+    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+        if "success" in msg:
+            if not msg["success"]:
+                logger.warning(msg)
+        if "topic" in msg:
+            topic: str = msg["topic"]
+            data = msg["data"]
+            if any(
+                [
+                    topic.startswith("orderBookL2_25"),
+                    topic.startswith("orderBook_200"),
+                ]
+            ):
+                self.orderbook._onmessage(topic, msg["type"], data)
+            elif topic.startswith("trade"):
+                self.trade._onmessage(data)
+            elif topic.startswith("insurance"):
+                self.insurance._onmessage(data)
+            elif topic.startswith("instrument_info"):
+                self.instrument._onmessage(topic, msg["type"], data)
+            if topic.startswith("klineV2"):
+                self.kline._onmessage(topic, data)
+            elif topic.startswith("liquidation"):
+                self.liquidation._onmessage(data)
+            elif topic == "position":
+                self.position._onmessage(data)
+            elif topic == "execution":
+                self.execution._onmessage(data)
+            elif topic == "order":
+                self.order._onmessage(data)
+            elif topic == "stop_order":
+                self.stoporder._onmessage(data)
+            elif topic == "wallet":
+                self.wallet._onmessage(data)
+        if "timestamp_e6" in msg:
+            self.timestamp_e6 = int(msg["timestamp_e6"])
+
+    @property
+    def orderbook(self) -> "OrderBookInverse":
+        return self.get("orderbook", OrderBookInverse)
+
+    @property
+    def trade(self) -> "TradeInverse":
+        return self.get("trade", TradeInverse)
+
+    @property
+    def insurance(self) -> "Insurance":
+        return self.get("insurance", Insurance)
+
+    @property
+    def instrument(self) -> "InstrumentInverse":
+        return self.get("instrument", InstrumentInverse)
+
+    @property
+    def kline(self) -> "KlineInverse":
+        return self.get("kline", KlineInverse)
+
+    @property
+    def liquidation(self) -> "LiquidationInverse":
+        return self.get("liquidation", LiquidationInverse)
+
+    @property
+    def position(self) -> "PositionInverse":
+        """
+        インバース契約(無期限/先物)用のポジション
+        """
+        return self.get("position", PositionInverse)
+
+    @property
+    def execution(self) -> "ExecutionInverse":
+        return self.get("execution", ExecutionInverse)
+
+    @property
+    def order(self) -> "OrderInverse":
+        """
+        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """
+        return self.get("order", OrderInverse)
+
+    @property
+    def stoporder(self) -> "StopOrderInverse":
+        """
+        アクティブオーダーのみ(トリガー済みは削除される)
+        """
+        return self.get("stoporder", StopOrderInverse)
+
+    @property
+    def wallet(self) -> "WalletInverse":
+        return self.get("wallet", WalletInverse)
+
+
+class BybitUSDTDataStore(DataStoreManager):
+    """
+    Bybit USDT契約のデータストアマネージャー
+    """
+
+    def _init(self) -> None:
+        self.create("orderbook", datastore_class=OrderBookUSDT)
+        self.create("trade", datastore_class=TradeUSDT)
+        self.create("insurance", datastore_class=Insurance)
+        self.create("instrument", datastore_class=InstrumentUSDT)
+        self.create("kline", datastore_class=KlineUSDT)
+        self.create("liquidation", datastore_class=LiquidationUSDT)
+        self.create("position", datastore_class=PositionUSDT)
+        self.create("execution", datastore_class=ExecutionUSDT)
+        self.create("order", datastore_class=OrderUSDT)
+        self.create("stoporder", datastore_class=StopOrderUSDT)
+        self.create("wallet", datastore_class=WalletUSDT)
+        self.timestamp_e6: Optional[int] = None
+
+    async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """
+        対応エンドポイント
+
+        - GET /private/linear/order/search (DataStore: order)
+        - GET /private/linear/stop-order/search (DataStore: stoporder)
+        - GET /private/linear/position/list (DataStore: position)
+        - GET /private/linear/position/list (DataStore: position)
+        - GET /public/linear/kline (DataStore: kline)
         - GET /v2/private/wallet/balance (DataStore: wallet)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
-            if resp.url.path in (
-                '/v2/private/order',
-                '/private/linear/order/search',
-                '/futures/private/order',
-            ):
-                self.order._onresponse(data['result'])
-            elif resp.url.path in (
-                '/v2/private/stop-order',
-                '/private/linear/stop-order/search',
-                '/futures/private/stop-order',
-            ):
-                self.stoporder._onresponse(data['result'])
-            elif resp.url.path in (
-                '/v2/private/position/list',
-                '/futures/private/position/list',
-            ):
-                self.position_inverse._onresponse(data['result'])
-            elif resp.url.path in ('/private/linear/position/list',):
-                self.position_usdt._onresponse(data['result'])
-            elif resp.url.path in ('/v2/private/wallet/balance',):
-                self.wallet._onresponse(data['result'])
-            elif resp.url.path in ("/v2/public/kline/list", "/public/linear/kline"):
+            if data["ret_code"] != 0:
+                raise ValueError(
+                    "Response error at DataStore initialization\n"
+                    f"URL: {resp.url}\n"
+                    f"Data: {data}"
+                )
+            if resp.url.path == "/private/linear/order/search":
+                self.order._onresponse(data["result"])
+            elif resp.url.path == "/private/linear/stop-order/search":
+                self.stoporder._onresponse(data["result"])
+            elif resp.url.path == "/private/linear/position/list":
+                self.position._onresponse(data["result"])
+            elif resp.url.path == "/public/linear/kline":
                 self.kline._onresponse(data["result"])
+            elif resp.url.path == "/v2/private/wallet/balance":
+                self.wallet._onresponse(data["result"])
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
-        if 'success' in msg:
-            if not msg['success']:
+        if "success" in msg:
+            if not msg["success"]:
                 logger.warning(msg)
-        if 'topic' in msg:
-            topic: str = msg['topic']
-            data: Any = msg['data']
+        if "topic" in msg:
+            topic: str = msg["topic"]
+            data = msg["data"]
             if any(
                 [
-                    topic.startswith('orderBookL2_25'),
-                    topic.startswith('orderBook_200'),
+                    topic.startswith("orderBookL2_25"),
+                    topic.startswith("orderBook_200"),
                 ]
             ):
-                self.orderbook._onmessage(topic, msg['type'], data)
-            elif topic.startswith('trade'):
+                self.orderbook._onmessage(topic, msg["type"], data)
+            elif topic.startswith("trade"):
                 self.trade._onmessage(data)
-            elif topic.startswith('insurance'):
-                self.insurance._onmessage(data)
-            elif topic.startswith('instrument_info'):
-                self.instrument._onmessage(topic, msg['type'], data)
-            if any(
-                [
-                    topic.startswith('klineV2'),
-                    topic.startswith('candle'),
-                ]
-            ):
+            elif topic.startswith("instrument_info"):
+                self.instrument._onmessage(topic, msg["type"], data)
+            if topic.startswith("candle"):
                 self.kline._onmessage(topic, data)
-            elif topic.startswith('liquidation'):
+            elif topic.startswith("liquidation"):
                 self.liquidation._onmessage(data)
-            elif topic == 'position':
-                if ws._response.url.path == '/realtime':
-                    self.position_inverse._onmessage(data)
-                    self.wallet._onposition(data)
-                elif ws._response.url.path == '/realtime_private':
-                    self.position_usdt._onmessage(data)
-            elif topic == 'execution':
+            elif topic == "position":
+                self.position._onmessage(data)
+            elif topic == "execution":
                 self.execution._onmessage(data)
-            elif topic == 'order':
+            elif topic == "order":
                 self.order._onmessage(data)
-            elif topic == 'stop_order':
+            elif topic == "stop_order":
                 self.stoporder._onmessage(data)
-            elif topic == 'wallet':
+            elif topic == "wallet":
                 self.wallet._onmessage(data)
-        if 'timestamp_e6' in msg:
-            self.timestamp_e6 = int(msg['timestamp_e6'])
+        if "timestamp_e6" in msg:
+            self.timestamp_e6 = int(msg["timestamp_e6"])
 
     @property
-    def orderbook(self) -> 'OrderBook':
-        return self.get('orderbook', OrderBook)
+    def orderbook(self) -> "OrderBookUSDT":
+        return self.get("orderbook", OrderBookUSDT)
 
     @property
-    def trade(self) -> 'Trade':
-        return self.get('trade', Trade)
+    def trade(self) -> "TradeUSDT":
+        return self.get("trade", TradeUSDT)
 
     @property
-    def insurance(self) -> 'Insurance':
-        return self.get('insurance', Insurance)
+    def instrument(self) -> "InstrumentUSDT":
+        return self.get("instrument", InstrumentUSDT)
 
     @property
-    def instrument(self) -> 'Instrument':
-        return self.get('instrument', Instrument)
+    def kline(self) -> "KlineUSDT":
+        return self.get("kline", KlineUSDT)
 
     @property
-    def kline(self) -> 'Kline':
-        return self.get('kline', Kline)
+    def liquidation(self) -> "LiquidationUSDT":
+        return self.get("liquidation", LiquidationUSDT)
 
     @property
-    def liquidation(self) -> 'Liquidation':
-        return self.get('liquidation', Liquidation)
-
-    @property
-    def position_inverse(self) -> 'PositionInverse':
-        """
-        インバース契約(無期限/先物)用のポジション
-        """
-        return self.get('position_inverse', PositionInverse)
-
-    @property
-    def position_usdt(self) -> 'PositionUSDT':
+    def position(self) -> "PositionUSDT":
         """
         USDT契約用のポジション
         """
-        return self.get('position_usdt', PositionUSDT)
+        return self.get("position", PositionUSDT)
 
     @property
-    def execution(self) -> 'Execution':
-        return self.get('execution', Execution)
+    def execution(self) -> "ExecutionUSDT":
+        return self.get("execution", ExecutionUSDT)
 
     @property
-    def order(self) -> 'Order':
+    def order(self) -> "OrderUSDT":
         """
         アクティブオーダーのみ(約定・キャンセル済みは削除される)
         """
-        return self.get('order', Order)
+        return self.get("order", OrderUSDT)
 
     @property
-    def stoporder(self) -> 'StopOrder':
+    def stoporder(self) -> "StopOrderUSDT":
         """
         アクティブオーダーのみ(トリガー済みは削除される)
         """
-        return self.get('stoporder', StopOrder)
+        return self.get("stoporder", StopOrderUSDT)
 
     @property
-    def wallet(self) -> 'Wallet':
-        return self.get('wallet', Wallet)
+    def wallet(self) -> "WalletUSDT":
+        return self.get("wallet", WalletUSDT)
 
 
-class OrderBook(DataStore):
-    _KEYS = ['symbol', 'id', 'side']
+class OrderBookInverse(DataStore):
+    _KEYS = ["symbol", "id", "side"]
 
     def sorted(self, query: Optional[Item] = None) -> dict[str, list[Item]]:
         if query is None:
             query = {}
-        result = {'Sell': [], 'Buy': []}
+        result = {"Sell": [], "Buy": []}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
-                result[item['side']].append(item)
-        result['Sell'].sort(key=lambda x: x['id'])
-        result['Buy'].sort(key=lambda x: x['id'], reverse=True)
+                result[item["side"]].append(item)
+        result["Sell"].sort(key=lambda x: x["id"])
+        result["Buy"].sort(key=lambda x: x["id"], reverse=True)
         return result
 
     def _onmessage(self, topic: str, type_: str, data: Union[list[Item], Item]) -> None:
-        if type_ == 'snapshot':
-            symbol = topic.split('.')[-1]  # ex: 'orderBookL2_25.BTCUSD'
-            result = self.find({'symbol': symbol})
+        if type_ == "snapshot":
+            symbol = topic.split(".")[-1]
+            # ex: "orderBookL2_25.BTCUSD", "orderBook_200.100ms.BTCUSD"
+            result = self.find({"symbol": symbol})
             self._delete(result)
-            if isinstance(data, dict):
-                data = data['order_book']
             self._insert(data)
-        elif type_ == 'delta':
-            self._delete(data['delete'])
-            self._update(data['update'])
-            self._insert(data['insert'])
+        elif type_ == "delta":
+            self._delete(data["delete"])
+            self._update(data["update"])
+            self._insert(data["insert"])
 
 
-class Trade(DataStore):
+class OrderBookUSDT(OrderBookInverse):
+    def _onmessage(self, topic: str, type_: str, data: Union[list[Item], Item]) -> None:
+        if type_ == "snapshot":
+            symbol = topic.split(".")[-1]
+            # ex: "orderBookL2_25.BTCUSDT", "orderBook_200.100ms.BTCUSDT"
+            result = self.find({"symbol": symbol})
+            self._delete(result)
+            self._insert(data["order_book"])
+        elif type_ == "delta":
+            self._delete(data["delete"])
+            self._update(data["update"])
+            self._insert(data["insert"])
+
+
+class TradeInverse(DataStore):
     _KEYS = ['trade_id']
     _MAXLEN = 99999
 
@@ -225,113 +349,121 @@ class Trade(DataStore):
         self._insert(data)
 
 
+class TradeUSDT(TradeInverse):
+    ...
+
+
 class Insurance(DataStore):
-    _KEYS = ['currency']
+    _KEYS = ["currency"]
 
     def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
-class Instrument(DataStore):
-    _KEYS = ['symbol']
+class InstrumentInverse(DataStore):
+    _KEYS = ["symbol"]
 
     def _onmessage(self, topic: str, type_: str, data: Item) -> None:
-        if type_ == 'snapshot':
-            symbol = topic.split('.')[-1]  # ex: 'instrument_info.100ms.BTCUSD'
-            result = self.find({'symbol': symbol})
+        if type_ == "snapshot":
+            symbol = topic.split(".")[-1]  # ex: "instrument_info.100ms.BTCUSD"
+            result = self.find({"symbol": symbol})
             self._delete(result)
             self._insert([data])
-        elif type_ == 'delta':
-            self._update(data['update'])
+        elif type_ == "delta":
+            self._update(data["update"])
 
 
-class Kline(DataStore):
-    _KEYS = ['symbol', 'period', 'start']
+class InstrumentUSDT(InstrumentInverse):
+    ...
+
+
+class KlineInverse(DataStore):
+    _KEYS = ["start", "symbol", "interval"]
 
     def _onmessage(self, topic: str, data: list[Item]) -> None:
-        topic_split = topic.split('.')  # ex:'klineV2.1.BTCUSD'
+        topic_split = topic.split(".")  # ex:"klineV2.1.BTCUSD"
         for item in data:
-            item['symbol'] = topic_split[-1]
-            item['period'] = topic_split[-2]
+            item["symbol"] = topic_split[-1]
+            item["interval"] = topic_split[-2]
         self._update(data)
 
     def _onresponse(self, data: list[Item]) -> None:
         for item in data:
             item["start"] = item.pop("open_time")
-            item["period"] = item.pop("interval")
-            for k in ['open', 'high', 'low', 'close']:
-                item[k] = float(item[k])
-            if 'id' in item.keys():
-                item['volume'] = str(item['volume'])
-                item['turnover'] = str(item['turnover'])
-            else:
-                item['volume'] = int(item['volume'])
-                item['turnover'] = float(item['turnover'])
         self._update(data)
 
 
-class Liquidation(DataStore):
+class KlineUSDT(KlineInverse):
+    ...
+
+
+class LiquidationInverse(DataStore):
     _MAXLEN = 99999
 
     def _onmessage(self, item: Item) -> None:
         self._insert([item])
 
 
+class LiquidationUSDT(LiquidationInverse):
+    ...
+
+
 class PositionInverse(DataStore):
-    _KEYS = ['symbol', 'position_idx']
+    _KEYS = ["symbol", "position_idx"]
 
-    def getone(self, symbol: str) -> Optional[Item]:
-        return self.get({'symbol': symbol, 'position_idx': 0})
+    def one(self, symbol: str) -> Optional[Item]:
+        return self.get({"symbol": symbol, "position_idx": 0})
 
-    def getboth(self, symbol: str) -> dict[str, Optional[Item]]:
+    def both(self, symbol: str) -> dict[str, Optional[Item]]:
         return {
-            'Sell': self.get({'symbol': symbol, 'position_idx': 2}),
-            'Buy': self.get({'symbol': symbol, 'position_idx': 1}),
+            "Sell": self.get({"symbol": symbol, "position_idx": 2}),
+            "Buy": self.get({"symbol": symbol, "position_idx": 1}),
         }
 
     def _onresponse(self, data: Union[Item, list[Item]]) -> None:
         if isinstance(data, dict):
-            self._update([data])
+            self._update([data])  # ex: {"symbol": "BTCUSD", ...}
         elif isinstance(data, list):
-            if len(data):
-                if 'data' in data[0]:
-                    self._update([item['data'] for item in data])
+            for item in data:
+                if "is_valid" in item:
+                    if item["is_valid"]:
+                        self._update([item["data"]])
+                        # ex:
+                        # [
+                        #     {
+                        #         "is_valid": True,
+                        #         "data": {"symbol": "BTCUSDM21", ...}
+                        #     },
+                        #     ...
+                        # ]
                 else:
-                    self._update(data)
+                    self._update([item])
+                    # ex: [{"symbol": "BTCUSDT", ...}, ...]
 
     def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
-class PositionUSDT(DataStore):
-    _KEYS = ['symbol', 'side']
+class PositionUSDT(PositionInverse):
+    def _onmessage(self, data: list[Item]) -> None:
+        for item in data:
+            item['position_idx'] = int(item['position_idx'])
+            self._update([item])
 
-    def getboth(self, symbol: str) -> dict[str, Optional[Item]]:
-        return {
-            'Sell': self.get({'symbol': symbol, 'side': 'Sell'}),
-            'Buy': self.get({'symbol': symbol, 'side': 'Buy'}),
-        }
 
-    def _onresponse(self, data: list[Item]) -> None:
-        if len(data):
-            if 'data' in data[0]:
-                self._update([item['data'] for item in data])
-            else:
-                self._update(data)
+class ExecutionInverse(DataStore):
+    _KEYS = ["exec_id"]
 
     def _onmessage(self, data: list[Item]) -> None:
         self._update(data)
 
 
-class Execution(DataStore):
-    _KEYS = ['exec_id']
-
-    def _onmessage(self, data: list[Item]) -> None:
-        self._update(data)
+class ExecutionUSDT(ExecutionInverse):
+    ...
 
 
-class Order(DataStore):
-    _KEYS = ['order_id']
+class OrderInverse(DataStore):
+    _KEYS = ["order_id"]
 
     def _onresponse(self, data: list[Item]) -> None:
         if isinstance(data, list):
@@ -341,14 +473,18 @@ class Order(DataStore):
 
     def _onmessage(self, data: list[Item]) -> None:
         for item in data:
-            if item['order_status'] in ('Created', 'New', 'PartiallyFilled'):
+            if item["order_status"] in ("Created", "New", "PartiallyFilled"):
                 self._update([item])
             else:
                 self._delete([item])
 
 
-class StopOrder(DataStore):
-    _KEYS = ['stop_order_id']
+class OrderUSDT(OrderInverse):
+    ...
+
+
+class StopOrderInverse(DataStore):
+    _KEYS = ["order_id"]
 
     def _onresponse(self, data: list[Item]) -> None:
         if isinstance(data, list):
@@ -358,56 +494,49 @@ class StopOrder(DataStore):
 
     def _onmessage(self, data: list[Item]) -> None:
         for item in data:
-            if 'order_id' in item:
-                item['stop_order_id'] = item.pop('order_id')
-            if 'order_status' in item:
-                item['stop_order_status'] = item.pop('order_status')
-            if item['stop_order_status'] in ('Active', 'Untriggered'):
+            if item["order_status"] in ("Active", "Untriggered"):
                 self._update([item])
             else:
                 self._delete([item])
 
 
-class Wallet(DataStore):
-    _KEYS = ['coin']
+class StopOrderUSDT(StopOrderInverse):
+    _KEYS = ["stop_order_id"]
+
+
+class WalletInverse(DataStore):
+    _KEYS = ["coin"]
 
     def _onresponse(self, data: dict[str, Item]) -> None:
-        for coin, item in data.items():
+        data.pop("USDT", None)
+        for coin in data:
             self._update(
                 [
                     {
-                        'coin': coin,
-                        'wallet_balance': item['wallet_balance'],
-                        'available_balance': item['available_balance'],
+                        "coin": coin,
+                        "available_balance": data[coin]["available_balance"],
+                        "wallet_balance": data[coin]["wallet_balance"],
                     }
                 ]
             )
 
-    def _onposition(self, data: list[Item]) -> None:
-        for item in data:
-            symbol: str = item['symbol']
-            if symbol.endswith('USD'):
-                coin = symbol[:-3]  # ex: BTCUSD
-            else:
-                coin = symbol[:-6]  # ex: BTCUSDU21
+    def _onmessage(self, data: list[Item]) -> None:
+        self._update(data)
+
+
+class WalletUSDT(WalletInverse):
+    def _onresponse(self, data: dict[str, Item]) -> None:
+        if "USDT" in data:
             self._update(
                 [
                     {
-                        'coin': coin,
-                        'wallet_balance': item['wallet_balance'],
-                        'available_balance': item['available_balance'],
+                        "coin": "USDT",
+                        "wallet_balance": data["USDT"]["wallet_balance"],
+                        "available_balance": data["USDT"]["available_balance"],
                     }
                 ]
             )
 
     def _onmessage(self, data: list[Item]) -> None:
         for item in data:
-            self._update(
-                [
-                    {
-                        'coin': 'USDT',
-                        'wallet_balance': item['wallet_balance'],
-                        'available_balance': item['available_balance'],
-                    }
-                ]
-            )
+            self._update([{"coin": "USDT", **item}])

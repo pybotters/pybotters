@@ -1,4 +1,3 @@
-import asyncio
 import json
 from unittest.mock import mock_open
 
@@ -6,6 +5,7 @@ import aiohttp
 import pybotters
 import pytest
 import pytest_mock
+from asyncmock import AsyncMock
 
 
 async def test_client():
@@ -120,54 +120,34 @@ async def test_client_delete(mocker: pytest_mock.MockerFixture):
     assert isinstance(ret, aiohttp.client._RequestContextManager)
 
 
-async def test_client_ws_connect_str(mocker: pytest_mock.MockerFixture):
-    event = asyncio.Event()
-    event.set()
-    mocker.patch('asyncio.Event', return_value=event)
-    task = mocker.patch('asyncio.create_task')
-    coro = mocker.patch('pybotters.client.ws_run_forever')
+@pytest.mark.asyncio
+async def test_client_ws_connect(mocker: pytest_mock.MockerFixture):
+    runner_mock = mocker.Mock()
+    runner_mock.wait = AsyncMock()
+    m = mocker.patch('pybotters.client.WebSocketRunner', return_value=runner_mock)
+    hdlr_str = mocker.Mock()
+    hdlr_bytes = mocker.Mock()
+    hdlr_json = mocker.Mock()
     async with pybotters.Client() as client:
         ret = await client.ws_connect(
             'ws://test.org',
             send_str='{"foo":"bar"}',
-            hdlr_str=lambda msg, ws: ...,
-        )
-    assert coro.called
-    assert task.called
-    assert ret == task.return_value
-
-
-@pytest.mark.asyncio
-async def test_client_ws_connect_json(mocker: pytest_mock.MockerFixture):
-    event = asyncio.Event()
-    event.set()
-    mocker.patch('asyncio.Event', return_value=event)
-    task = mocker.patch('asyncio.create_task')
-    coro = mocker.patch('pybotters.client.ws_run_forever')
-    async with pybotters.Client() as client:
-        ret = await client.ws_connect(
-            'ws://test.org',
-            send_json={'foo': 'bar'},
-            hdlr_json=lambda msg, ws: None,
-        )
-    assert coro.called
-    assert task.called
-    assert ret == task.return_value
-
-
-@pytest.mark.asyncio
-async def test_client_ws_connect_bytes(mocker: pytest_mock.MockerFixture):
-    event = asyncio.Event()
-    event.set()
-    mocker.patch('asyncio.Event', return_value=event)
-    task = mocker.patch('asyncio.create_task')
-    coro = mocker.patch('pybotters.client.ws_run_forever')
-    async with pybotters.Client() as client:
-        ret = await client.ws_connect(
-            'ws://test.org',
             send_bytes=b'{"foo":"bar"}',
-            hdlr_bytes=lambda msg, ws: ...,
+            send_json={'foo': 'bar'},
+            hdlr_str=hdlr_str,
+            hdlr_bytes=hdlr_bytes,
+            hdlr_json=hdlr_json,
         )
-    assert coro.called
-    assert task.called
-    assert ret == task.return_value
+    assert m.called
+    assert m.call_args == [
+        ('ws://test.org', client._session),
+        {
+            'send_str': '{"foo":"bar"}',
+            'send_bytes': b'{"foo":"bar"}',
+            'send_json': {'foo': 'bar'},
+            'hdlr_str': hdlr_str,
+            'hdlr_bytes': hdlr_bytes,
+            'hdlr_json': hdlr_json,
+        },
+    ]
+    assert ret == runner_mock

@@ -133,10 +133,10 @@ async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
             'method': 'auth',
             'params': {
                 'api_key': 'Pcm1rbtSRqKxTvirZDDOct1k',
-                'timestamp': 2085848896,
+                'timestamp': 2085848896000,
                 'nonce': 'd73b41172d6deca2285e8e58533db082',
                 'signature': (
-                    '62781062bd2edd3ece50fa5adca3987869f7446ab7af0f47c9679d76a6cbeb73'
+                    'f47526dec80c4773815fb1121058c2e3bcc531d1224b683e8babf76e52b0ba9c'
                 ),
             },
             'id': 'auth',
@@ -266,3 +266,120 @@ async def test_phemex_ws(mocker: pytest_mock.MockerFixture):
         await pybotters.ws.Auth.phemex(ws)
     else:
         raise RuntimeError(f'Unsupported Python version: {sys.version}')
+
+
+@pytest.mark.asyncio
+async def test_okx_ws(mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+
+    async def dummy_send(msg):
+        expected = {
+            'op': 'login',
+            'args': [
+                {
+                    'apiKey': 'gYmX9fr0kqqxptUlDKESxetg',
+                    'passphrase': 'MyPassphrase123',
+                    'timestamp': '2085848896',
+                    'sign': '6QVd7Mgd70We2/oDJr0+KnqxXZ+Gf1zIIl3qJk/Pqx8=',
+                }
+            ],
+        }
+        assert msg == expected
+
+    ws = MagicMock()
+    ws._response.url.host = 'ws.okx.com'
+    ws._response._session.__dict__['_apis'] = {
+        'okx': (
+            'gYmX9fr0kqqxptUlDKESxetg',
+            b'YUJHBdFNrbz7atmV3f261ZhdRffTo4S9KZKC7C7qdqcHbRR4',
+            'MyPassphrase123',
+        ),
+    }
+    ws.send_json.side_effect = dummy_send
+    # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
+    if sys.version_info.major == 3 and sys.version_info.minor == 7:
+        with pytest.raises(TypeError):
+            await pybotters.ws.Auth.okx(ws)
+    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
+        await pybotters.ws.Auth.okx(ws)
+    else:
+        raise RuntimeError(f'Unsupported Python version: {sys.version}')
+
+
+@pytest.mark.asyncio
+async def test_bitget_ws(mocker: pytest_mock.MockerFixture):
+    mocker.patch('time.time', return_value=2085848896.0)
+
+    async def dummy_send(msg):
+        expected = {
+            'op': 'login',
+            'args': [
+                {
+                    'apiKey': 'jbcfbye8AJzXxXwMKluXM12t',
+                    'passphrase': 'MyPassphrase123',
+                    'timestamp': '2085848896',
+                    'sign': 'QAyHX41dxONjr5Wx/SVfHGxEo5Q+NECtOh22tZ7ledA=',
+                }
+            ],
+        }
+        assert msg == expected
+
+    ws = MagicMock()
+    ws._response.url.host = 'ws.okx.com'
+    ws._response._session.__dict__['_apis'] = {
+        'okx': (
+            'jbcfbye8AJzXxXwMKluXM12t',
+            b'mVd40qhnarPtxk3aqg0FCyY1qlTgBOKOXEcmMYfkerGUKmvr',
+            'MyPassphrase123',
+        ),
+    }
+    ws.send_json.side_effect = dummy_send
+    # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
+    if sys.version_info.major == 3 and sys.version_info.minor == 7:
+        with pytest.raises(TypeError):
+            await pybotters.ws.Auth.okx(ws)
+    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
+        await pybotters.ws.Auth.okx(ws)
+    else:
+        raise RuntimeError(f'Unsupported Python version: {sys.version}')
+
+
+def test_websocketrunner(mocker: pytest_mock.MockerFixture):
+    create_task = mocker.patch('asyncio.create_task')
+    ret_run_forever = mocker.Mock()
+    run_forever = mocker.patch.object(
+        pybotters.ws.WebSocketRunner, '_run_forever', ret_run_forever
+    )
+    session = mocker.Mock()
+    send_str = mocker.Mock()
+    send_bytes = mocker.Mock()
+    send_json = mocker.Mock()
+    hdlr_str = mocker.Mock()
+    hdlr_bytes = mocker.Mock()
+    hdlr_json = mocker.Mock()
+    ws = pybotters.ws.WebSocketRunner(
+        'wss://example.com',
+        session,
+        send_str=send_str,
+        send_bytes=send_bytes,
+        send_json=send_json,
+        hdlr_str=hdlr_str,
+        hdlr_bytes=hdlr_bytes,
+        hdlr_json=hdlr_json,
+    )
+    assert isinstance(ws, pybotters.ws.WebSocketRunner)
+    assert run_forever.called
+    assert run_forever.call_args == [
+        ('wss://example.com', session),
+        {
+            'send_str': send_str,
+            'send_bytes': send_bytes,
+            'send_json': send_json,
+            'hdlr_str': hdlr_str,
+            'hdlr_bytes': hdlr_bytes,
+            'hdlr_json': hdlr_json,
+            'auth': pybotters.auth.Auth,
+        },
+    ]
+    assert create_task.called
+    assert create_task.call_args == [(ret_run_forever.return_value,)]
