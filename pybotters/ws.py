@@ -463,7 +463,7 @@ class AuthHosts:
         'testnet.phemex.com': Item('phemex_testnet', Auth.phemex),
         'ws.okx.com': Item('okx', Auth.okx),
         'wsaws.okx.com': Item('okx', Auth.okx),
-        'wspap.okx.com': Item('okx', Auth.okx),
+        'wspap.okx.com': Item('okx_demo', Auth.okx),
         'ws.bitget.com': Item('bitget', Auth.bitget),
     }
 
