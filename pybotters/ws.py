@@ -395,13 +395,13 @@ class Auth:
     async def bitget(ws: aiohttp.ClientWebSocketResponse):
         key: str = ws._response._session.__dict__['_apis'][
             AuthHosts.items[ws._response.url.host].name
-        ][0][0]
+        ][0]
         secret: bytes = ws._response._session.__dict__['_apis'][
             AuthHosts.items[ws._response.url.host].name
         ][1]
         passphrase: bytes = ws._response._session.__dict__['_apis'][
             AuthHosts.items[ws._response.url.host].name
-        ][0][1]
+        ][2]
 
         timestamp = int(round(time.time()))
         sign = base64.b64encode(
@@ -463,7 +463,7 @@ class AuthHosts:
         'testnet.phemex.com': Item('phemex_testnet', Auth.phemex),
         'ws.okx.com': Item('okx', Auth.okx),
         'wsaws.okx.com': Item('okx', Auth.okx),
-        'wspap.okx.com': Item('okx', Auth.okx),
+        'wspap.okx.com': Item('okx_demo', Auth.okx),
         'ws.bitget.com': Item('bitget', Auth.bitget),
     }
 
