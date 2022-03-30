@@ -38,7 +38,7 @@ class BitgetDataStore(DataStoreManager):
             resp = await f
             data = await resp.json()
             if resp.url.path in ('/api/mix/v1/order/current',):
-                if int(data.get('code','0'))==0 :
+                if int(data.get('code', '0')) == 0:
                     self.orders._onresponse(data['data'])
                 else:
                     raise ValueError(
@@ -46,7 +46,6 @@ class BitgetDataStore(DataStoreManager):
                         f"URL: {resp.url}\n"
                         f"Data: {data}"
                     )
-
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if 'arg' in msg and 'data' in msg:
