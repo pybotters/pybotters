@@ -6,7 +6,6 @@ import pybotters
 import pytest
 import pytest_mock
 from asyncmock import AsyncMock
-from pybotters.auth import Auth
 from yarl import URL
 
 

@@ -88,8 +88,6 @@ class WebSocketRunner:
                 async with session.ws_connect(url, auth=auth, **kwargs) as ws:
                     self.conneted = True
                     self._event.set()
-                    if "_authtask" in ws.__dict__:
-                        await ws.__dict__["_authtask"]
                     if send_str is not None:
                         if isinstance(send_str, list):
                             await asyncio.gather(
@@ -239,7 +237,8 @@ class Auth:
                     "signature": sign,
                 },
                 "id": "auth",
-            }
+            },
+            _itself=True,
         )
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
@@ -289,7 +288,8 @@ class Auth:
                     "path": "/realtime",
                     "headers": {"X-Quoine-Auth": encoded_string},
                 },
-            }
+            },
+            _itself=True,
         )
 
     @staticmethod
@@ -314,7 +314,7 @@ class Auth:
             msg["args"]["subaccount"] = ws._response.request_info.headers[
                 "FTX-SUBACCOUNT"
             ]
-        await ws.send_json(msg)
+        await ws.send_json(msg, _itself=True)
 
     @staticmethod
     async def phemex(ws: aiohttp.ClientWebSocketResponse):
@@ -334,7 +334,7 @@ class Auth:
             "params": ["API", key, signature, expiry],
             "id": 123,
         }
-        await ws.send_json(msg)
+        await ws.send_json(msg, _itself=True)
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 data = msg.json()
@@ -377,7 +377,7 @@ class Auth:
                 }
             ],
         }
-        await ws.send_json(msg)
+        await ws.send_json(msg, _itself=True)
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 try:
@@ -420,7 +420,7 @@ class Auth:
                 }
             ],
         }
-        await ws.send_json(msg)
+        await ws.send_json(msg, _itself=True)
 
 
 @dataclass
@@ -486,12 +486,22 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
                     )
         self._lock = asyncio.Lock()
 
+    async def _wait_authtask(self):
+        if "_authtask" in self.__dict__:
+            await self.__dict__["_authtask"]
+
     async def send_str(self, *args, **kwargs) -> None:
         if self._response.url.host not in RequestLimitHosts.items:
             await super().send_str(*args, **kwargs)
         else:
             super_send_str = super().send_str(*args, **kwargs)
             await RequestLimitHosts.items[self._response.url.host](self, super_send_str)
+
+    async def send_json(self, *args, **kwargs) -> None:
+        _itself = kwargs.pop("_itself", False)
+        if not _itself:
+            await self._wait_authtask()
+        return await super().send_json(*args, **kwargs)
 
 
 class RequestLimit:

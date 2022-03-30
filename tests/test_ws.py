@@ -128,7 +128,7 @@ async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
         "pybotters.ws.token_hex", return_value="d73b41172d6deca2285e8e58533db082"
     )
 
-    async def dummy_send(msg):
+    async def dummy_send(msg, **kwargs):
         expected = {
             "method": "auth",
             "params": {
@@ -170,7 +170,7 @@ async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
 async def test_liquid_ws(mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
 
-    async def dummy_send(msg):
+    async def dummy_send(msg, **kwargs):
         expected = {
             "event": "quoine:auth_request",
             "data": {
@@ -203,7 +203,7 @@ async def test_liquid_ws(mocker: pytest_mock.MockerFixture):
 async def test_ftx_ws(mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
 
-    async def dummy_send(msg):
+    async def dummy_send(msg, **kwargs):
         expected = {
             "op": "login",
             "args": {
@@ -232,7 +232,7 @@ async def test_ftx_ws(mocker: pytest_mock.MockerFixture):
 async def test_phemex_ws(mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
 
-    async def dummy_send(msg):
+    async def dummy_send(msg, **kwargs):
         expected = {
             "method": "user.auth",
             "params": [
@@ -272,7 +272,7 @@ async def test_phemex_ws(mocker: pytest_mock.MockerFixture):
 async def test_okx_ws(mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
 
-    async def dummy_send(msg):
+    async def dummy_send(msg, **kwargs):
         expected = {
             "op": "login",
             "args": [
@@ -310,7 +310,7 @@ async def test_okx_ws(mocker: pytest_mock.MockerFixture):
 async def test_bitget_ws(mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
 
-    async def dummy_send(msg):
+    async def dummy_send(msg, **kwargs):
         expected = {
             "op": "login",
             "args": [
