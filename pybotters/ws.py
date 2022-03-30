@@ -27,7 +27,7 @@ def pretty_modulename(e: Exception) -> str:
     modulename = e.__class__.__name__
     module = inspect.getmodule(e)
     if module:
-        modulename = f'{module.__name__}.{modulename}'
+        modulename = f"{module.__name__}.{modulename}"
     return modulename
 
 
@@ -88,8 +88,8 @@ class WebSocketRunner:
                 async with session.ws_connect(url, auth=auth, **kwargs) as ws:
                     self.conneted = True
                     self._event.set()
-                    if '_authtask' in ws.__dict__:
-                        await ws.__dict__['_authtask']
+                    if "_authtask" in ws.__dict__:
+                        await ws.__dict__["_authtask"]
                     if send_str is not None:
                         if isinstance(send_str, list):
                             await asyncio.gather(
@@ -120,7 +120,7 @@ class WebSocketRunner:
                                     else:
                                         hdlr_str(msg.data, ws)
                                 except Exception as e:
-                                    logger.exception(f'{pretty_modulename(e)}: {e}')
+                                    logger.exception(f"{pretty_modulename(e)}: {e}")
                             if hdlr_json is not None:
                                 try:
                                     data = msg.json()
@@ -133,7 +133,7 @@ class WebSocketRunner:
                                         else:
                                             hdlr_json(data, ws)
                                     except Exception as e:
-                                        logger.exception(f'{pretty_modulename(e)}: {e}')
+                                        logger.exception(f"{pretty_modulename(e)}: {e}")
                         elif msg.type == aiohttp.WSMsgType.BINARY:
                             if hdlr_bytes is not None:
                                 try:
@@ -142,7 +142,7 @@ class WebSocketRunner:
                                     else:
                                         hdlr_bytes(msg.data, ws)
                                 except Exception as e:
-                                    logger.exception(f'{pretty_modulename(e)}: {e}')
+                                    logger.exception(f"{pretty_modulename(e)}: {e}")
                         elif msg.type == aiohttp.WSMsgType.ERROR:
                             break
             except (
@@ -150,7 +150,7 @@ class WebSocketRunner:
                 aiohttp.ClientOSError,
                 ConnectionResetError,
             ) as e:
-                logger.warning(f'{pretty_modulename(e)}: {e}')
+                logger.warning(f"{pretty_modulename(e)}: {e}")
             self.conneted = False
             self._event.clear()
             await cooldown
@@ -172,7 +172,7 @@ class Heartbeat:
     @staticmethod
     async def bitbank(ws: aiohttp.ClientWebSocketResponse):
         while not ws.closed:
-            await ws.send_str('2')
+            await ws.send_str("2")
             await asyncio.sleep(15.0)
 
     @staticmethod
@@ -202,13 +202,13 @@ class Heartbeat:
     @staticmethod
     async def okx(ws: aiohttp.ClientWebSocketResponse):
         while not ws.closed:
-            await ws.send_str('ping')
+            await ws.send_str("ping")
             await asyncio.sleep(15.0)
 
     @staticmethod
     async def bitget(ws: aiohttp.ClientWebSocketResponse):
         while not ws.closed:
-            await ws.send_str('ping')
+            await ws.send_str("ping")
             # 公式サンプルが25秒ごとに送っていたので25秒に設定
             # https://github.com/BitgetLimited/v3-bitget-api-sdk/blob/master/bitget-python-sdk-api/bitget/ws/bitget_ws_client.py
             await asyncio.sleep(25.0)
@@ -217,163 +217,163 @@ class Heartbeat:
 class Auth:
     @staticmethod
     async def bitflyer(ws: aiohttp.ClientWebSocketResponse):
-        key: str = ws._response._session.__dict__['_apis'][
+        key: str = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][0]
-        secret: bytes = ws._response._session.__dict__['_apis'][
+        secret: bytes = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][1]
 
         timestamp = int(time.time() * 1000)
         nonce = token_hex(16)
         sign = hmac.new(
-            secret, f'{timestamp}{nonce}'.encode(), digestmod=hashlib.sha256
+            secret, f"{timestamp}{nonce}".encode(), digestmod=hashlib.sha256
         ).hexdigest()
         await ws.send_json(
             {
-                'method': 'auth',
-                'params': {
-                    'api_key': key,
-                    'timestamp': timestamp,
-                    'nonce': nonce,
-                    'signature': sign,
+                "method": "auth",
+                "params": {
+                    "api_key": key,
+                    "timestamp": timestamp,
+                    "nonce": nonce,
+                    "signature": sign,
                 },
-                'id': 'auth',
+                "id": "auth",
             }
         )
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 data = msg.json()
-                if 'error' in data:
+                if "error" in data:
                     logger.warning(data)
-                if 'id' in data:
-                    if data['id'] == 'auth':
+                if "id" in data:
+                    if data["id"] == "auth":
                         break
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 break
 
     @staticmethod
     async def liquid(ws: aiohttp.ClientWebSocketResponse):
-        key: str = ws._response._session.__dict__['_apis'][
+        key: str = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][0]
-        secret: bytes = ws._response._session.__dict__['_apis'][
+        secret: bytes = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][1]
 
         json_payload = json.dumps(
             {
-                'path': '/realtime',
-                'nonce': str(int(time.time() * 1000)),
-                'token_id': key,
+                "path": "/realtime",
+                "nonce": str(int(time.time() * 1000)),
+                "token_id": key,
             },
-            separators=(',', ':'),
+            separators=(",", ":"),
         ).encode()
         json_header = json.dumps(
-            {'typ': 'JWT', 'alg': 'HS256'},
-            separators=(',', ':'),
+            {"typ": "JWT", "alg": "HS256"},
+            separators=(",", ":"),
         ).encode()
         segments = [
-            base64.urlsafe_b64encode(json_header).replace(b'=', b''),
-            base64.urlsafe_b64encode(json_payload).replace(b'=', b''),
+            base64.urlsafe_b64encode(json_header).replace(b"=", b""),
+            base64.urlsafe_b64encode(json_payload).replace(b"=", b""),
         ]
-        signing_input = b'.'.join(segments)
+        signing_input = b".".join(segments)
         signature = hmac.new(secret, signing_input, hashlib.sha256).digest()
-        segments.append(base64.urlsafe_b64encode(signature).replace(b'=', b''))
-        encoded_string = b'.'.join(segments).decode()
+        segments.append(base64.urlsafe_b64encode(signature).replace(b"=", b""))
+        encoded_string = b".".join(segments).decode()
 
         await ws.send_json(
             {
-                'event': 'quoine:auth_request',
-                'data': {
-                    'path': '/realtime',
-                    'headers': {'X-Quoine-Auth': encoded_string},
+                "event": "quoine:auth_request",
+                "data": {
+                    "path": "/realtime",
+                    "headers": {"X-Quoine-Auth": encoded_string},
                 },
             }
         )
 
     @staticmethod
     async def ftx(ws: aiohttp.ClientWebSocketResponse):
-        key: str = ws._response._session.__dict__['_apis'][
+        key: str = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][0]
-        secret: bytes = ws._response._session.__dict__['_apis'][
+        secret: bytes = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][1]
 
         ts = int(time.time() * 1000)
         sign = hmac.new(
-            secret, f'{ts}websocket_login'.encode(), digestmod=hashlib.sha256
+            secret, f"{ts}websocket_login".encode(), digestmod=hashlib.sha256
         ).hexdigest()
 
         msg = {
-            'op': 'login',
-            'args': {'key': key, 'sign': sign, 'time': ts},
+            "op": "login",
+            "args": {"key": key, "sign": sign, "time": ts},
         }
-        if 'FTX-SUBACCOUNT' in ws._response.request_info.headers:
-            msg['args']['subaccount'] = ws._response.request_info.headers[
-                'FTX-SUBACCOUNT'
+        if "FTX-SUBACCOUNT" in ws._response.request_info.headers:
+            msg["args"]["subaccount"] = ws._response.request_info.headers[
+                "FTX-SUBACCOUNT"
             ]
         await ws.send_json(msg)
 
     @staticmethod
     async def phemex(ws: aiohttp.ClientWebSocketResponse):
-        key: str = ws._response._session.__dict__['_apis'][
+        key: str = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][0]
-        secret: bytes = ws._response._session.__dict__['_apis'][
+        secret: bytes = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][1]
 
         expiry = int(time.time() + 60.0)
         signature = hmac.new(
-            secret, f'{key}{expiry}'.encode(), digestmod=hashlib.sha256
+            secret, f"{key}{expiry}".encode(), digestmod=hashlib.sha256
         ).hexdigest()
         msg = {
-            'method': 'user.auth',
-            'params': ['API', key, signature, expiry],
-            'id': 123,
+            "method": "user.auth",
+            "params": ["API", key, signature, expiry],
+            "id": 123,
         }
         await ws.send_json(msg)
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 data = msg.json()
-                if 'error' in data:
-                    if data['error'] is not None:
+                if "error" in data:
+                    if data["error"] is not None:
                         logger.warning(data)
-                if data['result'] == {'status': 'success'}:
+                if data["result"] == {"status": "success"}:
                     break
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 break
 
     @staticmethod
     async def okx(ws: aiohttp.ClientWebSocketResponse):
-        if not ws._response.url.path.endswith('private'):
+        if not ws._response.url.path.endswith("private"):
             return
 
-        key: str = ws._response._session.__dict__['_apis'][
+        key: str = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][0]
-        secret: bytes = ws._response._session.__dict__['_apis'][
+        secret: bytes = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][1]
-        passphrase: bytes = ws._response._session.__dict__['_apis'][
+        passphrase: bytes = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][2]
 
         timestamp = str(int(time.time()))
-        text = f'{timestamp}GET/users/self/verify'
+        text = f"{timestamp}GET/users/self/verify"
         sign = base64.b64encode(
             hmac.new(secret, text.encode(), digestmod=hashlib.sha256).digest()
         ).decode()
         msg = {
-            'op': 'login',
-            'args': [
+            "op": "login",
+            "args": [
                 {
-                    'apiKey': key,
-                    'passphrase': passphrase,
-                    'timestamp': timestamp,
-                    'sign': sign,
+                    "apiKey": key,
+                    "passphrase": passphrase,
+                    "timestamp": timestamp,
+                    "sign": sign,
                 }
             ],
         }
@@ -382,9 +382,9 @@ class Auth:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 try:
                     data = msg.json()
-                    if data['event'] == 'error':
+                    if data["event"] == "error":
                         logger.warning(data)
-                    if data['event'] == 'login':
+                    if data["event"] == "login":
                         break
                 except json.JSONDecodeError:
                     pass
@@ -393,30 +393,30 @@ class Auth:
 
     @staticmethod
     async def bitget(ws: aiohttp.ClientWebSocketResponse):
-        key: str = ws._response._session.__dict__['_apis'][
+        key: str = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][0]
-        secret: bytes = ws._response._session.__dict__['_apis'][
+        secret: bytes = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][1]
-        passphrase: bytes = ws._response._session.__dict__['_apis'][
+        passphrase: bytes = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][2]
 
         timestamp = int(round(time.time()))
         sign = base64.b64encode(
             hmac.new(
-                secret, f'{timestamp}GET/user/verify'.encode(), digestmod=hashlib.sha256
+                secret, f"{timestamp}GET/user/verify".encode(), digestmod=hashlib.sha256
             ).digest()
         ).decode()
         msg = {
-            'op': 'login',
-            'args': [
+            "op": "login",
+            "args": [
                 {
-                    'api_key': key,
-                    'passphrase': passphrase,
-                    'timestamp': str(timestamp),
-                    'sign': sign,
+                    "api_key": key,
+                    "passphrase": passphrase,
+                    "timestamp": str(timestamp),
+                    "sign": sign,
                 }
             ],
         }
@@ -431,40 +431,40 @@ class Item:
 
 class HeartbeatHosts:
     items = {
-        'stream.bitbank.cc': Heartbeat.bitbank,
-        'stream.bybit.com': Heartbeat.bybit,
-        'stream.bytick.com': Heartbeat.bybit,
-        'stream-testnet.bybit.com': Heartbeat.bybit,
-        'tap.liquid.com': Heartbeat.liquid,
-        'ftx.com': Heartbeat.ftx,
-        'stream.binance.com': Heartbeat.binance,
-        'fstream.binance.com': Heartbeat.binance,
-        'dstream.binance.com': Heartbeat.binance,
-        'vstream.binance.com': Heartbeat.binance,
-        'stream.binancefuture.com': Heartbeat.binance,
-        'dstream.binancefuture.com': Heartbeat.binance,
-        'testnet.binanceops.com': Heartbeat.binance,
-        'testnetws.binanceops.com': Heartbeat.binance,
-        'phemex.com': Heartbeat.phemex,
-        'testnet.phemex.com': Heartbeat.phemex,
-        'ws.okx.com': Heartbeat.okx,
-        'wsaws.okx.com': Heartbeat.okx,
-        'wspap.okx.com': Heartbeat.okx,
-        'ws.bitget.com': Heartbeat.bitget,
+        "stream.bitbank.cc": Heartbeat.bitbank,
+        "stream.bybit.com": Heartbeat.bybit,
+        "stream.bytick.com": Heartbeat.bybit,
+        "stream-testnet.bybit.com": Heartbeat.bybit,
+        "tap.liquid.com": Heartbeat.liquid,
+        "ftx.com": Heartbeat.ftx,
+        "stream.binance.com": Heartbeat.binance,
+        "fstream.binance.com": Heartbeat.binance,
+        "dstream.binance.com": Heartbeat.binance,
+        "vstream.binance.com": Heartbeat.binance,
+        "stream.binancefuture.com": Heartbeat.binance,
+        "dstream.binancefuture.com": Heartbeat.binance,
+        "testnet.binanceops.com": Heartbeat.binance,
+        "testnetws.binanceops.com": Heartbeat.binance,
+        "phemex.com": Heartbeat.phemex,
+        "testnet.phemex.com": Heartbeat.phemex,
+        "ws.okx.com": Heartbeat.okx,
+        "wsaws.okx.com": Heartbeat.okx,
+        "wspap.okx.com": Heartbeat.okx,
+        "ws.bitget.com": Heartbeat.bitget,
     }
 
 
 class AuthHosts:
     items = {
-        'ws.lightstream.bitflyer.com': Item('bitflyer', Auth.bitflyer),
-        'tap.liquid.com': Item('liquid', Auth.liquid),
-        'ftx.com': Item('ftx', Auth.ftx),
-        'phemex.com': Item('phemex', Auth.phemex),
-        'testnet.phemex.com': Item('phemex_testnet', Auth.phemex),
-        'ws.okx.com': Item('okx', Auth.okx),
-        'wsaws.okx.com': Item('okx', Auth.okx),
-        'wspap.okx.com': Item('okx_demo', Auth.okx),
-        'ws.bitget.com': Item('bitget', Auth.bitget),
+        "ws.lightstream.bitflyer.com": Item("bitflyer", Auth.bitflyer),
+        "tap.liquid.com": Item("liquid", Auth.liquid),
+        "ftx.com": Item("ftx", Auth.ftx),
+        "phemex.com": Item("phemex", Auth.phemex),
+        "testnet.phemex.com": Item("phemex_testnet", Auth.phemex),
+        "ws.okx.com": Item("okx", Auth.okx),
+        "wsaws.okx.com": Item("okx", Auth.okx),
+        "wspap.okx.com": Item("okx_demo", Auth.okx),
+        "ws.bitget.com": Item("bitget", Auth.bitget),
     }
 
 
@@ -472,16 +472,16 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if self._response.url.host in HeartbeatHosts.items:
-            self.__dict__['_pingtask'] = asyncio.create_task(
+            self.__dict__["_pingtask"] = asyncio.create_task(
                 HeartbeatHosts.items[self._response.url.host](self)
             )
-        if self._response.__dict__['_auth'] is _Auth:
+        if self._response.__dict__["_auth"] is _Auth:
             if self._response.url.host in AuthHosts.items:
                 if (
                     AuthHosts.items[self._response.url.host].name
-                    in self._response._session.__dict__['_apis']
+                    in self._response._session.__dict__["_apis"]
                 ):
-                    self.__dict__['_authtask'] = asyncio.create_task(
+                    self.__dict__["_authtask"] = asyncio.create_task(
                         AuthHosts.items[self._response.url.host].func(self)
                     )
         self._lock = asyncio.Lock()
@@ -500,17 +500,17 @@ class RequestLimit:
         async with ws._lock:
             await send_str
             r = await ws._response._session.get(
-                'https://api.coin.z.com/public/v1/status', auth=_Auth
+                "https://api.coin.z.com/public/v1/status", auth=_Auth
             )
             data = await r.json()
-            before = datetime.datetime.fromisoformat(data['responsetime'][:-1])
+            before = datetime.datetime.fromisoformat(data["responsetime"][:-1])
             while True:
                 await asyncio.sleep(1.0)
                 r = await ws._response._session.get(
-                    'https://api.coin.z.com/public/v1/status', auth=_Auth
+                    "https://api.coin.z.com/public/v1/status", auth=_Auth
                 )
                 data = await r.json()
-                after = datetime.datetime.fromisoformat(data['responsetime'][:-1])
+                after = datetime.datetime.fromisoformat(data["responsetime"][:-1])
                 delta = after - before
                 if delta.total_seconds() >= 1.0:
                     break
@@ -520,17 +520,17 @@ class RequestLimit:
         async with ws._lock:
             await send_str
             r = await ws._response._session.get(
-                'https://api.binance.com/api/v3/time', auth=None
+                "https://api.binance.com/api/v3/time", auth=None
             )
             data = await r.json()
-            before = datetime.datetime.fromtimestamp(data['serverTime'] / 1000)
+            before = datetime.datetime.fromtimestamp(data["serverTime"] / 1000)
             while True:
                 await asyncio.sleep(0.25)  # limit of 5 incoming messages per second
                 r = await ws._response._session.get(
-                    'https://api.binance.com/api/v3/time', auth=None
+                    "https://api.binance.com/api/v3/time", auth=None
                 )
                 data = await r.json()
-                after = datetime.datetime.fromtimestamp(data['serverTime'] / 1000)
+                after = datetime.datetime.fromtimestamp(data["serverTime"] / 1000)
                 delta = after - before
                 if delta.total_seconds() > 0.25:
                     break
@@ -538,6 +538,6 @@ class RequestLimit:
 
 class RequestLimitHosts:
     items = {
-        'api.coin.z.com': RequestLimit.gmocoin,
-        'stream.binance.com': RequestLimit.binance,
+        "api.coin.z.com": RequestLimit.gmocoin,
+        "stream.binance.com": RequestLimit.binance,
     }

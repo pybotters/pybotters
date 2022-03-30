@@ -342,7 +342,7 @@ class OrderBookUSDT(OrderBookInverse):
 
 
 class TradeInverse(DataStore):
-    _KEYS = ['trade_id']
+    _KEYS = ["trade_id"]
     _MAXLEN = 99999
 
     def _onmessage(self, data: list[Item]) -> None:
@@ -447,7 +447,7 @@ class PositionInverse(DataStore):
 class PositionUSDT(PositionInverse):
     def _onmessage(self, data: list[Item]) -> None:
         for item in data:
-            item['position_idx'] = int(item['position_idx'])
+            item["position_idx"] = int(item["position_idx"])
             self._update([item])
 
 

@@ -78,7 +78,7 @@ class Client:
     def __init__(
         self,
         apis: Optional[Union[dict[str, list[str]], str]] = None,
-        base_url: str = '',
+        base_url: str = "",
         **kwargs: Any,
     ) -> None:
         """
@@ -92,10 +92,10 @@ class Client:
             **kwargs,
         )
         apis = self._load_apis(apis)
-        self._session.__dict__['_apis'] = self._encode_apis(apis)
+        self._session.__dict__["_apis"] = self._encode_apis(apis)
         self._base_url = base_url
 
-    async def __aenter__(self) -> 'Client':
+    async def __aenter__(self) -> "Client":
         return self
 
     async def __aexit__(self, *args: Any) -> None:
@@ -228,12 +228,12 @@ class Client:
             if apis:
                 return apis
             else:
-                current_apis = os.path.join(os.getcwd(), 'apis.json')
+                current_apis = os.path.join(os.getcwd(), "apis.json")
                 if os.path.isfile(current_apis):
                     with open(current_apis) as fp:
                         return json.load(fp)
                 else:
-                    env_apis = os.getenv('PYBOTTERS_APIS')
+                    env_apis = os.getenv("PYBOTTERS_APIS")
                     if env_apis and os.path.isfile(env_apis):
                         with open(env_apis) as fp:
                             return json.load(fp)
@@ -243,7 +243,7 @@ class Client:
             with open(apis) as fp:
                 return json.load(fp)
         else:
-            logger.warning(f'apis must be dict or str, not {apis.__class__.__name__}')
+            logger.warning(f"apis must be dict or str, not {apis.__class__.__name__}")
             return {}
 
     @staticmethod
