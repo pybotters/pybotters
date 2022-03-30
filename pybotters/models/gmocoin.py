@@ -593,6 +593,14 @@ class GMOCoinDataStore(DataStoreManager):
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
+
+            if data.get('status') != 0:
+                raise ValueError(
+                    "Response error at DataStore initialization\n"
+                    f"URL: {resp.url}\n"
+                    f"Data: {data}"
+                )
+
             if (
                 resp.url.path == "/private/v1/latestExecutions"
                 and "list" in data["data"]
