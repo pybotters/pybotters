@@ -367,6 +367,78 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def mexc_v2(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: dict[str, Any] = kwargs["data"] or {}
+        headers: CIMultiDict = kwargs["headers"]
+
+        session: aiohttp.ClientSession = kwargs["session"]
+        key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
+
+        timestamp = str(int(time.time() * 1000))
+        if method in (METH_GET, METH_DELETE) and url.scheme == "https":
+            parameter = url.raw_query_string.encode()
+        else:
+            body = JsonPayload(data) if data else FormData(data)()
+            parameter = body._value
+            kwargs.update({"data": body})
+        signature = hmac.new(
+            secret, f"{key}{timestamp}".encode() + parameter, hashlib.sha256
+        ).hexdigest()
+        headers.update(
+            {
+                "ApiKey": key,
+                "Request-Time": timestamp,
+                "Signature": signature,
+                "Content-Type": "application/json",
+            }
+        )
+
+        return args
+
+    @staticmethod
+    def mexc_v3(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: dict[str, Any] = kwargs["data"] or {}
+        headers: CIMultiDict = kwargs["headers"]
+
+        session: aiohttp.ClientSession = kwargs["session"]
+        key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
+
+        timestamp = str(int(time.time() * 1000))
+        query = MultiDict(url.query)
+        body = FormData(data)()
+
+        if query:
+            query.extend({"timestamp": timestamp})
+            url = url.with_query(query)
+            query = MultiDict(url.query)
+        else:
+            body._value += f"&timestamp={timestamp}".encode()
+
+        query_string = url.raw_query_string.encode()
+        signature = hmac.new(
+            secret, query_string + body._value, hashlib.sha256
+        ).hexdigest()
+
+        if query:
+            query.extend({"signature": signature})
+        else:
+            body._value += f"&signature={signature}".encode()
+            body._size += len(body._value)
+
+        url = url.with_query(query)
+        args = (method, url)
+        kwargs.update({"data": body._value})
+        headers.update({"X-MEXC-APIKEY": key, "Content-Type": "application/json"})
+
+        return args
+
 
 @dataclass
 class Item:
@@ -421,4 +493,7 @@ class Hosts:
         "www.okx.com": Item(NameSelector.okx, Auth.okx),
         "aws.okx.com": Item(NameSelector.okx, Auth.okx),
         "api.bitget.com": Item("bitget", Auth.bitget),
+        "www.mexc.com": Item("mexc", Auth.mexc_v2),
+        "contract.mexc.com": Item("mexc", Auth.mexc_v2),
+        "api.mexc.com": Item("mexc", Auth.mexc_v3),
     }

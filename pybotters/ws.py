@@ -211,6 +211,12 @@ class Heartbeat:
             # https://github.com/BitgetLimited/v3-bitget-api-sdk/blob/master/bitget-python-sdk-api/bitget/ws/bitget_ws_client.py
             await asyncio.sleep(25.0)
 
+    @staticmethod
+    async def mexc(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('{"method":"ping"}')
+            await asyncio.sleep(10.0)
+
 
 class Auth:
     @staticmethod
@@ -422,6 +428,30 @@ class Auth:
         }
         await ws.send_json(msg, _itself=True)
 
+    @staticmethod
+    async def mexc(ws: aiohttp.ClientWebSocketResponse):
+        key: str = ws._response._session.__dict__["_apis"][
+            AuthHosts.items[ws._response.url.host].name
+        ][0]
+        secret: bytes = ws._response._session.__dict__["_apis"][
+            AuthHosts.items[ws._response.url.host].name
+        ][1]
+
+        timestamp = str(int(time.time()))
+        sign = hmac.new(
+            secret, f"{key}{timestamp}".encode(), digestmod=hashlib.sha256
+        ).hexdigest()
+
+        msg = {
+            "method": "login",
+            "param": {
+                "apiKey": key,
+                "reqTime": timestamp,
+                "signature": sign,
+            },
+        }
+        await ws.send_json(msg, _itself=True)
+
 
 @dataclass
 class Item:
@@ -451,6 +481,7 @@ class HeartbeatHosts:
         "wsaws.okx.com": Heartbeat.okx,
         "wspap.okx.com": Heartbeat.okx,
         "ws.bitget.com": Heartbeat.bitget,
+        "contract.mexc.com": Heartbeat.mexc,
     }
 
 
@@ -465,6 +496,7 @@ class AuthHosts:
         "wsaws.okx.com": Item("okx", Auth.okx),
         "wspap.okx.com": Item("okx_demo", Auth.okx),
         "ws.bitget.com": Item("bitget", Auth.bitget),
+        "contract.mexc.com": Item("mexc", Auth.mexc),
     }
 
 

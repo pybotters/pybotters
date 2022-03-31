@@ -99,6 +99,10 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             b"mVd40qhnarPtxk3aqg0FCyY1qlTgBOKOXEcmMYfkerGUKmvr",
             "MyPassphrase123",
         ),
+        "mexc": (
+            "0uVJRVNmR2ZHiCXtf6yEwrwy",
+            b"39aw3fMqFhHsuhbkQ0wa8JzuUgodvbTVl9tZblpSKFnB9Qh3",
+        ),
     }
     assert set(apis.keys()) == set(
         item.name if isinstance(item.name, str) else item.name({})
@@ -1202,4 +1206,172 @@ def test_bitget_post(mock_session, mocker: pytest_mock.MockerFixture):
     args = pybotters.auth.Auth.bitget(args, kwargs)
     assert args == expected_args
     assert kwargs["data"]._value == expected_kwargs["data"]._value
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_mexc_v2_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+    args = (
+        "GET",
+        URL("https://www.mexc.com/open/api/v2/order/open_orders").with_query(
+            {
+                "symbol": "BTC_USDT",
+            }
+        ),
+    )
+    kwargs = {
+        "data": None,
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = (
+        "GET",
+        URL("https://www.mexc.com/open/api/v2/order/open_orders?symbol=BTC_USDT"),
+    )
+    expected_kwargs = {
+        "data": None,
+        "headers": CIMultiDict(
+            {
+                "ApiKey": "0uVJRVNmR2ZHiCXtf6yEwrwy",
+                "Request-Time": "2085848896000",
+                "Signature": (
+                    "3c167e16870239537bd4a1534af3d89f9341f7b94f3f8dfd3b94d0a23b5ab48c"
+                ),
+                "Content-Type": "application/json",
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.mexc_v2(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"] == expected_kwargs["data"]
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_mexc_v2_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+    args = (
+        "POST",
+        URL("https://www.mexc.com/open/api/v2/order/place"),
+    )
+    kwargs = {
+        "data": {
+            "symbol": "BTC_USDT",
+            "price": "40000.0",
+            "quantity": "1",
+            "trade_type": "ASK",
+            "order_type": "LIMIT_ORDER",
+        },
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = ("POST", URL("https://www.mexc.com/open/api/v2/order/place"))
+    expected_kwargs = {
+        "data": aiohttp.payload.JsonPayload(
+            {
+                "symbol": "BTC_USDT",
+                "price": "40000.0",
+                "quantity": "1",
+                "trade_type": "ASK",
+                "order_type": "LIMIT_ORDER",
+            }
+        ),
+        "headers": CIMultiDict(
+            {
+                "ApiKey": "0uVJRVNmR2ZHiCXtf6yEwrwy",
+                "Request-Time": "2085848896000",
+                "Signature": (
+                    "d2a4b3fa386a6d4b96a00a7fafa5be223584cd6f511848330ca6615e67d0a994"
+                ),
+                "Content-Type": "application/json",
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.mexc_v2(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"]._value == expected_kwargs["data"]._value
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_mexc_v3_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+    args = (
+        "GET",
+        URL("https://api.mexc.com/api/v3/openOrders").with_query(
+            {
+                "symbol": "BTCUSDT",
+            }
+        ),
+    )
+    kwargs = {
+        "data": None,
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = (
+        "GET",
+        URL(
+            "https://api.mexc.com/api/v3/openOrders?symbol=BTCUSDT&timestamp=2085848896"
+            "000&signature=1923150018f1270770e4fcbb9d4362930eea069a2bdff8d14df6a8b4ad95"
+            "460f"
+        ),
+    )
+    expected_kwargs = {
+        "data": b"",
+        "headers": CIMultiDict(
+            {
+                "X-MEXC-APIKEY": "0uVJRVNmR2ZHiCXtf6yEwrwy",
+                "Content-Type": "application/json",
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.mexc_v3(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"] == expected_kwargs["data"]
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_mexc_v3_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+    args = (
+        "POST",
+        URL("https://api.mexc.com/api/v3/order"),
+    )
+    kwargs = {
+        "data": {
+            "symbol": "BTCUSDT",
+            "side": "BUY",
+            "type": "MARKET",
+            "quoteOrderQty": "5",
+        },
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = ("POST", URL("https://api.mexc.com/api/v3/order"))
+    expected_kwargs = {
+        "data": aiohttp.formdata.FormData(
+            {
+                "symbol": "BTCUSDT",
+                "side": "BUY",
+                "type": "MARKET",
+                "quoteOrderQty": "5",
+                "timestamp": "2085848896000",
+                "signature": (
+                    "4b5e31a683df50d43d4e0774fafb869e1b4d517f8fdbff23c275092517c84161"
+                ),
+            }
+        )()._value,
+        "headers": CIMultiDict(
+            {
+                "X-MEXC-APIKEY": "0uVJRVNmR2ZHiCXtf6yEwrwy",
+                "Content-Type": "application/json",
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.mexc_v3(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"] == expected_kwargs["data"]
     assert kwargs["headers"] == expected_kwargs["headers"]

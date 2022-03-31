@@ -40,6 +40,7 @@ An advanced api client for python botters.
 | OKX | ✅ | ✅ | [Official](https://www.okx.com/docs-v5/en/) |
 | Phemex | ✅ | ✅ | [Official](https://github.com/phemex/phemex-api-docs) |
 | Bitget | ✅ | ✅ | [Official](https://bitgetlimited.github.io/apidoc/en/mix/) |
+| MEXC | ✅ | WIP | [Official](https://mxcdevelop.github.io/APIDoc/) / [v3](https://mxcdevelop.github.io/apidocs/spot_v3_en/) |
 | FTX | ✅ | ✅ | [Official](https://docs.ftx.com/) |
 | BitMEX | ✅ | ✅ | [Official](https://www.bitmex.com/app/apiOverview) |
 | bitFlyer | ✅ | ✅ | [Official](https://lightning.bitflyer.com/docs) |
