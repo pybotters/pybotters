@@ -25,6 +25,9 @@ async def test_client():
         "name2": tuple(["key2", "secret2".encode()]),
         "name3": tuple(["key3", "secret3".encode()]),
     }
+    assert [tuple(x) for x in apis.values()] != [
+        x for x in client._session.__dict__["_apis"].values()
+    ]
 
 
 async def test_client_open(mocker: pytest_mock.MockerFixture):

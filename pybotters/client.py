@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import os
@@ -226,7 +227,7 @@ class Client:
             apis = {}
         if isinstance(apis, dict):
             if apis:
-                return apis
+                return copy.deepcopy(apis)
             else:
                 current_apis = os.path.join(os.getcwd(), "apis.json")
                 if os.path.isfile(current_apis):
@@ -238,7 +239,7 @@ class Client:
                         with open(env_apis) as fp:
                             return json.load(fp)
                     else:
-                        return apis
+                        return copy.deepcopy(apis)
         elif isinstance(apis, str):
             with open(apis) as fp:
                 return json.load(fp)
