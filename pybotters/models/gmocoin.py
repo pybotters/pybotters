@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 def parse_datetime(x: Any) -> datetime:
     if isinstance(x, str):
         try:
-            exec_date = x.replace('T', ' ')[:-1]
-            exec_date = exec_date + '00000000'
+            exec_date = x.replace("T", " ")[:-1]
+            exec_date = exec_date + "00000000"
             dt = datetime(
                 int(exec_date[0:4]),
                 int(exec_date[5:7]),
@@ -41,7 +41,7 @@ def parse_datetime(x: Any) -> datetime:
             dt = parser.parse(x)
         return dt
     else:
-        raise ValueError(f'x only support str, but {type(x)} passed.')
+        raise ValueError(f"x only support str, but {type(x)} passed.")
 
 
 class ApiType(Enum):
@@ -593,6 +593,14 @@ class GMOCoinDataStore(DataStoreManager):
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
+
+            if data.get("status") != 0:
+                raise ValueError(
+                    "Response error at DataStore initialization\n"
+                    f"URL: {resp.url}\n"
+                    f"Data: {data}"
+                )
+
             if (
                 resp.url.path == "/private/v1/latestExecutions"
                 and "list" in data["data"]
@@ -615,7 +623,7 @@ class GMOCoinDataStore(DataStoreManager):
                 )
             if resp.url.path == "/private/v1/ws-auth":
                 self.token = data["data"]
-                asyncio.create_task(self._token(resp.__dict__['_raw_session']))
+                asyncio.create_task(self._token(resp.__dict__["_raw_session"]))
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if "error" in msg:
@@ -644,7 +652,7 @@ class GMOCoinDataStore(DataStoreManager):
     async def _token(self, session: aiohttp.ClientSession):
         while not session.closed:
             await session.put(
-                'https://api.coin.z.com/private/v1/ws-auth',
+                "https://api.coin.z.com/private/v1/ws-auth",
                 data={"token": self.token},
                 auth=Auth,
             )

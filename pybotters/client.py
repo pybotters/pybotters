@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import os
@@ -78,7 +79,7 @@ class Client:
     def __init__(
         self,
         apis: Optional[Union[dict[str, list[str]], str]] = None,
-        base_url: str = '',
+        base_url: str = "",
         **kwargs: Any,
     ) -> None:
         """
@@ -92,10 +93,10 @@ class Client:
             **kwargs,
         )
         apis = self._load_apis(apis)
-        self._session.__dict__['_apis'] = self._encode_apis(apis)
+        self._session.__dict__["_apis"] = self._encode_apis(apis)
         self._base_url = base_url
 
-    async def __aenter__(self) -> 'Client':
+    async def __aenter__(self) -> "Client":
         return self
 
     async def __aexit__(self, *args: Any) -> None:
@@ -223,27 +224,28 @@ class Client:
         apis: Optional[Union[dict[str, list[str]], str]]
     ) -> dict[str, list[str]]:
         if apis is None:
-            apis = {}
-        if isinstance(apis, dict):
-            if apis:
-                return apis
+            current_apis = os.path.join(os.getcwd(), "apis.json")
+            if os.path.isfile(current_apis):
+                with open(current_apis) as fp:
+                    return json.load(fp)
             else:
-                current_apis = os.path.join(os.getcwd(), 'apis.json')
-                if os.path.isfile(current_apis):
-                    with open(current_apis) as fp:
+                env_apis = os.getenv("PYBOTTERS_APIS")
+                if env_apis and os.path.isfile(env_apis):
+                    with open(env_apis) as fp:
                         return json.load(fp)
                 else:
-                    env_apis = os.getenv('PYBOTTERS_APIS')
-                    if env_apis and os.path.isfile(env_apis):
-                        with open(env_apis) as fp:
-                            return json.load(fp)
-                    else:
-                        return apis
+                    return {}
         elif isinstance(apis, str):
-            with open(apis) as fp:
-                return json.load(fp)
+            if os.path.isfile(apis):
+                with open(apis) as fp:
+                    return json.load(fp)
+            else:
+                logger.warning(f"No such file or directory: {repr(apis)}")
+                return {}
+        elif isinstance(apis, dict):
+            return copy.deepcopy(apis)
         else:
-            logger.warning(f'apis must be dict or str, not {apis.__class__.__name__}')
+            logger.warning(f"apis must be dict or str, not {apis.__class__.__name__}")
             return {}
 
     @staticmethod

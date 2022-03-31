@@ -36,10 +36,12 @@ An advanced api client for python botters.
 | Name | API auth | DataStore | API docs |
 | --- | --- | --- | --- |
 | Bybit | ✅ | ✅ | [Official](https://bybit-exchange.github.io/docs/inverse) |
-| Binance | ✅ | ✅(USDⓈ-M) | [Official](https://binance-docs.github.io/apidocs/spot/en/) |
-| FTX | ✅ | ✅ | [Official](https://docs.ftx.com/) |
-| Phemex | ✅ | ✅ | [Official](https://github.com/phemex/phemex-api-docs) |
+| Binance | ✅ | ✅(USDⓈ-M) | [Official](https://binance-docs.github.io/apidocs/futures/en/) |
 | OKX | ✅ | ✅ | [Official](https://www.okx.com/docs-v5/en/) |
+| Phemex | ✅ | ✅ | [Official](https://github.com/phemex/phemex-api-docs) |
+| Bitget | ✅ | ✅ | [Official](https://bitgetlimited.github.io/apidoc/en/mix/) |
+| MEXC | ✅ | WIP | [Official](https://mxcdevelop.github.io/APIDoc/) / [v3](https://mxcdevelop.github.io/apidocs/spot_v3_en/) |
+| FTX | ✅ | ✅ | [Official](https://docs.ftx.com/) |
 | BitMEX | ✅ | ✅ | [Official](https://www.bitmex.com/app/apiOverview) |
 | bitFlyer | ✅ | ✅ | [Official](https://lightning.bitflyer.com/docs) |
 | GMO Coin | ✅ | ✅ | [Official](https://api.coin.z.com/docs/) |

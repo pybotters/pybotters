@@ -27,8 +27,8 @@ class DataStore:
         if data is None:
             data = []
         self._insert(data)
-        if hasattr(self, '_init'):
-            getattr(self, '_init')()
+        if hasattr(self, "_init"):
+            getattr(self, "_init")()
 
     def __len__(self) -> int:
         return len(self._data)
@@ -244,7 +244,7 @@ class DataStore:
         return ret
 
 
-TDataStore = TypeVar('TDataStore', bound=DataStore)
+TDataStore = TypeVar("TDataStore", bound=DataStore)
 
 
 class DataStoreManager:
@@ -257,10 +257,10 @@ class DataStoreManager:
         self._events: list[asyncio.Event] = []
         self._iscorofunc = asyncio.iscoroutinefunction(self._onmessage)
         self._auto_cast = auto_cast
-        if hasattr(self, '_init'):
-            getattr(self, '_init')()
+        if hasattr(self, "_init"):
+            getattr(self, "_init")()
 
-    def __getitem__(self, name: str) -> Optional['DataStore']:
+    def __getitem__(self, name: str) -> Optional["DataStore"]:
         return self._stores[name]
 
     def __contains__(self, name: str) -> bool:
