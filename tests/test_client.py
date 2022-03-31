@@ -6,7 +6,6 @@ import pybotters
 import pytest
 import pytest_mock
 from asyncmock import AsyncMock
-from yarl import URL
 
 
 async def test_client():
@@ -15,7 +14,7 @@ async def test_client():
         "name2": ["key2", "secret2"],
         "name3": ["key3", "secret3"],
     }
-    base_url = URL("http://example.com")
+    base_url = "http://example.com"
     async with pybotters.Client(apis=apis, base_url=base_url) as client:
         assert isinstance(client._session, aiohttp.ClientSession)
         assert not client._session.closed
@@ -26,15 +25,6 @@ async def test_client():
         "name2": tuple(["key2", "secret2".encode()]),
         "name3": tuple(["key3", "secret3".encode()]),
     }
-
-
-async def test_client_base_url(mocker: pytest_mock.MockerFixture):
-    base_url = URL("http://example.com")
-    patched = mocker.patch("aiohttp.client.ClientSession.request")
-    async with pybotters.Client(base_url=base_url) as client:
-        client.request("GET", "/api/v1", params={"foo": "bar"})
-    assert patched.called
-    assert patched.call_args[1]["url"] == URL("http://example.com/api/v1")
 
 
 async def test_client_open(mocker: pytest_mock.MockerFixture):
@@ -58,7 +48,7 @@ async def test_client_open(mocker: pytest_mock.MockerFixture):
 
 async def test_client_warn(mocker: pytest_mock.MockerFixture):
     apis = {"name1", "key1", "secret1"}
-    base_url = URL("http://example.com")
+    base_url = "http://example.com"
     async with pybotters.Client(apis=apis, base_url=base_url) as client:  # type: ignore
         assert isinstance(client._session, aiohttp.ClientSession)
         assert not client._session.closed

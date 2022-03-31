@@ -8,8 +8,6 @@ from typing import Any, Mapping, Optional, Union
 import aiohttp
 from aiohttp import hdrs
 from aiohttp.client import _RequestContextManager
-from aiohttp.typedefs import StrOrURL
-from yarl import URL
 
 from .auth import Auth
 from .request import ClientRequest
@@ -80,7 +78,7 @@ class Client:
     def __init__(
         self,
         apis: Optional[Union[dict[str, list[str]], str]] = None,
-        base_url: Optional[StrOrURL] = None,
+        base_url: str = "",
         **kwargs: Any,
     ) -> None:
         """
@@ -95,9 +93,7 @@ class Client:
         )
         apis = self._load_apis(apis)
         self._session.__dict__["_apis"] = self._encode_apis(apis)
-        self._base_url: Optional[URL] = (
-            base_url if base_url is None or isinstance(base_url, URL) else URL(base_url)
-        )
+        self._base_url = base_url
 
     async def __aenter__(self) -> "Client":
         return self
@@ -120,7 +116,7 @@ class Client:
     ) -> _RequestContextManager:
         return self._session.request(
             method=method,
-            url=aiohttp.ClientSession._build_url(self, url),
+            url=self._base_url + url,
             params=params,
             data=data,
             auth=auth,
