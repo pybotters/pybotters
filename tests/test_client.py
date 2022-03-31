@@ -1,4 +1,3 @@
-import json
 from unittest.mock import mock_open
 
 import aiohttp
@@ -30,25 +29,6 @@ async def test_client():
     ]
 
 
-async def test_client_open(mocker: pytest_mock.MockerFixture):
-    read_data = (
-        '{"name1":["key1","secret1"],"name2":["key2","secret2"],"name3":["key3","secret'
-        '3"]}'
-    )
-    m = mocker.patch("pybotters.client.open", mock_open(read_data=read_data))
-    apis = "/path/to/apis.json"
-    async with pybotters.Client(apis=apis) as client:
-        assert isinstance(client._session, aiohttp.ClientSession)
-        assert not client._session.closed
-    assert client._session.closed
-    assert client._session.__dict__["_apis"] == {
-        "name1": tuple(["key1", "secret1".encode()]),
-        "name2": tuple(["key2", "secret2".encode()]),
-        "name3": tuple(["key3", "secret3".encode()]),
-    }
-    m.assert_called_once_with(apis)
-
-
 async def test_client_warn(mocker: pytest_mock.MockerFixture):
     apis = {"name1", "key1", "secret1"}
     base_url = "http://example.com"
@@ -60,13 +40,47 @@ async def test_client_warn(mocker: pytest_mock.MockerFixture):
     assert client._session.__dict__["_apis"] == {}
 
 
-async def test_client_open_error(mocker: pytest_mock.MockerFixture):
-    read_data = r"name1:\- key1\n- secret1"
-    mocker.patch("pybotters.client.open", mock_open(read_data=read_data))
-    apis = "/path/to/apis.json"
-    with pytest.raises(json.JSONDecodeError):
-        async with pybotters.Client(apis=apis):
-            pass
+def test_client_load_apis_current(mocker: pytest_mock.MockerFixture):
+    mocker.patch("os.path.isfile", return_value=True)
+    mocker.patch("builtins.open", mock_open(read_data='{"foo":"bar"}'))
+    assert pybotters.Client._load_apis(None) == {"foo": "bar"}
+
+
+def test_client_load_apis_env(mocker: pytest_mock.MockerFixture):
+    mocker.patch("os.path.isfile", side_effect=[False, True])
+    mocker.patch("os.getenv", return_value="/path/to/apis.json")
+    mocker.patch("builtins.open", mock_open(read_data='{"foo":"bar"}'))
+    assert pybotters.Client._load_apis(None) == {"foo": "bar"}
+
+
+def test_client_load_apis_nothing(mocker: pytest_mock.MockerFixture):
+    mocker.patch("os.path.isfile", return_value=False)
+    mocker.patch("os.getenv", return_value=None)
+    assert pybotters.Client._load_apis(None) == {}
+
+
+def test_client_load_apis_str_open(mocker: pytest_mock.MockerFixture):
+    mocker.patch("os.path.isfile", return_value=True)
+    mocker.patch("builtins.open", mock_open(read_data='{"foo":"bar"}'))
+    assert pybotters.Client._load_apis("/path/to/apis.json") == {"foo": "bar"}
+
+
+def test_client_load_apis_str_warn(mocker: pytest_mock.MockerFixture):
+    mocker.patch("os.path.isfile", return_value=False)
+    assert pybotters.Client._load_apis("/path/to/apis.json") == {}
+
+
+def test_client_load_apis_deepcopy(mocker: pytest_mock.MockerFixture):
+    mocker.patch("os.path.isfile", return_value=False)
+    apis = {"foo": ["bar", "baz"]}
+    actual = pybotters.Client._load_apis(apis)
+    assert actual == apis
+    apis["foo"].append("qux")
+    assert actual != apis
+
+
+def test_client_load_apis_invalid(mocker: pytest_mock.MockerFixture):
+    assert pybotters.Client._load_apis(["foo", "bar"]) == {}
 
 
 @pytest.mark.asyncio

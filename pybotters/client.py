@@ -224,25 +224,26 @@ class Client:
         apis: Optional[Union[dict[str, list[str]], str]]
     ) -> dict[str, list[str]]:
         if apis is None:
-            apis = {}
-        if isinstance(apis, dict):
-            if apis:
-                return copy.deepcopy(apis)
+            current_apis = os.path.join(os.getcwd(), "apis.json")
+            if os.path.isfile(current_apis):
+                with open(current_apis) as fp:
+                    return json.load(fp)
             else:
-                current_apis = os.path.join(os.getcwd(), "apis.json")
-                if os.path.isfile(current_apis):
-                    with open(current_apis) as fp:
+                env_apis = os.getenv("PYBOTTERS_APIS")
+                if env_apis and os.path.isfile(env_apis):
+                    with open(env_apis) as fp:
                         return json.load(fp)
                 else:
-                    env_apis = os.getenv("PYBOTTERS_APIS")
-                    if env_apis and os.path.isfile(env_apis):
-                        with open(env_apis) as fp:
-                            return json.load(fp)
-                    else:
-                        return copy.deepcopy(apis)
+                    return {}
         elif isinstance(apis, str):
-            with open(apis) as fp:
-                return json.load(fp)
+            if os.path.isfile(apis):
+                with open(apis) as fp:
+                    return json.load(fp)
+            else:
+                logger.warning(f"No such file or directory: {repr(apis)}")
+                return {}
+        elif isinstance(apis, dict):
+            return copy.deepcopy(apis)
         else:
             logger.warning(f"apis must be dict or str, not {apis.__class__.__name__}")
             return {}
