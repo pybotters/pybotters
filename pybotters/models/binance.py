@@ -68,7 +68,9 @@ class BinanceDataStore(DataStoreManager):
                 self.order._onresponse(symbol, data)
             elif resp.url.path in ("/fapi/v1/listenKey",):
                 self.listenkey = data["listenKey"]
-                asyncio.create_task(self._listenkey(resp.__dict__["_raw_session"]))
+                asyncio.create_task(
+                    self._listenkey(resp.url, resp.__dict__["_raw_session"])
+                )
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         if "error" in msg:
@@ -99,9 +101,9 @@ class BinanceDataStore(DataStoreManager):
                 self.order._onmessage(data)
 
     @staticmethod
-    async def _listenkey(session: aiohttp.ClientSession):
+    async def _listenkey(url, session: aiohttp.ClientSession):
         while not session.closed:
-            await session.put("https://fapi.binance.com/fapi/v1/listenKey", auth=Auth)
+            await session.put(url, auth=Auth)
             await asyncio.sleep(1800.0)  # 30 minutes
 
     @property
