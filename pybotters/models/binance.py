@@ -279,6 +279,7 @@ class Position(DataStore):
                         "s": item["symbol"],
                         "pa": item["positionAmt"],
                         "ep": item["entryPrice"],
+                        "up": item["unRealizedProfit"],
                         "mt": item["marginType"],
                         "iw": item["isolatedWallet"],
                         "ps": item["positionSide"],
