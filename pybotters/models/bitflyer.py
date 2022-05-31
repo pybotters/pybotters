@@ -260,11 +260,13 @@ class Positions(DataStore):
                                     item["size"], int
                                 ):
                                     pos["size"] -= item["size"]
+                                    item["size"] = 0
                                 else:
                                     pos["size"] = float(
                                         Decimal(str(pos["size"]))
                                         - Decimal(str(item["size"]))
                                     )
+                                    item["size"] = 0.0
                                 break
                             else:
                                 if isinstance(pos["size"], int) and isinstance(
@@ -277,8 +279,8 @@ class Positions(DataStore):
                                         - Decimal(str(pos["size"]))
                                     )
                                 self._remove([uid])
-                                if not pos["size"]:
-                                    break
+                        if item["size"] > 0:
+                            self._insert([self._common_keys(item)])
                 else:
                     try:
                         self._insert([self._common_keys(item)])
