@@ -242,7 +242,9 @@ class Positions(DataStore):
 
     def _onresponse(self, data: list[Item]) -> None:
         if data:
-            self._delete(self.find({"product_code": data[0]["product_code"]}))
+            positions = self._find_with_uuid({"product_code": data[0]["product_code"]})
+            if positions:
+                self._remove(list(positions.keys()))
             for item in data:
                 self._insert([self._common_keys(item)])
 
