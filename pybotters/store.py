@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
+from dataclasses import dataclass
 from typing import Any, Hashable, Iterator, Optional, Type, TypeVar, cast
 
 from .typedefs import Item
@@ -23,6 +24,7 @@ class DataStore:
         self._index: dict[int, uuid.UUID] = {}
         self._keys: tuple[str, ...] = tuple(keys if keys else self._KEYS)
         self._events: dict[asyncio.Event, list[Item]] = {}
+        self._queues: list[asyncio.Queue] = []
         self._auto_cast = auto_cast
         if data is None:
             data = []
@@ -70,8 +72,10 @@ class DataStore:
                         _id = uuid.uuid4()
                         self._data[_id] = item
                         self._index[keyhash] = _id
+                        self._put("insert", item)
                     else:
                         self._data[self._index[keyhash]] = item
+                        self._put("insert", item)
             self._sweep_with_key()
         else:
             for item in data:
@@ -79,6 +83,7 @@ class DataStore:
                     self._cast_item(item)
                 _id = uuid.uuid4()
                 self._data[_id] = item
+                self._put("insert", item)
             self._sweep_without_key()
         # !TODO! This behaviour might be undesirable.
         self._set(data)
@@ -96,10 +101,12 @@ class DataStore:
                     keyhash = self._hash(keyitem)
                     if keyhash in self._index:
                         self._data[self._index[keyhash]].update(item)
+                        self._put("update", self._data[self._index[keyhash]])
                     else:
                         _id = uuid.uuid4()
                         self._data[_id] = item
                         self._index[keyhash] = _id
+                        self._put("update", item)
             self._sweep_with_key()
         else:
             for item in data:
@@ -107,6 +114,7 @@ class DataStore:
                     self._cast_item(item)
                 _id = uuid.uuid4()
                 self._data[_id] = item
+                self._put("update", item)
             self._sweep_without_key()
         # !TODO! This behaviour might be undesirable.
         self._set(data)
@@ -123,6 +131,7 @@ class DataStore:
                 else:
                     keyhash = self._hash(keyitem)
                     if keyhash in self._index:
+                        self._put("delete", self._data[self._index[keyhash]])
                         del self._data[self._index[keyhash]]
                         del self._index[keyhash]
         # !TODO! This behaviour might be undesirable.
@@ -134,6 +143,7 @@ class DataStore:
                 if _id in self._data:
                     item = self._data[_id]
                     keyhash = self._hash({k: item[k] for k in self._keys})
+                    self._put("delete", self._data[_id])
                     del self._data[_id]
                     del self._index[keyhash]
         else:
@@ -144,6 +154,8 @@ class DataStore:
         self._set([])
 
     def _clear(self) -> None:
+        for item in self:
+            self._put("delete", item)
         self._data.clear()
         self._index.clear()
         self._set([])
@@ -243,8 +255,46 @@ class DataStore:
         del self._events[event]
         return ret
 
+    def _put(self, operation: str, item: Item) -> None:
+        for queue in self._queues:
+            queue.put_nowait(StoreChange(operation, item))
+
+    def watch(self) -> "StoreStream":
+        return StoreStream(self)
+
 
 TDataStore = TypeVar("TDataStore", bound=DataStore)
+
+
+@dataclass
+class StoreChange:
+    operation: str
+    data: Item
+
+
+class StoreStream:
+    def __init__(self, store: "DataStore") -> None:
+        self._queue = asyncio.Queue()
+        store._queues.append(self._queue)
+        self._store = store
+
+    async def get(self) -> StoreChange:
+        return await self._queue.get()
+
+    def close(self):
+        self._store._queues.remove(self._queue)
+
+    def __enter__(self) -> "StoreStream":
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        self.close()
+
+    def __aiter__(self) -> "StoreStream":
+        return self
+
+    async def __anext__(self) -> StoreChange:
+        return await self.get()
 
 
 class DataStoreManager:
