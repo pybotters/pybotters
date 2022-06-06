@@ -5,6 +5,8 @@ import uuid
 from dataclasses import dataclass
 from typing import Any, Hashable, Iterator, Optional, Type, TypeVar, cast
 
+from aiohttp.helpers import get_running_loop
+
 from .typedefs import Item
 from .ws import ClientWebSocketResponse
 
@@ -355,3 +357,50 @@ class DataStoreManager:
         event = asyncio.Event()
         self._events.append(event)
         await event.wait()
+
+    def watch(self) -> "StoreManagerStream":
+        return StoreManagerStream(self)
+
+
+@dataclass
+class StoreManagerChange:
+    name: str
+    store: DataStore
+    operation: str
+    data: Item
+
+
+class StoreManagerStream:
+    def __init__(self, storemanager: "DataStoreManager") -> None:
+        self._queue = asyncio.Queue()
+        self._streams: list[asyncio.Task] = []
+
+        loop = get_running_loop()
+        for name, store in storemanager._stores.items():
+            self._streams.append(loop.create_task(self._fetch_stream(name, store)))
+
+    async def _fetch_stream(self, name: str, store: DataStore) -> None:
+        with store.watch() as stream:
+            async for change in stream:
+                self._queue.put_nowait(
+                    StoreManagerChange(name, store, change.operation, change.data)
+                )
+
+    async def get(self) -> StoreManagerChange:
+        return await self._queue.get()
+
+    def close(self):
+        for stream in self._streams:
+            stream.cancel()
+
+    def __enter__(self) -> "StoreManagerStream":
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        self.close()
+
+    def __aiter__(self) -> "StoreManagerStream":
+        return self
+
+    async def __anext__(self) -> StoreManagerChange:
+        return await self.get()
