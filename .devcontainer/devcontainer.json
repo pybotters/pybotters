@@ -20,10 +20,9 @@
 			"settings": {
 				"python.defaultInterpreterPath": "/usr/local/bin/python",
 				"python.linting.enabled": true,
-				"python.linting.pylintEnabled": true,
+				"python.linting.flake8Enabled": true,
 				"python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-				"python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
-				"python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
+				"python.linting.flake8Path": "/usr/local/py-utils/bin/flake8"
 			},
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
