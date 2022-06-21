@@ -77,12 +77,14 @@ class Auth:
         if method == METH_GET:
             if url.scheme == "https":
                 query = MultiDict(url.query)
-                query.extend({"timestamp": expires})
-                query_string = "&".join(f"{k}={v}" for k, v in query.items())
-                signature = hmac.new(
-                    secret, query_string.encode(), hashlib.sha256
-                ).hexdigest()
-                query.extend({"signature": signature})
+                signatured: bool = kwargs.get("signature", False)
+                if signatured:
+                    query.extend({"timestamp": expires})
+                    query_string = "&".join(f"{k}={v}" for k, v in query.items())
+                    signature = hmac.new(
+                        secret, query_string.encode(), hashlib.sha256
+                    ).hexdigest()
+                    query.extend({"signature": signature})
                 url = url.with_query(query)
                 args = (
                     method,

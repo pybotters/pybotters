@@ -240,7 +240,7 @@ def test_bybit_ws(mock_session, mocker: pytest_mock.MockerFixture):
     assert kwargs["data"] == expected_kwargs["data"]
 
 
-def test_binance_get(mock_session, mocker: pytest_mock.MockerFixture):
+def test_binance_get_with_signature(mock_session, mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
     args = (
         "GET",
@@ -254,6 +254,7 @@ def test_binance_get(mock_session, mocker: pytest_mock.MockerFixture):
         "data": None,
         "headers": CIMultiDict(),
         "session": mock_session,
+        "signature": True,
     }
     expected_args = (
         "GET",
@@ -262,6 +263,39 @@ def test_binance_get(mock_session, mocker: pytest_mock.MockerFixture):
             "8896000&signature=cfd48880dc0ceb003e5f009205a4ebd6415ddeb40addafd1c1345286"
             "81d98ccf"
         ),
+    )
+    expected_kwargs = {
+        "data": None,
+        "headers": CIMultiDict({"X-MBX-APIKEY": "9qm1u2s4GoHt9ryIm1D2fHV8"}),
+        "session": mock_session,
+        "signature": True,
+    }
+    args = pybotters.auth.Auth.binance(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"] == expected_kwargs["data"]
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_binance_get_without_signature(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+    args = (
+        "GET",
+        URL("https://api.binance.com/api/v3/klines").with_query(
+            {
+                "symbol": "BNBUSDT",
+                "limit": 1,
+                "interval": "5m",
+            }
+        ),
+    )
+    kwargs = {
+        "data": None,
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = (
+        "GET",
+        URL("https://api.binance.com/api/v3/klines?symbol=BNBUSDT&limit=1&interval=5m"),
     )
     expected_kwargs = {
         "data": None,
