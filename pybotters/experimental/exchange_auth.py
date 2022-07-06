@@ -2,7 +2,7 @@ import asyncio
 import base64
 import datetime
 import secrets
-from typing import Any, Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Mapping
 
 import aiohttp
 from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST
@@ -18,6 +18,17 @@ if TYPE_CHECKING:
 
 
 class BybitAuth(BaseAuth):
+    def _create_query_string(self, query: Mapping) -> str:
+        preped_query = []
+
+        for key, value in sorted(query.items()):
+            if isinstance(value, bool):
+                preped_query.append((key, self.json_dumps(value)))
+            else:
+                preped_query.append((key, value))
+
+        return self.urlencode(preped_query, quote=False)
+
     def sign(self, request: "ClientRequest") -> None:
         method = request.method
         url = request.url
@@ -32,13 +43,13 @@ class BybitAuth(BaseAuth):
         if url.query:
             query = MultiDict(url.query)
             query.update(auth_params)
-            query_string = self.urlencode(sorted(query.items()), quote=False)
+            query_string = self._create_query_string(query)
             sign = self.sha256_hexdigest(query_string.encode())
             query.update({"sign": sign})
             request.url = url.with_query(query)
         if data:
             data.update(auth_params)
-            query_string = self.urlencode(sorted(data.items()), quote=False)
+            query_string = self._create_query_string(data)
             sign = self.sha256_hexdigest(query_string.encode())
             data.update({"sign": sign})
             request.data = self.to_jsonpayload(data, dumps=request.json_serialize)
