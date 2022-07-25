@@ -46,7 +46,7 @@ class WebSocketRunner:
         auth=_Auth,
         **kwargs: Any,
     ) -> None:
-        self.conneted = False
+        self.connected = False
         self._event = asyncio.Event()
         self._task = asyncio.create_task(
             self._run_forever(
@@ -86,7 +86,7 @@ class WebSocketRunner:
             cooldown = asyncio.create_task(asyncio.sleep(60.0))
             try:
                 async with session.ws_connect(url, auth=auth, **kwargs) as ws:
-                    self.conneted = True
+                    self.connected = True
                     self._event.set()
                     if send_str is not None:
                         if isinstance(send_str, list):
@@ -149,7 +149,7 @@ class WebSocketRunner:
                 ConnectionResetError,
             ) as e:
                 logger.warning(f"{pretty_modulename(e)}: {e}")
-            self.conneted = False
+            self.connected = False
             self._event.clear()
             await cooldown
 
