@@ -330,7 +330,7 @@ class Order(DataStore):
 
     def _onresponse(self, symbol: Optional[str], data: list[Item]) -> None:
         if symbol is not None:
-            self._delete(self.find({"symbol": symbol}))
+            self._delete(self.find({"s": symbol}))
         else:
             self._clear()
         for item in data:
