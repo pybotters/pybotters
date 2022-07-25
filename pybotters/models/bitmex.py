@@ -68,8 +68,40 @@ class BitMEXDataStore(DataStoreManager):
         return self.get("quote", DataStore)
 
     @property
+    def quotebin1m(self) -> DataStore:
+        return self.get("quoteBin1m", DataStore)
+
+    @property
+    def quotebin5m(self) -> DataStore:
+        return self.get("quoteBin5m", DataStore)
+
+    @property
+    def quotebin1h(self) -> DataStore:
+        return self.get("quoteBin1h", DataStore)
+
+    @property
+    def quotebin1d(self) -> DataStore:
+        return self.get("quoteBin1d", DataStore)
+
+    @property
     def trade(self) -> DataStore:
         return self.get("trade", DataStore)
+
+    @property
+    def tradebin1m(self) -> DataStore:
+        return self.get("tradeBin1m", DataStore)
+
+    @property
+    def tradebin5m(self) -> DataStore:
+        return self.get("tradeBin5m", DataStore)
+
+    @property
+    def tradebin1h(self) -> DataStore:
+        return self.get("tradeBin1h", DataStore)
+
+    @property
+    def tradebin1d(self) -> DataStore:
+        return self.get("tradeBin1d", DataStore)
 
     @property
     def execution(self) -> DataStore:
