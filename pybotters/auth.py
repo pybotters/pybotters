@@ -380,7 +380,8 @@ class Auth:
 
         timestamp = str(int(time.time() * 1000))
         if method in (METH_GET, METH_DELETE) and url.scheme == "https":
-            parameter = url.raw_query_string.encode()
+            query = URL.build(query=sorted(url.query.items()))
+            parameter = query.raw_query_string.encode()
         else:
             body = JsonPayload(data) if data else FormData(data)()
             parameter = body._value
