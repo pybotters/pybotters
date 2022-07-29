@@ -188,8 +188,6 @@ class Kline(DataStore):
             "T": kline_data[6],  # Close time
             "s": symbol,
             "i": interval,
-            "f": 0,  # dummy
-            "L": 0,  # dummy
             "o": kline_data[1],  # Open
             "c": kline_data[4],  # Close
             "h": kline_data[2],  # High
