@@ -10,6 +10,7 @@ import aiohttp
 from aiohttp import hdrs
 from aiohttp.client import _RequestContextManager
 
+from . import __version__
 from .auth import Auth
 from .request import ClientRequest
 from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
@@ -92,6 +93,8 @@ class Client:
             ws_response_class=ClientWebSocketResponse,
             **kwargs,
         )
+        if hdrs.USER_AGENT not in self._session.headers:
+            self._session.headers[hdrs.USER_AGENT] = f"pybotters/{__version__}"
         apis = self._load_apis(apis)
         self._session.__dict__["_apis"] = self._encode_apis(apis)
         self._base_url = base_url

@@ -27,6 +27,8 @@ async def test_client():
     assert [tuple(x) for x in apis.values()] != [
         x for x in client._session.__dict__["_apis"].values()
     ]
+    assert "pybotters" in client._session.headers["User-Agent"].split("/")[0]
+    assert client._session.headers["User-Agent"].split("/")[1] == pybotters.__version__
 
 
 async def test_client_warn(mocker: pytest_mock.MockerFixture):
