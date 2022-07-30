@@ -136,10 +136,13 @@ class OrderBook(DataStore):
     _KEYS = ["market", "side", "price"]
     _BDSIDE = {"sell": "asks", "buy": "bids"}
 
+    def _init(self) -> None:
+        self.time: Optional[float] = None
+
     def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
         if query is None:
             query = {}
-        result = {"asks": [], "bids": []}
+        result = {"asks": [], "bids": [], "time": self.time}
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
                 result[self._BDSIDE[item["side"]]].append([item["price"], item["size"]])
@@ -148,6 +151,7 @@ class OrderBook(DataStore):
         return result
 
     def _onmessage(self, market: str, data: list[Item]) -> None:
+        self.time = data["time"]
         if data["action"] == "partial":
             result = self.find({"market": market})
             self._delete(result)

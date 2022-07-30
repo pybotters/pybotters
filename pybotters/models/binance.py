@@ -50,6 +50,8 @@ class BinanceDataStore(DataStoreManager):
 
             - プロパティ listenkey にlistenKeyが格納され30分ごとに PUT /fapi/v1/listenKey
               のリクエストがスケジュールされる。
+
+        - GET /fapi/v1/klines (DataStore: kline)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -70,6 +72,10 @@ class BinanceDataStore(DataStoreManager):
                 self.listenkey = data["listenKey"]
                 asyncio.create_task(
                     self._listenkey(resp.url, resp.__dict__["_raw_session"])
+                )
+            elif resp.url.path in ("/fapi/v1/klines",):
+                self.kline._onresponse(
+                    resp.url.query["symbol"], resp.url.query["interval"], data
                 )
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
@@ -176,6 +182,29 @@ class Kline(DataStore):
 
     def _onmessage(self, item: Item) -> None:
         self._update([item["k"]])
+
+    def _onresponse(self, symbol: str, interval: str, data: list[list[Any]]) -> None:
+        ws_compatible_data: list[Item] = [
+            {
+                "t": kline_data[0],  # Open time
+                "T": kline_data[6],  # Close time
+                "s": symbol,
+                "i": interval,
+                "o": kline_data[1],  # Open
+                "c": kline_data[4],  # Close
+                "h": kline_data[2],  # High
+                "l": kline_data[3],  # Low
+                "v": kline_data[5],  # Base asset volume
+                "n": kline_data[8],  # Number of trades
+                "x": True,  # Is this kline closed?
+                "q": kline_data[7],  # Quote asset volume
+                "V": kline_data[9],  # Taker buy base asset volume
+                "Q": kline_data[10],  # Taker buy quote asset volume
+                "B": kline_data[11],  # Ignore
+            }
+            for kline_data in data
+        ]
+        self._update(ws_compatible_data)
 
 
 class ContinuousKline(DataStore):
@@ -301,7 +330,7 @@ class Order(DataStore):
 
     def _onresponse(self, symbol: Optional[str], data: list[Item]) -> None:
         if symbol is not None:
-            self._delete(self.find({"symbol": symbol}))
+            self._delete(self.find({"s": symbol}))
         else:
             self._clear()
         for item in data:

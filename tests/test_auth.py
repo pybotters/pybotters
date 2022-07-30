@@ -1216,6 +1216,7 @@ def test_mexc_v2_get(mock_session, mocker: pytest_mock.MockerFixture):
         URL("https://www.mexc.com/open/api/v2/order/open_orders").with_query(
             {
                 "symbol": "BTC_USDT",
+                "page_num": "1",
             }
         ),
     )
@@ -1226,7 +1227,10 @@ def test_mexc_v2_get(mock_session, mocker: pytest_mock.MockerFixture):
     }
     expected_args = (
         "GET",
-        URL("https://www.mexc.com/open/api/v2/order/open_orders?symbol=BTC_USDT"),
+        URL(
+            "https://www.mexc.com/open/api/v2/order/open_orders?symbol=BTC_USDT&page_nu"
+            "m=1"
+        ),
     )
     expected_kwargs = {
         "data": None,
@@ -1235,7 +1239,7 @@ def test_mexc_v2_get(mock_session, mocker: pytest_mock.MockerFixture):
                 "ApiKey": "0uVJRVNmR2ZHiCXtf6yEwrwy",
                 "Request-Time": "2085848896000",
                 "Signature": (
-                    "3c167e16870239537bd4a1534af3d89f9341f7b94f3f8dfd3b94d0a23b5ab48c"
+                    "ce019ef241a13e8c41abca7daf029f3cbe0a0c89b115ed2f091d1937a209ca0a"
                 ),
                 "Content-Type": "application/json",
             }
