@@ -149,6 +149,7 @@ class DataStore:
         else:
             for _id in uuids:
                 if _id in self._data:
+                    self._put("delete", self._data[_id])
                     del self._data[_id]
         # !TODO! This behaviour might be undesirable.
         self._set([])
