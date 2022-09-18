@@ -110,7 +110,7 @@ class Trade(DataStore):
                     "ts": int(item[0]),
                     "price": float(item[1]),
                     "size": float(item[2]),
-                    "side": item[1],
+                    "side": item[3],
                 }
                 for item in message.get("data", [])
             ]
