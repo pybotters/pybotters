@@ -440,6 +440,49 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def kucoin(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
+        method: str = args[0]
+        url: URL = args[1]
+        data: dict[str, Any] = kwargs["data"] or {}
+        headers: CIMultiDict = kwargs["headers"]
+
+        session: aiohttp.ClientSession = kwargs["session"]
+        key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
+        passphrase: str = session.__dict__["_apis"][Hosts.items[url.host].name][2]
+
+        now = int(time.time() * 1000)
+        if method == "GET":
+            str_to_sign = str(now) + method + url.path_qs
+        else:
+            body = JsonPayload(data) if data else FormData(data)()
+            headers["Content-Type"] = "application/json"
+            kwargs.update({"data": body._value})
+            str_to_sign = str(now) + method + url.path + body._value.decode()
+
+        signature = base64.b64encode(
+            hmac.new(
+                secret,
+                str_to_sign.encode('utf-8'),
+                hashlib.sha256
+            ).digest()
+        ).decode()
+        passphrase = base64.b64encode(
+            hmac.new(
+                secret,
+                passphrase.encode('utf-8'),
+                hashlib.sha256
+            ).digest()
+        ).decode()
+        headers.update({
+            "KC-API-SIGN": signature,
+            "KC-API-TIMESTAMP": str(now),
+            "KC-API-KEY": key,
+            "KC-API-PASSPHRASE": passphrase,
+            "KC-API-KEY-VERSION": "2"
+        })
+        return args
 
 @dataclass
 class Item:
@@ -497,4 +540,5 @@ class Hosts:
         "www.mexc.com": Item("mexc", Auth.mexc_v2),
         "contract.mexc.com": Item("mexc", Auth.mexc_v2),
         "api.mexc.com": Item("mexc", Auth.mexc_v3),
+        "api-futures.kucoin.com": Item("kucoin", Auth.kucoin)
     }
