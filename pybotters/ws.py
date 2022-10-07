@@ -8,6 +8,7 @@ import hmac
 import inspect
 import logging
 import time
+import uuid
 from dataclasses import dataclass
 from secrets import token_hex
 from typing import Any, Generator, Optional, Union
@@ -77,6 +78,9 @@ class WebSocketRunner:
         auth=_Auth,
         **kwargs: Any,
     ) -> None:
+        if url in DynamicEndpointHosts.items:
+            url = await DynamicEndpointHosts.items[url](url, session)
+
         if all([hdlr_str is None, hdlr_json is None]):
             hdlr_json = pybotters.print_handler
         iscorofunc_str = asyncio.iscoroutinefunction(hdlr_str)
@@ -582,4 +586,35 @@ class RequestLimitHosts:
     items = {
         "api.coin.z.com": RequestLimit.gmocoin,
         "stream.binance.com": RequestLimit.binance,
+    }
+
+
+class DynamicEndpoint:
+    @staticmethod
+    async def kucoin(url: str, session: aiohttp.ClientSession):
+        api_keys = session.__dict__["_apis"]
+        if "kucoin" in api_keys:
+            # public and private
+            from pybotters.auth import Auth
+            resp = await session.post(
+                "https://api-futures.kucoin.com/api/v1/bullet-private", auth=Auth
+            )
+        else:
+            # public only
+            resp = await session.post(
+                "https://api-futures.kucoin.com/api/v1/bullet-public"
+            )
+        data = (await resp.json())["data"]
+        token = data["token"]
+        server = data["instanceServers"][0]
+        endpoint = server['endpoint']
+        id = str(uuid.uuid4())
+        host = aiohttp.typedefs.URL(endpoint).host
+        HeartbeatHosts.items[host] = Heartbeat.kucoin
+        return f"{endpoint}?token={token}&acceptUserMessage=true&connectId={id}"
+
+
+class DynamicEndpointHosts:
+    items = {
+        "kucoin": DynamicEndpoint.kucoin
     }
