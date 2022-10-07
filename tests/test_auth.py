@@ -103,6 +103,11 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             "0uVJRVNmR2ZHiCXtf6yEwrwy",
             b"39aw3fMqFhHsuhbkQ0wa8JzuUgodvbTVl9tZblpSKFnB9Qh3",
         ),
+        "kucoin": (
+            "CYdTygFbGgM1re2J54lU2t83",
+            b"r9ugGEq5pJkrBuqs6GYFgHFIgsPr4iAw06awzFByoZPRjTJs",
+            "MyPassphrase123"
+        )
     }
     assert set(apis.keys()) == set(
         item.name if isinstance(item.name, str) else item.name({})
@@ -1376,6 +1381,91 @@ def test_mexc_v3_post(mock_session, mocker: pytest_mock.MockerFixture):
         "session": mock_session,
     }
     args = pybotters.auth.Auth.mexc_v3(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"] == expected_kwargs["data"]
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_kucoin_get(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+    args = (
+        "GET",
+        URL("https://api-futures.kucoin.com/api/v1/orders")
+    )
+    kwargs = {
+        "data": None,
+        "headers":  CIMultiDict(),
+        "session": mock_session
+    }
+    expected_args = (
+        "GET",
+        URL("https://api-futures.kucoin.com/api/v1/orders")
+    )
+    expected_kwargs = {
+        "data": None,
+        "headers": {
+            'KC-API-SIGN': 'S3VbT04nwftUSb9URF0s/KeCLJfzgz8FsytZ9gDaxsw=',
+            'KC-API-TIMESTAMP': '2085848896000',
+            'KC-API-KEY': 'CYdTygFbGgM1re2J54lU2t83',
+            'KC-API-PASSPHRASE': 'NdCF6AMfsU+m1ywTeSVeBREs7l1veIb487x9csAONO4=',
+            "KC-API-KEY-VERSION": "2",
+        }
+
+    }
+    pybotters.auth.Auth.kucoin(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"] == expected_kwargs["data"]
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_kucoin_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+    args = (
+        "POST",
+        URL("https://api-futures.kucoin.com/api/v1/orders"),
+    )
+    kwargs = {
+        "data": {
+            "clientOid": "1",
+            "symbol": "XBTUSDTM",
+            "side": "buy",
+            "type": "limit",
+            "leverage": "1",
+            "price": "19200",
+            "size": 1
+        },
+        "headers": CIMultiDict(
+            {
+            }
+        ),
+        "session": mock_session,
+    }
+    expected_args = ("POST", URL("https://api-futures.kucoin.com/api/v1/orders"))
+    expected_kwargs = {
+        "data": aiohttp.payload.JsonPayload(
+            {
+                "clientOid": "1",
+                "symbol": "XBTUSDTM",
+                "side": "buy",
+                "type": "limit",
+                "leverage": "1",
+                "price": "19200",
+                "size": 1
+            }
+        )._value,
+        "headers": CIMultiDict(
+            {
+                "Content-Type": "application/json",
+                'KC-API-SIGN': 'aoxLuRURO0t1z9hhh9ERbHjVp6bJ1K5bfoU2xHH25Y4=',
+                'KC-API-TIMESTAMP': '2085848896000',
+                'KC-API-KEY': 'CYdTygFbGgM1re2J54lU2t83',
+                'KC-API-PASSPHRASE': 'NdCF6AMfsU+m1ywTeSVeBREs7l1veIb487x9csAONO4=',
+                "KC-API-KEY-VERSION": "2",
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.kucoin(args, kwargs)
     assert args == expected_args
     assert kwargs["data"] == expected_kwargs["data"]
     assert kwargs["headers"] == expected_kwargs["headers"]
