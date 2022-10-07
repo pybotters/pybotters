@@ -221,6 +221,12 @@ class Heartbeat:
             await ws.send_str('{"method":"ping"}')
             await asyncio.sleep(10.0)
 
+    @staticmethod
+    async def kucoin(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str(f'{{"id": "{uuid.uuid4()}", "type": "ping"}}')
+            await asyncio.sleep(15)
+
 
 class Auth:
     @staticmethod
@@ -456,6 +462,10 @@ class Auth:
         }
         await ws.send_json(msg, _itself=True)
 
+    @staticmethod
+    async def kucoin(ws: aiohttp.ClientWebSocketResponse):
+        # Endpointの取得時点で行われるのでここでは不要
+        pass
 
 @dataclass
 class Item:
@@ -486,6 +496,7 @@ class HeartbeatHosts:
         "wspap.okx.com": Heartbeat.okx,
         "ws.bitget.com": Heartbeat.bitget,
         "contract.mexc.com": Heartbeat.mexc,
+        # kucoinのホストはランタイム時に追加
     }
 
 
