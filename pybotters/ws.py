@@ -615,7 +615,12 @@ class DynamicEndpoint:
             resp = await session.post(
                 "https://api-futures.kucoin.com/api/v1/bullet-public"
             )
-        data = (await resp.json())["data"]
+
+        j = await resp.json()
+        if resp.status != 200:
+            raise RuntimeError(f"Failed to get a websocket endpoint: {j}")
+
+        data = j["data"]
         token = data["token"]
         server = data["instanceServers"][0]
         endpoint = server['endpoint']
