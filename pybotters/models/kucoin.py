@@ -29,6 +29,9 @@ class KucoinDataStore(DataStoreManager):
         self.create("execution", datastore_class=Execution)
         self.create("indexprice", datastore_class=IndexPrice)
         self.create("markprice", datastore_class=MarkPrice)
+        self.create("orderevents", datastore_class=OrderEvents)
+        self.create("orders", datastore_class=Orders)
+        self.create("balance", datastore_class=Balance)
 
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
@@ -51,15 +54,19 @@ class KucoinDataStore(DataStoreManager):
                 self.orderbook50._onmessage(msg)
             elif topic.startswith("/spotMarket/level2Depth5"):
                 self.orderbook5._onmessage(msg)
-            elif topic.startswith("/spotMarket/level2"):
-                raise NotImplementedError
-                self.orderbook._onmessage(msg)
             elif topic.startswith("/market/match"):
                 self.execution._onmessage(msg)
             elif topic.startswith("/indicator/index"):
                 self.indexprice._onmessage(msg)
             elif topic.startswith("/indicator/markPrice"):
                 self.markprice._onmessage(msg)
+            elif topic == "/spotMarket/tradeOrders" or topic == "/spotMarket/advancedOrders":
+                self.orderevents._onmessage(msg)
+                self.orders._onmessage(msg)
+            elif topic.startswith("/spotMarket/level2"):
+                raise NotImplementedError
+            elif topic.startswith("/margin/fundingBook"):
+                raise NotImplementedError
 
     @property
     def ticker(self) -> "Ticker":
@@ -72,10 +79,6 @@ class KucoinDataStore(DataStoreManager):
     @property
     def symbolsnapshot(self) -> "SymbolSnapshot":
         return self.get("symbolsnapshot", SymbolSnapshot)
-
-    @property
-    def orderbook(self) -> Orderbook:
-        return self.get("orderbook", Orderbook)
 
     @property
     def orderbook5(self) -> "TopKOrderBook":
@@ -97,7 +100,21 @@ class KucoinDataStore(DataStoreManager):
     def markprice(self) -> "MarkPrice":
         return self.get("markprice", MarkPrice)
 
+    @property
+    def orderevents(self) -> "OrderEvents":
+        return self.get("orderevents", OrderEvents)
 
+    @property
+    def orders(self) -> "Orders":
+        return self.get("orders", Orders)
+
+    @property
+    def balance(self) -> "Balance":
+        return self.get("balance", Balance)
+
+class _InsertStore(DataStore):
+    def _onmessage(self, msg: dict[str, Any]) -> None:
+        self._insert([msg["data"]])
 
 class _UpdateStore(DataStore):
     def _onmessage(self, msg: dict[str, Any]) -> None:
@@ -240,3 +257,47 @@ class MarkPrice(_UpdateStore):
     - https://docs.kucoin.com/#mark-price
     """
     _KEYS = ["symbol"]
+
+
+class OrderEvents(_InsertStore):
+    """
+    - https://docs.kucoin.com/#private-order-change-events
+    """
+    _KEYS = ["orderId"]
+
+
+class Orders(DataStore):
+    """
+    - https://docs.kucoin.com/#private-order-change-events
+    """
+    _KEYS = ["orderId"]
+
+    def _onmessage(self, msg: dict[str, Any]) -> None:
+        d = msg["data"]
+        tp = d["type"]
+        item = self.get(d)
+        if item is None:
+            # new order
+            if tp == "open":
+                self._insert([d])
+        else:
+            if tp in ("match", "triggered"):
+                # Market order
+                pass
+            elif tp in ("canceled", "filled"):
+                self._delete([item])
+            elif tp == "update":
+                self._update([item])
+            else:
+                raise RuntimeError(f"Unknown type: {tp} ({d})")
+
+
+class Balance(_UpdateStore):
+    """
+    - https://docs.kucoin.com/#account-balance-notice
+    """
+    _KEYS = ['accountId']
+
+
+# TODO: Margin Trade Channels
+
