@@ -4,6 +4,7 @@ import logging
 from typing import Any, Awaitable
 
 import aiohttp
+import asyncio
 
 from ..store import DataStore, DataStoreManager
 from ..ws import ClientWebSocketResponse
@@ -32,37 +33,99 @@ class KucoinDataStore(DataStoreManager):
         self.create("orderevents", datastore_class=OrderEvents)
         self.create("orders", datastore_class=Orders)
         self.create("balance", datastore_class=Balance)
-
+        self.create("marginfundingbook", datastore_class=MarginFundingBook)
+        self.create("marginpositions", datastore_class=MarginPositions)
+        self.create("marginpositionevents", datastore_class=MarginPositionEvents)
+        self.create("marginorderevents", datastore_class=MarginOrderEvents)
+        self.create("marginorders", datastore_class=MarginOrders)
+        self.create("instrument", datastore_class=Instrument)
+        self.create("announcements", datastore_class=Announcements)
+        self.create("transactionstats", datastore_class=TransactionStats)
+        self.create("balanceevents", datastore_class=BalanceEvents)
+        self.create("positions", datastore_class=Positions)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """
         対応エンドポイント
 
+        - GET /api/v1/positions (DataStore: Positions)
         """
-        pass
+        for f in asyncio.as_completed(aws):
+            resp = await f
+            data = await resp.json()
+            if resp.url.path == "/api/v1/positions":
+                self.positions._onresponse(data["data"])
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         if "topic" in msg:
             topic = msg["topic"]
-            if topic.startswith("/market/ticker"):
+            if (
+                topic.startswith("/market/ticker")
+                or topic.startswith("/contractMarket/tickerV2")
+                or topic.startswith("/contractMarket/ticker")
+            ):
                 self.ticker._onmessage(msg)
+
             elif topic.startswith("/market/candles"):
                 self.kline._onmessage(msg)
+
             elif topic.startswith("/market/snapshot"):
                 self.symbolsnapshot._onmessage(msg)
-            elif topic.startswith("/spotMarket/level2Depth50"):
+
+            elif topic.startswith("/spotMarket/level2Depth50") or topic.startswith(
+                "/contractMarket/level2Depth50"
+            ):
                 self.orderbook50._onmessage(msg)
-            elif topic.startswith("/spotMarket/level2Depth5"):
+
+            elif topic.startswith("/spotMarket/level2Depth5") or topic.startswith(
+                "/contractMarket/level2Depth5"
+            ):
                 self.orderbook5._onmessage(msg)
-            elif topic.startswith("/market/match"):
+
+            elif topic.startswith("/market/match") or topic.startswith(
+                "/contractMarket/execution"
+            ):
                 self.execution._onmessage(msg)
+
             elif topic.startswith("/indicator/index"):
                 self.indexprice._onmessage(msg)
+
             elif topic.startswith("/indicator/markPrice"):
                 self.markprice._onmessage(msg)
-            elif topic == "/spotMarket/tradeOrders" or topic == "/spotMarket/advancedOrders":
+
+            elif topic.endswith("tradeOrders") or topic.endswith("advancedOrders"):
                 self.orderevents._onmessage(msg)
                 self.orders._onmessage(msg)
+
+            elif topic.startswith("/contract/instrument"):
+                self.instrument._onmessage(msg)
+
+            elif topic.startswith("/contract/announcement"):
+                self.announcements._onmessage(msg)
+
+            elif topic.startswith("/contractMarket/snapshot"):
+                self.transactionstats._onmessage(msg)
+
+            elif topic.startswith("/account/balance"):
+                self.balance._onmessage(msg)
+
+            elif topic.startswith("/margin/fundingBook"):
+                self.marginfundingbook._onmessage(msg)
+
+            elif topic.startswith("/margin/position"):
+                self.marginpositions._onmessage(msg)
+                self.marginpositionevents._onmessage(msg)
+
+            elif topic.startswith("/margin/loan"):
+                self.marginorders._onmessage(msg)
+                self.marginorderevents._onmessage(msg)
+
+            elif topic.startswith("/contractAccount/wallet"):
+                self.balanceevents._onmessage(msg)
+
+            elif topic.startswith("/contract/position"):
+                self.positions._onmessage(msg)
+
             elif topic.startswith("/spotMarket/level2"):
                 raise NotImplementedError
             elif topic.startswith("/margin/fundingBook"):
@@ -112,9 +175,51 @@ class KucoinDataStore(DataStoreManager):
     def balance(self) -> "Balance":
         return self.get("balance", Balance)
 
+    @property
+    def marginfundingbook(self) -> "MarginFundingBook":
+        return self.get("marginfundingbook", MarginFundingBook)
+
+    @property
+    def marginpositions(self) -> "MarginPositions":
+        return self.get("marginpositions", MarginPositions)
+
+    @property
+    def marginpositionevents(self) -> "MarginPositionEvents":
+        return self.get("marginpositionevents", MarginPositionEvents)
+
+    @property
+    def marginorderevents(self) -> "MarginOrderEvents":
+        return self.get("marginorderevents", MarginOrderEvents)
+
+    @property
+    def marginorders(self) -> "MarginOrders":
+        return self.get("marginorders", MarginOrders)
+
+    @property
+    def instrument(self) -> "Instrument":
+        return self.get("instrument", Instrument)
+
+    @property
+    def announcements(self) -> "Announcements":
+        return self.get("announcements", Announcements)
+
+    @property
+    def transactionstats(self) -> "TransactionStats":
+        return self.get("transactionstats", TransactionStats)
+
+    @property
+    def balanceevents(self) -> "BalanceEvents":
+        return self.get("balanceevents", BalanceEvents)
+
+    @property
+    def positions(self) -> "Positions":
+        return self.get("positions", Positions)
+
+
 class _InsertStore(DataStore):
     def _onmessage(self, msg: dict[str, Any]) -> None:
         self._insert([msg["data"]])
+
 
 class _UpdateStore(DataStore):
     def _onmessage(self, msg: dict[str, Any]) -> None:
@@ -123,8 +228,15 @@ class _UpdateStore(DataStore):
 
 class Ticker(DataStore):
     """
+    # Spot
     - https://docs.kucoin.com/#all-symbols-ticker
+
+    # Future
+    - https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
+    - https://docs.kucoin.com/futures/#get-real-time-symbol-ticker (deprecated)
+
     """
+
     _KEYS = ["symbol"]
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
@@ -137,9 +249,11 @@ class Ticker(DataStore):
 
 class SymbolSnapshot(DataStore):
     """
+    # Spot
     - https://docs.kucoin.com/#symbol-snapshot
     - https://docs.kucoin.com/#market-snapshot
     """
+
     _KEYS = ["symbol"]
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
@@ -148,8 +262,13 @@ class SymbolSnapshot(DataStore):
 
 class Orderbook(DataStore):
     """
+    # Spot
     - https://docs.kucoin.com/#level-2-market-data
+
+    # Future
+    - https://docs.kucoin.com/futures/#level-2-market-data
     """
+
     _KEYS = ["symbol"]
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
@@ -158,9 +277,16 @@ class Orderbook(DataStore):
 
 class TopKOrderBook(DataStore):
     """
+
+    # Spot
     - https://docs.kucoin.com/#level2-5-best-ask-bid-orders
     - https://docs.kucoin.com/#level2-50-best-ask-bid-orders
+
+    # Future
+    - https://docs.kucoin.com/futures/#message-channel-for-the-5-best-ask-bid-full-data-of-level-2
+    - https://docs.kucoin.com/futures/#message-channel-for-the-50-best-ask-bid-full-data-of-level-2
     """
+
     _KEYS = ["symbol", "k"]
 
     def __init__(self, *args, **kwargs):
@@ -174,22 +300,26 @@ class TopKOrderBook(DataStore):
         for side in ("asks", "bids"):
             items = msg["data"][side]
             for k, i in enumerate(items, start=1):
-                data.append({
-                    "symbol": symbol,
-                    "k": k,
-                    "side": side[:-1],
-                    "price": float(i[0]),
-                    "size": float(i[1]),
-                    "timestamp": msg["data"]["timestamp"]
-                })
+                data.append(
+                    {
+                        "symbol": symbol,
+                        "k": k,
+                        "side": side[:-1],
+                        "price": float(i[0]),
+                        "size": float(i[1]),
+                        "timestamp": msg["data"]["timestamp"],
+                    }
+                )
 
         self._update(data)
 
 
 class Kline(DataStore):
     """
+    # Spot
     - https://docs.kucoin.com/#klines
     """
+
     _KEYS = ["symbol", "interval"]
 
     def __init__(self, *args, **kwargs):
@@ -198,9 +328,7 @@ class Kline(DataStore):
         self._latests = {}
 
     def latest(self, symbol: str, interval: str):
-        """ 未確定足取得用
-
-        """
+        """未確定足取得用"""
         return self._latests.get((symbol, interval), None)
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
@@ -224,7 +352,7 @@ class Kline(DataStore):
             "high": float(candles[3]),
             "low": float(candles[4]),
             "volume": float(candles[5]),
-            "amount": float(candles[6])
+            "amount": float(candles[6]),
         }
 
         return {
@@ -237,8 +365,13 @@ class Kline(DataStore):
 
 class Execution(DataStore):
     """
+    # Spot
     - https://docs.kucoin.com/#match-execution-data
+
+    # Future
+    - https://docs.kucoin.com/futures/#execution-data
     """
+
     _KEYS = ["tradeId"]
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
@@ -247,29 +380,45 @@ class Execution(DataStore):
 
 class IndexPrice(_UpdateStore):
     """
+    # Spot
     - https://docs.kucoin.com/#index-price
     """
+
     _KEYS = ["symbol"]
 
 
 class MarkPrice(_UpdateStore):
     """
+    # Spot
     - https://docs.kucoin.com/#mark-price
     """
+
     _KEYS = ["symbol"]
 
 
 class OrderEvents(_InsertStore):
     """
+    # Spot
     - https://docs.kucoin.com/#private-order-change-events
+
+    # Future
+    - https://docs.kucoin.com/futures/#trade-orders
+    - https://docs.kucoin.com/futures/#stop-order-lifecycle-event
     """
+
     _KEYS = ["orderId"]
 
 
 class Orders(DataStore):
     """
+    # Spot
     - https://docs.kucoin.com/#private-order-change-events
+
+    # Future
+    - https://docs.kucoin.com/futures/#trade-orders
+    - https://docs.kucoin.com/futures/#stop-order-lifecycle-event
     """
+
     _KEYS = ["orderId"]
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
@@ -284,7 +433,7 @@ class Orders(DataStore):
             if tp in ("match", "triggered"):
                 # Market order
                 pass
-            elif tp in ("canceled", "filled"):
+            elif tp in ("cancel", "canceled", "filled"):
                 self._delete([item])
             elif tp == "update":
                 self._update([item])
@@ -294,10 +443,166 @@ class Orders(DataStore):
 
 class Balance(_UpdateStore):
     """
+    # Spot
     - https://docs.kucoin.com/#account-balance-notice
     """
-    _KEYS = ['accountId']
+
+    _KEYS = ["accountId"]
 
 
-# TODO: Margin Trade Channels
+class MarginFundingBook(_UpdateStore):
+    """
+    # Spot
+    - https://docs.kucoin.com/#order-book-change
+    """
 
+
+class MarginOrderEvents(DataStore):
+    """
+    # Spot
+    - https://docs.kucoin.com/#margin-trade-order-enters-event
+    - https://docs.kucoin.com/#margin-order-update-event
+    - https://docs.kucoin.com/#margin-order-done-event
+    """
+
+    def _onmessage(self, msg: dict[str, Any]) -> None:
+        self._insert([{"subject": msg["subject"], **msg}])
+
+
+class MarginOrders(DataStore):
+    """
+    # Spot
+    - https://docs.kucoin.com/#margin-trade-order-enters-event
+    - https://docs.kucoin.com/#margin-order-update-event
+    - https://docs.kucoin.com/#margin-order-done-event
+    """
+
+    _KEYS = ["orderId"]
+
+    def _onmessage(self, msg: dict[str, Any]) -> None:
+        if msg["subject"] == "order.open":
+            self._insert([msg["data"]])
+        elif msg["subject"] == "order.update":
+            self._update([msg["data"]])
+        elif msg["subject"] == "order.done":
+            self._delete([msg["data"]])
+
+
+class MarginPositions(DataStore):
+    """
+    # Spot
+    - https://docs.kucoin.com/#debt-ratio-change
+    """
+
+    def _onmessage(self, msg: dict[str, Any]) -> None:
+        self._clear()
+        self._insert([msg["data"]])
+
+
+class MarginPositionEvents(_InsertStore):
+    """
+    # Spot
+    - https://docs.kucoin.com/#position-status-change-event
+    """
+
+
+class Instrument(DataStore):
+    """
+    # Future
+    - https://docs.kucoin.com/futures/#contract-market-data
+    """
+
+    def _onmessage(self, msg: dict[str, Any]) -> None:
+        self._insert(
+            [
+                {
+                    "symbol": _symbol_from_msg(msg),
+                    "subject": msg["subject"],
+                    **msg["data"],
+                }
+            ]
+        )
+
+
+class Announcements(DataStore):
+    """
+
+    # Future
+    - https://docs.kucoin.com/futures/#contract-market-data
+    """
+
+    def _onmessage(self, msg: dict[str, Any]) -> None:
+        self._insert([{"subject": msg["subject"], **msg["data"]}])
+
+
+class TransactionStats(DataStore):
+    """
+
+    # Future
+    - https://docs.kucoin.com/futures/#transaction-statistics-timer-event
+    """
+
+    _KEYS = ["symbol", "subject"]
+
+    def _onmessage(self, msg: dict[str, Any]) -> None:
+        self._insert(
+            [
+                {
+                    "subject": msg["subject"],
+                    "symbol": _symbol_from_msg(msg),
+                    **msg["data"],
+                }
+            ]
+        )
+
+
+class BalanceEvents(DataStore):
+    """
+
+    # Future
+    - https://docs.kucoin.com/futures/#account-balance-events
+    """
+
+    def _onmessage(self, msg: dict[str, Any]) -> None:
+        self._insert(
+            [
+                {
+                    "subject": msg["subject"],
+                    "symbol": _symbol_from_msg(msg),
+                    **msg["data"],
+                }
+            ]
+        )
+
+
+class Positions(DataStore):
+    """
+    # Future
+    - https://docs.kucoin.com/futures/#position-change-events
+    """
+
+    # onewayのみ
+    _KEYS = ["symbol"]
+
+    def _onresponse(self, data) -> None:
+        for d in data:
+            self._insert([{"side": self._get_side(d), **d}])
+
+    def _onmessage(self, msg: dict[str, Any]) -> None:
+        d = msg["data"]
+        if msg["subject"] == "position.change":
+            d["side"] = self._get_side(d)
+
+            if d.get("currentQty", 1) > 0:
+                self._update([d])
+            else:
+                self._delete([d])
+
+        # TODO: 未対応subject
+        # - position.settlement
+        # - position.adjustRiskLimit
+
+    @classmethod
+    def _get_side(cls, d):
+        if "currentQty" in d:
+            return "BUY" if d["currentQty"] > 0 else "SELL"
