@@ -540,5 +540,6 @@ class Hosts:
         "www.mexc.com": Item("mexc", Auth.mexc_v2),
         "contract.mexc.com": Item("mexc", Auth.mexc_v2),
         "api.mexc.com": Item("mexc", Auth.mexc_v3),
-        "api-futures.kucoin.com": Item("kucoin", Auth.kucoin)
+        "api.kucoin.com": Item("kucoinspot", Auth.kucoin),
+        "api-futures.kucoin.com": Item("kucoinfutures", Auth.kucoin)
     }
