@@ -605,18 +605,21 @@ class DynamicEndpoint:
     @staticmethod
     async def kucoin(url: str, session: aiohttp.ClientSession):
         api_keys = session.__dict__["_apis"]
+
+        host = "api.kucoin.com"
+        if url == "kucoinfuture":
+            host = host.replace("api", "api-futures")
+
         if "kucoinspot" in api_keys or "kucoinfuture" in api_keys:
             # public and private
             from pybotters.auth import Auth
             # spot/future共に同じエンドポイントで動くのは確認済み
             resp = await session.post(
-                "https://api.kucoin.com/api/v1/bullet-private", auth=Auth
+                f"https://{host}/api/v1/bullet-private", auth=Auth
             )
         else:
             # public only
-            resp = await session.post(
-                "https://api.kucoin.com/api/v1/bullet-public"
-            )
+            resp = await session.post(f"https://{host}/api/v1/bullet-public")
 
         j = await resp.json()
         if resp.status != 200:
