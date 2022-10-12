@@ -103,7 +103,12 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             "0uVJRVNmR2ZHiCXtf6yEwrwy",
             b"39aw3fMqFhHsuhbkQ0wa8JzuUgodvbTVl9tZblpSKFnB9Qh3",
         ),
-        "kucoin": (
+        "kucoinspot": (
+            "CYdTygFbGgM1re2J54lU2t83",
+            b"r9ugGEq5pJkrBuqs6GYFgHFIgsPr4iAw06awzFByoZPRjTJs",
+            "MyPassphrase123"
+        ),
+        "kucoinfuture": (
             "CYdTygFbGgM1re2J54lU2t83",
             b"r9ugGEq5pJkrBuqs6GYFgHFIgsPr4iAw06awzFByoZPRjTJs",
             "MyPassphrase123"
