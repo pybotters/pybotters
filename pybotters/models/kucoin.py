@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any, Awaitable
 
 import aiohttp
@@ -48,6 +49,7 @@ class KucoinDataStore(DataStoreManager):
         """
         対応エンドポイント
 
+        - GET /api/v1/market/candles (DataStore: Kline)
         - GET /api/v1/positions (DataStore: Positions)
         """
         for f in asyncio.as_completed(aws):
@@ -55,6 +57,8 @@ class KucoinDataStore(DataStoreManager):
             data = await resp.json()
             if resp.url.path == "/api/v1/positions":
                 self.positions._onresponse(data["data"])
+            elif resp.url.path == "/api/v1/market/candles":
+                self.kline._onresponse(data["data"], resp.url.query["symbol"], resp.url.query["type"])
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         if "topic" in msg:
@@ -320,7 +324,7 @@ class Kline(DataStore):
     - https://docs.kucoin.com/#klines
     """
 
-    _KEYS = ["symbol", "interval"]
+    _KEYS = ["symbol", "interval", "timestamp"]
 
     def __init__(self, *args, **kwargs):
         super(Kline, self).__init__(*args, **kwargs)
@@ -334,18 +338,36 @@ class Kline(DataStore):
     def _onmessage(self, msg: dict[str, Any]) -> None:
         data = self._parse_msg(msg)
 
-        key = tuple(data[k] for k in self._keys)
+        key = tuple(data[k] for k in self._keys if k != "timestamp")
         latest_candle = self._latests.get(key, None)
         if latest_candle and latest_candle["timestamp"] != data["timestamp"]:
             # 足確定
             self._insert([latest_candle])
         self._latests[key] = data
 
+    def _onresponse(self, data, symbol, interval) -> None:
+        for d in data[::-1]:
+            self._insert([{
+                "symbol": symbol,
+                "interval": interval,
+                "received_at": int(time.time()),
+                **self._to_ohlcva(d)
+            }])
+
     def _parse_msg(self, msg):
         symbol, interval = msg["topic"].split(":")[-1].split("_")
         data = msg["data"]
-        candles = data["candles"]
-        ohlcva = {
+        ohlcva = self._to_ohlcva(data["candles"])
+
+        return {
+            "symbol": symbol,
+            "interval": interval,
+            "received_at": int(data["time"]),
+            **ohlcva,
+        }
+
+    def _to_ohlcva(self, candles):
+        return {
             "timestamp": int(candles[0]),
             "open": float(candles[1]),
             "close": float(candles[2]),
@@ -353,13 +375,6 @@ class Kline(DataStore):
             "low": float(candles[4]),
             "volume": float(candles[5]),
             "amount": float(candles[6]),
-        }
-
-        return {
-            "symbol": symbol,
-            "interval": interval,
-            "received_at": int(data["time"]),
-            **ohlcva,
         }
 
 
