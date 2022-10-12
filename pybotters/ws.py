@@ -467,6 +467,7 @@ class Auth:
         # Endpointの取得時点で行われるのでここでは不要
         pass
 
+
 @dataclass
 class Item:
     name: str
