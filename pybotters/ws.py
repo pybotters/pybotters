@@ -613,6 +613,7 @@ class DynamicEndpoint:
         if "kucoinspot" in api_keys or "kucoinfuture" in api_keys:
             # public and private
             from pybotters.auth import Auth
+
             # spot/future共に同じエンドポイントで動くのは確認済み
             resp = await session.post(
                 f"https://{host}/api/v1/bullet-private", auth=Auth
@@ -628,7 +629,7 @@ class DynamicEndpoint:
         data = j["data"]
         token = data["token"]
         server = data["instanceServers"][0]
-        endpoint = server['endpoint']
+        endpoint = server["endpoint"]
         id = str(uuid.uuid4())
         host = aiohttp.typedefs.URL(endpoint).host
         HeartbeatHosts.items[host] = Heartbeat.kucoin
@@ -638,5 +639,5 @@ class DynamicEndpoint:
 class DynamicEndpointHosts:
     items = {
         "kucoinspot": DynamicEndpoint.kucoin,
-        "kucoinfuture": DynamicEndpoint.kucoin
+        "kucoinfuture": DynamicEndpoint.kucoin,
     }

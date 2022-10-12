@@ -58,7 +58,9 @@ class KucoinDataStore(DataStoreManager):
             if resp.url.path == "/api/v1/positions":
                 self.positions._onresponse(data["data"])
             elif resp.url.path == "/api/v1/market/candles":
-                self.kline._onresponse(data["data"], resp.url.query["symbol"], resp.url.query["type"])
+                self.kline._onresponse(
+                    data["data"], resp.url.query["symbol"], resp.url.query["type"]
+                )
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         if "topic" in msg:
@@ -347,12 +349,16 @@ class Kline(DataStore):
 
     def _onresponse(self, data, symbol, interval) -> None:
         for d in data[::-1]:
-            self._insert([{
-                "symbol": symbol,
-                "interval": interval,
-                "received_at": int(time.time()),
-                **self._to_ohlcva(d)
-            }])
+            self._insert(
+                [
+                    {
+                        "symbol": symbol,
+                        "interval": interval,
+                        "received_at": int(time.time()),
+                        **self._to_ohlcva(d),
+                    }
+                ]
+            )
 
     def _parse_msg(self, msg):
         symbol, interval = msg["topic"].split(":")[-1].split("_")

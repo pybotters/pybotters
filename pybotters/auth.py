@@ -462,26 +462,20 @@ class Auth:
             str_to_sign = str(now) + method + url.path + body._value.decode()
 
         signature = base64.b64encode(
-            hmac.new(
-                secret,
-                str_to_sign.encode('utf-8'),
-                hashlib.sha256
-            ).digest()
+            hmac.new(secret, str_to_sign.encode("utf-8"), hashlib.sha256).digest()
         ).decode()
         passphrase = base64.b64encode(
-            hmac.new(
-                secret,
-                passphrase.encode('utf-8'),
-                hashlib.sha256
-            ).digest()
+            hmac.new(secret, passphrase.encode("utf-8"), hashlib.sha256).digest()
         ).decode()
-        headers.update({
-            "KC-API-SIGN": signature,
-            "KC-API-TIMESTAMP": str(now),
-            "KC-API-KEY": key,
-            "KC-API-PASSPHRASE": passphrase,
-            "KC-API-KEY-VERSION": "2"
-        })
+        headers.update(
+            {
+                "KC-API-SIGN": signature,
+                "KC-API-TIMESTAMP": str(now),
+                "KC-API-KEY": key,
+                "KC-API-PASSPHRASE": passphrase,
+                "KC-API-KEY-VERSION": "2",
+            }
+        )
         return args
 
 
@@ -542,5 +536,5 @@ class Hosts:
         "contract.mexc.com": Item("mexc", Auth.mexc_v2),
         "api.mexc.com": Item("mexc", Auth.mexc_v3),
         "api.kucoin.com": Item("kucoinspot", Auth.kucoin),
-        "api-futures.kucoin.com": Item("kucoinfuture", Auth.kucoin)
+        "api-futures.kucoin.com": Item("kucoinfuture", Auth.kucoin),
     }
