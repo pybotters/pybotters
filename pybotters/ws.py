@@ -497,7 +497,7 @@ class HeartbeatHosts:
         "wspap.okx.com": Heartbeat.okx,
         "ws.bitget.com": Heartbeat.bitget,
         "contract.mexc.com": Heartbeat.mexc,
-        # kucoinのホストはランタイム時に追加
+        "ws-api.kucoin.com": Heartbeat.kucoin
     }
 
 
