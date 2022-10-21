@@ -331,7 +331,7 @@ class TopKOrderBook(DataStore):
     - https://docs.kucoin.com/futures/message-channel-for-the-50-best-ask-bid-full-data-of-level-2 # noqa: E501
     """
 
-    _KEYS = ["symbol", "k"]
+    _KEYS = ["symbol", "k", "side"]
 
     def __init__(self, *args, **kwargs):
         super(TopKOrderBook, self).__init__(*args, **kwargs)
