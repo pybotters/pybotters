@@ -6,6 +6,7 @@ from typing import Any, Awaitable
 
 import aiohttp
 import asyncio
+import uuid
 
 from ..store import DataStore, DataStoreManager
 from ..ws import ClientWebSocketResponse
@@ -21,6 +22,10 @@ class KucoinDataStore(DataStoreManager):
     """
     Kucoinのデータストアマネージャー
     """
+
+    def __init__(self, *args, **kwargs):
+        super(KucoinDataStore, self).__init__(*args, **kwargs)
+        self._endpoint = None
 
     def _init(self) -> None:
         self.create("ticker", datastore_class=Ticker)
@@ -61,6 +66,12 @@ class KucoinDataStore(DataStoreManager):
                 self.kline._onresponse(
                     data["data"], resp.url.query["symbol"], resp.url.query["type"]
                 )
+            elif resp.url.path.endswith("/bullet-public") or resp.url.path.endswith(
+                "/bullet-private"
+            ):
+                if resp.status != 200:
+                    raise RuntimeError(f"Failed to get a websocket endpoint: {data}")
+                self._endpoint = self._create_endpoint(data["data"])
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         if "topic" in msg:
@@ -220,6 +231,33 @@ class KucoinDataStore(DataStoreManager):
     @property
     def positions(self) -> "Positions":
         return self.get("positions", Positions)
+
+    @property
+    def endpoint(self):
+        if self._endpoint is None:
+            raise RuntimeError("A websocket endpoint has not been initialized.")
+        return self._endpoint
+
+    @classmethod
+    def _create_endpoint(cls, data):
+        token = data["token"]
+        servers = data["instanceServers"]
+        id = str(uuid.uuid4())
+        endpoint, host = None, None
+
+        from pybotters.ws import HeartbeatHosts
+
+        for s in servers:
+            host = aiohttp.typedefs.URL(s["endpoint"]).host
+            # HeartbeatHostsに登録してあるエンドポイントを優先して使う
+            if host in HeartbeatHosts.items:
+                endpoint = s["endpoint"]
+                break
+        # HeartbeatHostsに登録してあるエンドポイントがなかった場合、一番最初のものを使う
+        if endpoint is None:
+            endpoint = servers[0]["endpoint"]
+
+        return f"{endpoint}?token={token}&acceptUserMessage=true&connectId={id}"
 
 
 class _InsertStore(DataStore):
