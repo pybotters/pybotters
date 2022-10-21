@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Awaitable
+from typing import Any, Awaitable, Optional
 
 import aiohttp
 import asyncio
 import uuid
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreManager, Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
@@ -335,6 +335,20 @@ class TopKOrderBook(DataStore):
 
     def __init__(self, *args, **kwargs):
         super(TopKOrderBook, self).__init__(*args, **kwargs)
+
+    def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
+        if query is None:
+            query = {}
+
+        items = self.find(query)
+
+        sides = ["ask", "bid"]
+        result = {k: [] for k in sides}
+        for s in sides:
+            result[s] = sorted(
+                filter(lambda x: x["side"] == s, items), key=lambda x: x["k"]
+            )
+        return result
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
         symbol = _symbol_from_msg(msg)
