@@ -78,9 +78,6 @@ class WebSocketRunner:
         auth=_Auth,
         **kwargs: Any,
     ) -> None:
-        if url in DynamicEndpointHosts.items:
-            url = await DynamicEndpointHosts.items[url](url, session)
-
         if all([hdlr_str is None, hdlr_json is None]):
             hdlr_json = pybotters.print_handler
         iscorofunc_str = asyncio.iscoroutinefunction(hdlr_str)
@@ -600,44 +597,3 @@ class RequestLimitHosts:
         "stream.binance.com": RequestLimit.binance,
     }
 
-
-class DynamicEndpoint:
-    @staticmethod
-    async def kucoin(url: str, session: aiohttp.ClientSession):
-        api_keys = session.__dict__["_apis"]
-
-        host = "api.kucoin.com"
-        if url == "kucoinfuture":
-            host = host.replace("api", "api-futures")
-
-        if "kucoinspot" in api_keys or "kucoinfuture" in api_keys:
-            # public and private
-            from pybotters.auth import Auth
-
-            # spot/future共に同じエンドポイントで動くのは確認済み
-            resp = await session.post(
-                f"https://{host}/api/v1/bullet-private", auth=Auth
-            )
-        else:
-            # public only
-            resp = await session.post(f"https://{host}/api/v1/bullet-public")
-
-        j = await resp.json()
-        if resp.status != 200:
-            raise RuntimeError(f"Failed to get a websocket endpoint: {j}")
-
-        data = j["data"]
-        token = data["token"]
-        server = data["instanceServers"][0]
-        endpoint = server["endpoint"]
-        id = str(uuid.uuid4())
-        host = aiohttp.typedefs.URL(endpoint).host
-        HeartbeatHosts.items[host] = Heartbeat.kucoin
-        return f"{endpoint}?token={token}&acceptUserMessage=true&connectId={id}"
-
-
-class DynamicEndpointHosts:
-    items = {
-        "kucoinspot": DynamicEndpoint.kucoin,
-        "kucoinfuture": DynamicEndpoint.kucoin,
-    }
