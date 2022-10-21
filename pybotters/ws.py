@@ -494,7 +494,7 @@ class HeartbeatHosts:
         "wspap.okx.com": Heartbeat.okx,
         "ws.bitget.com": Heartbeat.bitget,
         "contract.mexc.com": Heartbeat.mexc,
-        "ws-api.kucoin.com": Heartbeat.kucoin
+        "ws-api.kucoin.com": Heartbeat.kucoin,
     }
 
 
@@ -596,4 +596,3 @@ class RequestLimitHosts:
         "api.coin.z.com": RequestLimit.gmocoin,
         "stream.binance.com": RequestLimit.binance,
     }
-
