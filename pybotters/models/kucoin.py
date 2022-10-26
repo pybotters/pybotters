@@ -18,13 +18,13 @@ def _symbol_from_msg(msg):
     return msg["topic"].split(":")[-1]
 
 
-class KucoinDataStore(DataStoreManager):
+class KuCoinDataStore(DataStoreManager):
     """
     Kucoinのデータストアマネージャー
     """
 
     def __init__(self, *args, **kwargs):
-        super(KucoinDataStore, self).__init__(*args, **kwargs)
+        super(KuCoinDataStore, self).__init__(*args, **kwargs)
         self._endpoint = None
 
     def _init(self) -> None:

@@ -20,7 +20,7 @@ from .models.coincheck import CoincheckDataStore
 from .models.deprecated.bybit import BybitDataStore
 from .models.ftx import FTXDataStore
 from .models.gmocoin import GMOCoinDataStore
-from .models.kucoin import KucoinDataStore
+from .models.kucoin import KuCoinDataStore
 from .models.okx import OKXDataStore
 from .models.phemex import PhemexDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
@@ -43,7 +43,7 @@ __all__: Tuple[str, ...] = (
     "BitgetDataStore",
     "BitMEXDataStore",
     "GMOCoinDataStore",
-    "KucoinDataStore",
+    "KuCoinDataStore",
     "OKXDataStore",
     "PhemexDataStore",
     "experimental",
