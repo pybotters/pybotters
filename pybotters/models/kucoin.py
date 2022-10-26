@@ -245,14 +245,20 @@ class KucoinDataStore(DataStoreManager):
         id = str(uuid.uuid4())
         endpoint, host = None, None
 
-        from pybotters.ws import HeartbeatHosts
+        try:
+            from pybotters.ws import HeartbeatHosts
 
-        for s in servers:
-            host = aiohttp.typedefs.URL(s["endpoint"]).host
-            # HeartbeatHostsに登録してあるエンドポイントを優先して使う
-            if host in HeartbeatHosts.items:
-                endpoint = s["endpoint"]
-                break
+            for s in servers:
+                host = aiohttp.typedefs.URL(s["endpoint"]).host
+                # HeartbeatHostsに登録してあるエンドポイントを優先して使う
+                if host in HeartbeatHosts.items:
+                    endpoint = s["endpoint"]
+                    break
+        except ImportError as e:
+            logger.warning(
+                "KuCoinDataStore cannot use 'HeartbeatHosts' "
+                f"({e.__class__.__name__}: {e})"
+            )
         # HeartbeatHostsに登録してあるエンドポイントがなかった場合、一番最初のものを使う
         if endpoint is None:
             endpoint = servers[0]["endpoint"]
