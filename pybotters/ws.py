@@ -8,6 +8,7 @@ import hmac
 import inspect
 import logging
 import time
+import uuid
 from dataclasses import dataclass
 from secrets import token_hex
 from typing import Any, Generator, Optional, Union
@@ -216,6 +217,12 @@ class Heartbeat:
         while not ws.closed:
             await ws.send_str('{"method":"ping"}')
             await asyncio.sleep(10.0)
+
+    @staticmethod
+    async def kucoin(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str(f'{{"id": "{uuid.uuid4()}", "type": "ping"}}')
+            await asyncio.sleep(15)
 
 
 class Auth:
@@ -452,6 +459,11 @@ class Auth:
         }
         await ws.send_json(msg, _itself=True)
 
+    @staticmethod
+    async def kucoin(ws: aiohttp.ClientWebSocketResponse):
+        # Endpointの取得時点で行われるのでここでは不要
+        pass
+
 
 @dataclass
 class Item:
@@ -482,6 +494,7 @@ class HeartbeatHosts:
         "wspap.okx.com": Heartbeat.okx,
         "ws.bitget.com": Heartbeat.bitget,
         "contract.mexc.com": Heartbeat.mexc,
+        "ws-api.kucoin.com": Heartbeat.kucoin,
     }
 
 
