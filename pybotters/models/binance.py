@@ -373,7 +373,8 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
         event = self._get_event_from_msg(msg)
 
         if "result" not in msg:
-            pass
+            if self._is_position_msg(msg, event):
+                self.position._onmessage(data)
 
     def _initialize_position(self, resp: aiohttp.ClientResponse, data: any):
         self.position._onresponse(data)
