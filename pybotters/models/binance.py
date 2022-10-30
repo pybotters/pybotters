@@ -423,8 +423,13 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
     _POSITION_INIT_ENDPOINT = "/fapi/v2/positionRisk"
 
 
-class BinanceCOINMDataStore(BinanceDataStoreBase):
-    ...
+class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
+    _ORDERBOOK_INIT_ENDPOINT = "/dapi/v1/depth"
+    _BALANCE_INIT_ENDPOINT = "/dapi/v1/balance"
+    _ORDER_INIT_ENDPOINT = "/dapi/v1/openOrders"
+    _LISTENKEY_INIT_ENDPOINT = "/dapi/v1/listenKey"
+    _KLINE_INIT_ENDPOINT = "/dapi/v1/klines"
+    _POSITION_INIT_ENDPOINT = "/dapi/v1/positionRisk"
 
 
 
