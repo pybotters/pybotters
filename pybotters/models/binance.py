@@ -350,6 +350,64 @@ class BinanceDataStoreBase(DataStoreManager):
         return self.get("order", Order)
 
 
+class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
+    POSITION_INIT_ENDPOINT = None
+
+    def _init(self) -> None:
+        super()._init()
+        self.create("markprice", datastore_class=MarkPrice)
+        self.create("continuouskline", datastore_class=ContinuousKline)
+        self.create("bookticker", datastore_class=BookTicker)
+        self.create("liquidation", datastore_class=Liquidation)
+        self.create("position", datastore_class=Position)
+        self.listenkey: Optional[str] = None
+
+
+    def _on_initialize_response(self, resp: aiohttp.ClientResponse, data: any, endpoint: str):
+        if self._is_target_endpoint(self.POSITION_INIT_ENDPOINT, endpoint):
+            self._initialize_position(resp, data)
+
+    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+        super()._onmessage(msg, ws)
+        data = self._get_data_from_msg(msg)
+        event = self._get_event_from_msg(msg)
+
+        if "result" not in msg:
+            pass
+
+    def _initialize_position(self, resp: aiohttp.ClientResponse, data: any):
+        self.position._onresponse(data)
+
+    def _is_markprice_msg(self, msg: Any, event: str):
+        return event == "markPriceUpdate"
+
+    def _is_continouskline_msg(self, msg: Any, event: str):
+        return event == "continuous_kline"
+
+    def _is_liquidation_msg(self, msg: Any, event: str):
+        return event == "forceOrder"
+
+    def _is_position_msg(self, msg: Any, event: str):
+        return event == "ACCOUNT_UPDATE"
+
+    @property
+    def markprice(self) -> "MarkPrice":
+        return self.get("markprice", MarkPrice)
+
+    @property
+    def continuouskline(self) -> "ContinuousKline":
+        return self.get("continuouskline", ContinuousKline)
+
+    @property
+    def liquidation(self) -> "Liquidation":
+        return self.get("liquidation", Liquidation)
+
+    @property
+    def position(self) -> "Position":
+        return self.get("position", Position)
+
+
+
 
 class BinanceSpotDataStore(BinanceDataStoreBase):
     ...
