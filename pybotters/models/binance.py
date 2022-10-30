@@ -161,11 +161,11 @@ class BinanceDataStore(DataStoreManager):
 
 
 class BinanceDataStoreBase(DataStoreManager):
-    ORDERBOOK_INIT_ENDPOINT = None
-    BALANCE_INIT_ENDPOINT = None
-    ORDER_INIT_ENDPOINT = None
-    LISTENKEY_INIT_ENDPOINT = None
-    KLINE_INIT_ENDPOINT = None
+    _ORDERBOOK_INIT_ENDPOINT = None
+    _BALANCE_INIT_ENDPOINT = None
+    _ORDER_INIT_ENDPOINT = None
+    _LISTENKEY_INIT_ENDPOINT = None
+    _KLINE_INIT_ENDPOINT = None
 
     def _init(self) -> None:
         self.create("trade", datastore_class=Trade)
@@ -200,15 +200,15 @@ class BinanceDataStoreBase(DataStoreManager):
             resp = await f
             data = await resp.json()
             endpoint = resp.url.path
-            if self._is_target_endpoint(self.ORDERBOOK_INIT_ENDPOINT, endpoint):
+            if self._is_target_endpoint(self._ORDERBOOK_INIT_ENDPOINT, endpoint):
                 self._initialize_orderbook(resp, data)
-            elif self._is_target_endpoint(self.BALANCE_INIT_ENDPOINT, endpoint):
+            elif self._is_target_endpoint(self._BALANCE_INIT_ENDPOINT, endpoint):
                 self._initialize_balance(resp, data)
-            elif self._is_target_endpoint(self.ORDER_INIT_ENDPOINT, endpoint):
+            elif self._is_target_endpoint(self._ORDER_INIT_ENDPOINT, endpoint):
                 self._initialize_order(resp, data)
-            elif self._is_target_endpoint(self.LISTENKEY_INIT_ENDPOINT, endpoint):
+            elif self._is_target_endpoint(self._LISTENKEY_INIT_ENDPOINT, endpoint):
                 self._initialize_listenkey(resp, data)
-            elif self._is_target_endpoint(self.KLINE_INIT_ENDPOINT, endpoint):
+            elif self._is_target_endpoint(self._KLINE_INIT_ENDPOINT, endpoint):
                 self._initialize_kline(resp, data)
 
             self._on_initialize_response(resp, data, endpoint)
@@ -351,7 +351,7 @@ class BinanceDataStoreBase(DataStoreManager):
 
 
 class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
-    POSITION_INIT_ENDPOINT = None
+    _POSITION_INIT_ENDPOINT = None
 
     def _init(self) -> None:
         super()._init()
@@ -364,7 +364,7 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
 
     def _on_initialize_response(self, resp: aiohttp.ClientResponse, data: any, endpoint: str):
-        if self._is_target_endpoint(self.POSITION_INIT_ENDPOINT, endpoint):
+        if self._is_target_endpoint(self._POSITION_INIT_ENDPOINT, endpoint):
             self._initialize_position(resp, data)
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
@@ -415,12 +415,12 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
 
 
 class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
-    ORDERBOOK_INIT_ENDPOINT = "/fapi/v1/depth"
-    BALANCE_INIT_ENDPOINT = "/fapi/v2/balance"
-    ORDER_INIT_ENDPOINT = "/fapi/v1/openOrders"
-    LISTENKEY_INIT_ENDPOINT = "/fapi/v1/listenKey"
-    KLINE_INIT_ENDPOINT = "/fapi/v1/klines"
-    POSITION_INIT_ENDPOINT = "/fapi/v2/positionRisk"
+    _ORDERBOOK_INIT_ENDPOINT = "/fapi/v1/depth"
+    _BALANCE_INIT_ENDPOINT = "/fapi/v2/balance"
+    _ORDER_INIT_ENDPOINT = "/fapi/v1/openOrders"
+    _LISTENKEY_INIT_ENDPOINT = "/fapi/v1/listenKey"
+    _KLINE_INIT_ENDPOINT = "/fapi/v1/klines"
+    _POSITION_INIT_ENDPOINT = "/fapi/v2/positionRisk"
 
 
 class BinanceCOINMDataStore(BinanceDataStoreBase):
