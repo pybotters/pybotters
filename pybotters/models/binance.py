@@ -211,9 +211,9 @@ class BinanceDataStoreBase(DataStoreManager):
             elif self._is_target_endpoint(self._KLINE_INIT_ENDPOINT, endpoint):
                 self._initialize_kline(resp, data)
 
-            self._on_initialize_response(resp, data, endpoint)
+            self._initialize_hook(resp, data, endpoint)
 
-    def _on_initialize_response(self, resp: aiohttp.ClientResponse, data: any, endpoint: str):
+    def _initialize_hook(self, resp: aiohttp.ClientResponse, data: any, endpoint: str):
         """ 子クラス用initialize hook
 
         """
@@ -363,7 +363,7 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
         self.listenkey: Optional[str] = None
 
 
-    def _on_initialize_response(self, resp: aiohttp.ClientResponse, data: any, endpoint: str):
+    def _initialize_hook(self, resp: aiohttp.ClientResponse, data: any, endpoint: str):
         if self._is_target_endpoint(self._POSITION_INIT_ENDPOINT, endpoint):
             self._initialize_position(resp, data)
 
