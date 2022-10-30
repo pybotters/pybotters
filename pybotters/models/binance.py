@@ -160,6 +160,23 @@ class BinanceDataStore(DataStoreManager):
         return self.get("order", Order)
 
 
+class BinanceDataStoreBase(DataStoreManager):
+    ...
+
+
+class BinanceSpotDataStore(BinanceDataStoreBase):
+    ...
+
+
+class BinanceUSDSMDataStore(BinanceDataStoreBase):
+    ...
+
+
+class BinanceCOINMDataStore(BinanceDataStoreBase):
+    ...
+
+
+
 class Trade(DataStore):
     _MAXLEN = 99999
 
