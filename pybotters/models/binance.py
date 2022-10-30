@@ -276,6 +276,8 @@ class BinanceDataStoreBase(DataStoreManager):
             elif self._is_order_msg(msg, event):
                 self.order._onmessage(data)
 
+            self._onmessage_hook(msg, event, data)
+
     def _get_data_from_msg(self, msg):
         return msg["data"] if "data" in msg else msg
 
@@ -286,6 +288,12 @@ class BinanceDataStoreBase(DataStoreManager):
             return _data["e"]
         else:
             return None
+
+    def _onmessage_hook(self, msg: Any, event: str, data: Any):
+        """ 子クラス用メッセージハンドラーhook
+
+        """
+        ...
 
     def _is_trade_msg(self, msg: Any, event: str):
         return event in ("trade", "aggTrade")
@@ -367,14 +375,9 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
         if self._is_target_endpoint(self._POSITION_INIT_ENDPOINT, endpoint):
             self._initialize_position(resp, data)
 
-    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
-        super()._onmessage(msg, ws)
-        data = self._get_data_from_msg(msg)
-        event = self._get_event_from_msg(msg)
-
-        if "result" not in msg:
-            if self._is_position_msg(msg, event):
-                self.position._onmessage(data)
+    def _onmessage_hook(self, msg: Any, event: str, data: Any):
+        if self._is_position_msg(msg, event):
+            self.position._onmessage(data)
 
     def _initialize_position(self, resp: aiohttp.ClientResponse, data: any):
         self.position._onresponse(data)
