@@ -90,13 +90,13 @@ class Auth:
                 )
         else:
             data.update({"timestamp": expires})
-            # patch (issue #190)
+            # patch (issue #190, #192)
             if url.path != "/api/v3/userDataStream":
                 body = FormData(data)()
             else:
                 body = FormData()()
             signature = hmac.new(secret, body._value, hashlib.sha256).hexdigest()
-            # patch (issue #190)
+            # patch (issue #190, #192)
             if url.path != "/api/v3/userDataStream":
                 body._value += f"&signature={signature}".encode()
             body._size = len(body._value)
