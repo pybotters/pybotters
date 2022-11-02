@@ -213,7 +213,7 @@ class BinanceDataStoreBase(DataStoreManager):
 
             self._initialize_hook(resp, data, endpoint)
 
-    def _initialize_hook(self, resp: aiohttp.ClientResponse, data: any, endpoint: str):
+    def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
         """ 子クラス用initialize hook
 
         """
@@ -230,26 +230,26 @@ class BinanceDataStoreBase(DataStoreManager):
         else:
             return False
 
-    def _initialize_orderbook(self, resp: aiohttp.ClientResponse, data: any):
+    def _initialize_orderbook(self, resp: aiohttp.ClientResponse, data: Any):
         if "symbol" in resp.url.query:
             self.orderbook._onresponse(resp.url.query["symbol"], data)
 
-    def _initialize_balance(self, resp: aiohttp.ClientResponse, data: any):
+    def _initialize_balance(self, resp: aiohttp.ClientResponse, data: Any):
         self.balance._onresponse(data)
 
-    def _initialize_order(self, resp: aiohttp.ClientResponse, data: any):
+    def _initialize_order(self, resp: aiohttp.ClientResponse, data: Any):
         symbol = (
             resp.url.query["symbol"] if "symbol" in resp.url.query else None
         )
         self.order._onresponse(symbol, data)
 
-    def _initialize_listenkey(self, resp: aiohttp.ClientResponse, data: any):
+    def _initialize_listenkey(self, resp: aiohttp.ClientResponse, data: Any):
         self.listenkey = data["listenKey"]
         asyncio.create_task(
             self._listenkey(resp.url, resp.__dict__["_raw_session"])
         )
 
-    def _initialize_kline(self, resp: aiohttp.ClientResponse, data: any):
+    def _initialize_kline(self, resp: aiohttp.ClientResponse, data: Any):
         self.kline._onresponse(
             resp.url.query["symbol"], resp.url.query["interval"], data
         )
@@ -371,7 +371,7 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
         self.listenkey: Optional[str] = None
 
 
-    def _initialize_hook(self, resp: aiohttp.ClientResponse, data: any, endpoint: str):
+    def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
         if self._is_target_endpoint(self._POSITION_INIT_ENDPOINT, endpoint):
             self._initialize_position(resp, data)
 
@@ -379,7 +379,7 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
         if self._is_position_msg(msg, event):
             self.position._onmessage(data)
 
-    def _initialize_position(self, resp: aiohttp.ClientResponse, data: any):
+    def _initialize_position(self, resp: aiohttp.ClientResponse, data: Any):
         self.position._onresponse(data)
 
     def _is_markprice_msg(self, msg: Any, event: str):
