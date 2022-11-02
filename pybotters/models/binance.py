@@ -368,7 +368,6 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
         self.create("bookticker", datastore_class=BookTicker)
         self.create("liquidation", datastore_class=Liquidation)
         self.create("position", datastore_class=Position)
-        self.listenkey: Optional[str] = None
 
 
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
