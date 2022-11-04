@@ -419,6 +419,30 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
     _KLINE_INIT_ENDPOINT = "/api/v3/klines"
     _ACCOUNT_INIT_ENDPOINT = "/api/v3/account"
 
+    def _init(self):
+        super()._init()
+        self.create("account", datastore_class=Account)
+
+    def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
+        if self._is_target_endpoint(self._ACCOUNT_INIT_ENDPOINT, endpoint):
+            self.account._onresponse(data)
+
+    def _onmessage_hook(self, msg: Any, event: str, data: Any):
+        if self._is_account_msg(msg, event):
+            self.account._onmessage(msg)
+
+        elif self._is_order_msg(msg, event):
+            self.order._onmessage(msg)
+
+    def _is_account_msg(self, msg: Any, event: str):
+        return event == "outboundAccountPosition"
+
+    def _is_order_msg(self, msg: Any, event: str):
+        return event == "executionReport"
+
+    @property
+    def account(self):
+        return self.get("account", Account)
 
 
 class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
