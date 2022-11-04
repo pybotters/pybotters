@@ -552,6 +552,25 @@ class OrderBook(DataStore):
         self._buff.clear()
 
 
+class Account(DataStore):
+    _KEYS = ["a"]
+
+    def _onmessage(self, item: Item) -> None:
+        self._update(item["B"])
+
+    def _onresponse(self, data: list[Item]):
+        for item in data["balances"]:
+            self._update(
+                [
+                    {
+                        "a": item["asset"],
+                        "f": item["free"],
+                        "l": item["locked"],
+                    }
+                ]
+            )
+
+
 class Balance(DataStore):
     _KEYS = ["a"]
 
