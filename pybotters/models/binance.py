@@ -34,20 +34,28 @@ class BinanceDataStoreBase(DataStoreManager):
         """
         対応エンドポイント
 
-        - GET /fapi/v1/depth (DataStore: orderbook)
+        共通
+
+        - GET /api/v3/depth, /fapi/v1/depth, /dapi/v1/depth (DataStore: orderbook)
 
             - Binance APIドキュメントに従ってWebSocket接続後にinitializeすること。
             - orderbook データストアの initialized がTrueになる。
 
-        - GET /fapi/v2/balance (DataStore: balance)
-        - GET /fapi/v2/positionRisk (DataStore: position)
-        - GET /fapi/v1/openOrders (DataStore: order)
-        - POST /fapi/v1/listenKey (Property: listenkey)
+        - GET /api/v3/openOrders, /fapi/v1/openOrders, /dapi/v1/openOrders (DataStore: order)
+        - POST /api/v3/userDataStream, /fapi/v1/listenKey, /dapi/v1/listenKey (Property: listenkey)
+            - プロパティ listenkey にlistenKeyが格納され30分ごとに PUT リクエストがスケジュールされる。
+        - GET /api/v3/klines, /fapi/v1/klines, /dapi/v3/klines (DataStore: kline)
 
-            - プロパティ listenkey にlistenKeyが格納され30分ごとに PUT /fapi/v1/listenKey
-              のリクエストがスケジュールされる。
+        現物
 
-        - GET /fapi/v1/klines (DataStore: kline)
+        - GET /api/v3/account (DataStore: account)
+
+        先物
+
+        - GET /fapi/v2/balance, /dapi/v1/balance (DataStore: balance)
+        - GET /fapi/v2/positionRisk, /dapi/v1/positionRisk (DataStore: position)
+
+
         """
         for f in asyncio.as_completed(aws):
             resp = await f
