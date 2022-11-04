@@ -173,7 +173,6 @@ class BinanceDataStoreBase(DataStoreManager):
         self.create("ticker", datastore_class=Ticker)
         self.create("bookticker", datastore_class=BookTicker)
         self.create("orderbook", datastore_class=OrderBook)
-        self.create("balance", datastore_class=Balance)
         self.create("order", datastore_class=Order)
         self.listenkey: Optional[str] = None
 
@@ -367,6 +366,7 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
         self.create("continuouskline", datastore_class=ContinuousKline)
         self.create("bookticker", datastore_class=BookTicker)
         self.create("liquidation", datastore_class=Liquidation)
+        self.create("balance", datastore_class=Balance)
         self.create("position", datastore_class=Position)
 
 
