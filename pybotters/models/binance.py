@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 class BinanceDataStoreBase(DataStoreManager):
     _ORDERBOOK_INIT_ENDPOINT = None
-    _BALANCE_INIT_ENDPOINT = None
     _ORDER_INIT_ENDPOINT = None
     _LISTENKEY_INIT_ENDPOINT = None
     _KLINE_INIT_ENDPOINT = None
@@ -56,8 +55,6 @@ class BinanceDataStoreBase(DataStoreManager):
             endpoint = resp.url.path
             if self._is_target_endpoint(self._ORDERBOOK_INIT_ENDPOINT, endpoint):
                 self._initialize_orderbook(resp, data)
-            elif self._is_target_endpoint(self._BALANCE_INIT_ENDPOINT, endpoint):
-                self._initialize_balance(resp, data)
             elif self._is_target_endpoint(self._ORDER_INIT_ENDPOINT, endpoint):
                 self._initialize_order(resp, data)
             elif self._is_target_endpoint(self._LISTENKEY_INIT_ENDPOINT, endpoint):
@@ -87,9 +84,6 @@ class BinanceDataStoreBase(DataStoreManager):
     def _initialize_orderbook(self, resp: aiohttp.ClientResponse, data: Any):
         if "symbol" in resp.url.query:
             self.orderbook._onresponse(resp.url.query["symbol"], data)
-
-    def _initialize_balance(self, resp: aiohttp.ClientResponse, data: Any):
-        self.balance._onresponse(data)
 
     def _initialize_order(self, resp: aiohttp.ClientResponse, data: Any):
         symbol = (
@@ -125,8 +119,6 @@ class BinanceDataStoreBase(DataStoreManager):
                 self.bookticker._onmessage(data)
             elif self._is_orderbook_msg(msg, event):
                 self.orderbook._onmessage(data)
-            elif self._is_balance_msg(msg, event):
-                self.balance._onmessage(data)
             elif self._is_order_msg(msg, event):
                 self.order._onmessage(data)
 
@@ -167,9 +159,6 @@ class BinanceDataStoreBase(DataStoreManager):
     def _is_orderbook_msg(self, msg: Any, event: str):
         return event == "depthUpdate"
 
-    def _is_balance_msg(self, msg: Any, event: str):
-        return event == "ACCOUNT_UPDATE"
-
     def _is_order_msg(self, msg: Any, event: str):
         return event == "ORDER_TRADE_UPDATE"
 
@@ -201,10 +190,6 @@ class BinanceDataStoreBase(DataStoreManager):
         return self.get("orderbook", OrderBook)
 
     @property
-    def balance(self) -> "Balance":
-        return self.get("balance", Balance)
-
-    @property
     def order(self) -> "Order":
         """
         アクティブオーダーのみ(約定・キャンセル済みは削除される)
@@ -213,6 +198,7 @@ class BinanceDataStoreBase(DataStoreManager):
 
 
 class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
+    _BALANCE_INIT_ENDPOINT = None
     _POSITION_INIT_ENDPOINT = None
 
     def _init(self) -> None:
@@ -225,8 +211,11 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
 
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
-        if self._is_target_endpoint(self._POSITION_INIT_ENDPOINT, endpoint):
+        if self._is_target_endpoint(self._BALANCE_INIT_ENDPOINT, endpoint):
+            self._initialize_balance(resp, data)
+        elif self._is_target_endpoint(self._POSITION_INIT_ENDPOINT, endpoint):
             self._initialize_position(resp, data)
+
 
     def _onmessage_hook(self, msg: Any, event: str, data: Any):
         if self._is_position_msg(msg, event):
@@ -241,11 +230,18 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
         elif self._is_liquidation_msg(msg, event):
             self.liquidation._onmessage(data)
 
+        elif self._is_balance_msg(msg, event):
+            self.balance._onmessage(data)
+
         elif self._is_position_msg(msg, event):
             self.position._onmessage(data)
 
+
     def _initialize_position(self, resp: aiohttp.ClientResponse, data: Any):
         self.position._onresponse(data)
+
+    def _initialize_balance(self, resp: aiohttp.ClientResponse, data: Any):
+        self.balance._onresponse(data)
 
     def _is_markprice_msg(self, msg: Any, event: str):
         return event == "markPriceUpdate"
@@ -255,6 +251,9 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
     def _is_liquidation_msg(self, msg: Any, event: str):
         return event == "forceOrder"
+
+    def _is_balance_msg(self, msg: Any, event: str):
+        return event == "ACCOUNT_UPDATE"
 
     def _is_position_msg(self, msg: Any, event: str):
         return event == "ACCOUNT_UPDATE"
@@ -270,6 +269,10 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
     @property
     def liquidation(self) -> "Liquidation":
         return self.get("liquidation", Liquidation)
+
+    @property
+    def balance(self) -> "Balance":
+        return self.get("balance", Balance)
 
     @property
     def position(self) -> "Position":
