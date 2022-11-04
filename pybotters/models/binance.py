@@ -622,10 +622,19 @@ class Order(DataStore):
     _KEYS = ["s", "i"]
 
     def _onmessage(self, item: Item) -> None:
-        if item["o"]["X"] not in ("FILLED", "CANCELED", "EXPIRED"):
-            self._update([item["o"]])
+        if "o" in item:
+            # futures
+            event = item["o"]["X"]
+            items = [item["o"]]
         else:
-            self._delete([item["o"]])
+            # spot
+            event = item["X"]
+            items = [item]
+
+        if event not in ("FILLED", "CANCELED", "EXPIRED", "REJECTED"):
+            self._update(items)
+        else:
+            self._delete(items)
 
     def _onresponse(self, symbol: Optional[str], data: list[Item]) -> None:
         if symbol is not None:
@@ -633,28 +642,55 @@ class Order(DataStore):
         else:
             self._clear()
         for item in data:
-            self._insert(
-                [
-                    {
-                        "s": item["symbol"],
-                        "c": item["clientOrderId"],
-                        "S": item["side"],
-                        "o": item["type"],
-                        "f": item["timeInForce"],
-                        "q": item["origQty"],
-                        "p": item["price"],
-                        "ap": item["avgPrice"],
-                        "sp": item["stopPrice"],
-                        "X": item["status"],
-                        "i": item["orderId"],
-                        "z": item["executedQty"],
-                        "T": item["updateTime"],
-                        "R": item["reduceOnly"],
-                        "wt": item["workingType"],
-                        "ot": item["origType"],
-                        "ps": item["positionSide"],
-                        "cp": item["closePosition"],
-                        "pP": item["priceProtect"],
-                    }
-                ]
-            )
+
+            if "positionSide" in item:
+                # futures
+                self._insert(
+                    [
+                        {
+                            "s": item["symbol"],
+                            "c": item["clientOrderId"],
+                            "S": item["side"],
+                            "o": item["type"],
+                            "f": item["timeInForce"],
+                            "q": item["origQty"],
+                            "p": item["price"],
+                            "ap": item["avgPrice"],
+                            "sp": item["stopPrice"],
+                            "X": item["status"],
+                            "i": item["orderId"],
+                            "z": item["executedQty"],
+                            "T": item["updateTime"],
+                            "R": item["reduceOnly"],
+                            "wt": item["workingType"],
+                            "ot": item["origType"],
+                            "ps": item["positionSide"],
+                            "cp": item["closePosition"],
+                            "pP": item["priceProtect"],
+                        }
+                    ]
+                )
+            else:
+                # spot
+                self._insert(
+                    [
+                        {
+                            "s": item["symbol"],
+                            "i": item["orderId"],
+                            "c": item["clientOrderId"],
+                            "p": item["price"],
+                            "q": item["origQty"],
+                            "z": item["executedQty"],
+                            "Z": item["cummulativeQuoteQty"],
+                            "f": item["timeInForce"],
+                            "o": item["type"],
+                            "S": item["side"],
+                            "P": item["stopPrice"],
+                            "F": item["icebergeQty"],
+                            "E": item["time"],
+                            "T": item["updateTime"],
+                            "w": item["isWorking"],
+                            "Q": item['origQuoteOrderQty']
+                        }
+                    ]
+                )
