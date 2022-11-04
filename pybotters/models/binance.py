@@ -168,7 +168,7 @@ class BinanceDataStoreBase(DataStoreManager):
         return event == "depthUpdate"
 
     def _is_order_msg(self, msg: Any, event: str):
-        return event == "ORDER_TRADE_UPDATE"
+        raise NotImplementedError
 
 
     @staticmethod
@@ -266,6 +266,9 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
     def _is_position_msg(self, msg: Any, event: str):
         return event == "ACCOUNT_UPDATE"
 
+    def _is_order_msg(self, msg: Any, event: str):
+        return event == "ORDER_TRADE_UPDATE"
+
     @property
     def markprice(self) -> "MarkPrice":
         return self.get("markprice", MarkPrice)
@@ -307,9 +310,6 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
     def _onmessage_hook(self, msg: Any, event: str, data: Any):
         if self._is_account_msg(msg, event):
             self.account._onmessage(data)
-
-        elif self._is_order_msg(msg, event):
-            self.order._onmessage(data)
 
     def _is_account_msg(self, msg: Any, event: str):
         return event == "outboundAccountPosition"
