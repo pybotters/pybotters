@@ -413,7 +413,12 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
 
 class BinanceSpotDataStore(BinanceDataStoreBase):
-    ...
+    _ORDERBOOK_INIT_ENDPOINT = "/api/v3/depth"
+    _ORDER_INIT_ENDPOINT = "/api/v3/openOrders"
+    _LISTENKEY_INIT_ENDPOINT = "/api/v3/userDataStream"
+    _KLINE_INIT_ENDPOINT = "/api/v3/klines"
+    _ACCOUNT_INIT_ENDPOINT = "/api/v3/account"
+
 
 
 class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
