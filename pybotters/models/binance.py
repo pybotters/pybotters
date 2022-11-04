@@ -429,10 +429,10 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
 
     def _onmessage_hook(self, msg: Any, event: str, data: Any):
         if self._is_account_msg(msg, event):
-            self.account._onmessage(msg)
+            self.account._onmessage(data)
 
         elif self._is_order_msg(msg, event):
-            self.order._onmessage(msg)
+            self.order._onmessage(data)
 
     def _is_account_msg(self, msg: Any, event: str):
         return event == "outboundAccountPosition"
@@ -646,7 +646,7 @@ class Order(DataStore):
     _KEYS = ["s", "i"]
 
     def _onmessage(self, item: Item) -> None:
-        if "o" in item:
+        if item["e"] == "ORDER_TRADE_UPDATE":
             # futures
             event = item["o"]["X"]
             items = [item["o"]]
@@ -710,7 +710,7 @@ class Order(DataStore):
                             "o": item["type"],
                             "S": item["side"],
                             "P": item["stopPrice"],
-                            "F": item["icebergeQty"],
+                            "F": item["icebergQty"],
                             "E": item["time"],
                             "T": item["updateTime"],
                             "w": item["isWorking"],
