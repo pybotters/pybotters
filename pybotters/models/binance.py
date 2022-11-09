@@ -329,10 +329,15 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
     _LISTENKEY_INIT_ENDPOINT = "/fapi/v1/listenKey"
     _KLINE_INIT_ENDPOINT = "/fapi/v1/klines"
     _POSITION_INIT_ENDPOINT = "/fapi/v2/positionRisk"
+    _COMPOSITEINDEX_INIT_ENDPOINT = "/fapi/v1/indexInfo"
 
     def _init(self):
         super()._init()
         self.create("compositeindex", datastore_class=CompositeIndex)
+
+    def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
+        if self._is_target_endpoint(self._COMPOSITEINDEX_INIT_ENDPOINT, endpoint):
+            self.compositeindex._onresponse(data)
 
     def _onmessage_hook(self, msg: Any, event: str, data: Any):
         super()._onmessage_hook(msg, event, data)
@@ -435,6 +440,21 @@ class IndexPrice(DataStore):
 
 class CompositeIndex(DataStore):
     _KEYS = ["s"]
+
+    def _onresponse(self, item: list[Item]):
+        for i in item:
+            self._update([{
+                "s": i["symbol"],
+                "p": None,
+                "E": i["time"],
+                "c": [{
+                    "b": a["baseAsset"],
+                    "q": a["quoteAsset"],
+                    "w": a["weightInQuantity"],
+                    "W": a["weightInPercentage"],
+                    "i": None
+                } for a in i["baseAssetList"]]
+            }])
 
     def _onmessage(self, item: Item) -> None:
         self._update([{
