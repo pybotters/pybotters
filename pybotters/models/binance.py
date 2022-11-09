@@ -44,16 +44,20 @@ class BinanceDataStoreBase(DataStoreManager):
         - GET /api/v3/openOrders, /fapi/v1/openOrders, /dapi/v1/openOrders (DataStore: order)
         - POST /api/v3/userDataStream, /fapi/v1/listenKey, /dapi/v1/listenKey (Property: listenkey)
             - プロパティ listenkey にlistenKeyが格納され30分ごとに PUT リクエストがスケジュールされる。
-        - GET /api/v3/klines, /fapi/v1/klines, /dapi/v3/klines (DataStore: kline)
+        - GET /api/v3/klines, /fapi/v1/klines, /dapi/v3/klines, /dapi/v1/indexPriceKlines, /dapi/v1/markPriceKlines (DataStore: kline)
 
         現物
 
         - GET /api/v3/account (DataStore: account)
+        - GET /api/v3/openOrderList (DataStore: ocoorder)
 
         先物
 
         - GET /fapi/v2/balance, /dapi/v1/balance (DataStore: balance)
         - GET /fapi/v2/positionRisk, /dapi/v1/positionRisk (DataStore: position)
+
+        USDⓈ-M
+        - GET /fapi/v1/indexInfo (DataStore: compositeindex)
 
 
         """
