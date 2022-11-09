@@ -336,25 +336,60 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
     _BALANCE_INIT_ENDPOINT = "/dapi/v1/balance"
     _ORDER_INIT_ENDPOINT = "/dapi/v1/openOrders"
     _LISTENKEY_INIT_ENDPOINT = "/dapi/v1/listenKey"
-    _KLINE_INIT_ENDPOINT = "/dapi/v1/klines"
+    _KLINE_INIT_ENDPOINT = ("/dapi/v1/klines", "/dapi/v1/indexPriceKlines", "/dapi/v1/markPriceKlines")
     _POSITION_INIT_ENDPOINT = "/dapi/v1/positionRisk"
 
     def _init(self):
         super()._init()
         self.create("indexprice", datastore_class=IndexPrice)
+        self.create("indexpricekline", datastore_class=Kline)
+        self.create("markpricekline", datastore_class=Kline)
 
     def _onmessage_hook(self, msg: Any, event: str, data: Any):
         super()._onmessage_hook(msg, event, data)
         if self._is_indexprice_msg(msg, event):
             self.indexprice._onmessage(data)
 
+        if self._is_indexpricekline_msg(msg, event):
+            self.indexpricekline._onmessage(data)
+
+        if self._is_markpricekline_msg(msg, event):
+            self.markpricekline._onmessage(data)
+
+    def _initialize_kline(self, resp: aiohttp.ClientResponse, data: Any):
+        if resp.url.path.endswith("klines"):
+            self.kline._onresponse(
+                resp.url.query["symbol"], resp.url.query["interval"], data
+            )
+        elif resp.url.path.endswith("markPriceKlines"):
+            self.markpricekline._onresponse(
+                resp.url.query["symbol"], resp.url.query["interval"], data
+            )
+        else:
+            self.indexpricekline._onresponse(
+                resp.url.query["pair"], resp.url.query["interval"], data
+            )
+
     def _is_indexprice_msg(self, msg: Any, event: str):
         return event == "indexPriceUpdate"
+
+    def _is_indexpricekline_msg(self, msg: Any, event: str):
+        return event == "indexPrice_kline"
+
+    def _is_markpricekline_msg(self, msg: Any, event: str):
+        return event == "markPrice_kline"
 
     @property
     def indexprice(self) -> "IndexPrice":
         return self.get("indexprice", IndexPrice)
 
+    @property
+    def indexpricekline(self) -> "Kline":
+        return self.get("indexpricekline", Kline)
+
+    @property
+    def markpricekline(self) -> "Kline":
+        return self.get("markpricekline", Kline)
 
 
 class Trade(DataStore):
