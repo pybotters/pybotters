@@ -412,8 +412,8 @@ class MarkPrice(DataStore):
 class IndexPrice(DataStore):
     _KEYS = ["i"]
 
-    def _onmessage(self, data: Union[Item, list[Item]]) -> None:
-        self._update([data])
+    def _onmessage(self, item: Item) -> None:
+        self._update([item])
 
 
 class Kline(DataStore):
