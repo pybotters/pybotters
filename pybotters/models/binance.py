@@ -298,18 +298,26 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
     _LISTENKEY_INIT_ENDPOINT = "/api/v3/userDataStream"
     _KLINE_INIT_ENDPOINT = "/api/v3/klines"
     _ACCOUNT_INIT_ENDPOINT = "/api/v3/account"
+    _OCOORDER_INIT_ENDPOINT = "/api/v3/openOrderList"
 
     def _init(self):
         super()._init()
         self.create("account", datastore_class=Account)
+        self.create("ocoorder", datastore_class=OCOOrder)
 
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
         if self._is_target_endpoint(self._ACCOUNT_INIT_ENDPOINT, endpoint):
             self.account._onresponse(data)
 
+        if self._is_target_endpoint(self._OCOORDER_INIT_ENDPOINT, endpoint):
+            self.ocoorder._onresponse(data)
+
     def _onmessage_hook(self, msg: Any, event: str, data: Any):
         if self._is_account_msg(msg, event):
             self.account._onmessage(data)
+
+        if self._is_ocoorder_msg(msg, event):
+            self.ocoorder._onmessage(data)
 
     def _is_account_msg(self, msg: Any, event: str):
         return event == "outboundAccountPosition"
@@ -317,9 +325,16 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
     def _is_order_msg(self, msg: Any, event: str):
         return event == "executionReport"
 
+    def _is_ocoorder_msg(self, msg: Any, event: str):
+        return event == "listStatus"
+
     @property
     def account(self):
         return self.get("account", Account)
+
+    @property
+    def ocoorder(self):
+        return self.get("ocoorder", OCOOrder)
 
 
 class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
@@ -704,6 +719,40 @@ class Order(DataStore):
                         }
                     ]
                 )
+
+
+class OCOOrder(DataStore):
+    _KEYS = ["s", "g"]
+
+    def _onresponse(self, data: list[Item]) -> None:
+        for d in data:
+            self._update([{
+                "e": "listStatus",
+                "E": None,
+                "s": d["symbol"],
+                "g": d["orderListId"],
+                "c": d["contingencyType"],
+                "l": d["listStatusType"],
+                "L": d["listOrderStatus"],
+                "r": "NONE",
+                "C": d["listClientOrderId"],
+                "T": d["transactionTime"],
+                "O": [
+                    {
+                        "s": o["symbol"],
+                        "i": o["orderId"],
+                        "c": o["clientOrderId"]
+                    } for o in d["orders"]
+                ]
+            }])
+
+
+
+    def _onmessage(self, item: Item) -> None:
+        if item["l"] == "ALL_DONE":
+            self._delete([item])
+        else:
+            self._update([item])
 
 
 # 古いデータストアへのalias
