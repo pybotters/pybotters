@@ -339,6 +339,22 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
     _KLINE_INIT_ENDPOINT = "/dapi/v1/klines"
     _POSITION_INIT_ENDPOINT = "/dapi/v1/positionRisk"
 
+    def _init(self):
+        super()._init()
+        self.create("indexprice", datastore_class=IndexPrice)
+
+    def _onmessage_hook(self, msg: Any, event: str, data: Any):
+        super()._onmessage_hook(msg, event, data)
+        if self._is_indexprice_msg(msg, event):
+            self.indexprice._onmessage(data)
+
+    def _is_indexprice_msg(self, msg: Any, event: str):
+        return event == "indexPriceUpdate"
+
+    @property
+    def indexprice(self) -> "IndexPrice":
+        return self.get("indexprice", IndexPrice)
+
 
 
 class Trade(DataStore):
@@ -356,6 +372,13 @@ class MarkPrice(DataStore):
             self._update(data)
         else:
             self._update([data])
+
+
+class IndexPrice(DataStore):
+    _KEYS = ["i"]
+
+    def _onmessage(self, data: Union[Item, list[Item]]) -> None:
+        self._update([data])
 
 
 class Kline(DataStore):
