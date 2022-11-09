@@ -630,7 +630,6 @@ class Order(DataStore):
     _KEYS = ["s", "i"]
 
     def _onmessage(self, item: Item) -> None:
-        event, items = None, None
         if item["e"] == "ORDER_TRADE_UPDATE":
             # futures
             event = item["o"]["X"]
@@ -639,12 +638,13 @@ class Order(DataStore):
             # spot
             event = item["X"]
             items = [item]
+        else:
+            raise RuntimeError(f"Unsupported event: {item}")
 
-        if event:
-            if event not in ("FILLED", "CANCELED", "EXPIRED", "REJECTED"):
-                self._update(items)
-            else:
-                self._delete(items)
+        if event not in ("FILLED", "CANCELED", "EXPIRED", "REJECTED"):
+            self._update(items)
+        else:
+            self._delete(items)
 
     def _onresponse(self, symbol: Optional[str], data: list[Item]) -> None:
         if symbol is not None:
