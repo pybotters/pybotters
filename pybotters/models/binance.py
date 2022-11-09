@@ -330,6 +330,23 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
     _KLINE_INIT_ENDPOINT = "/fapi/v1/klines"
     _POSITION_INIT_ENDPOINT = "/fapi/v2/positionRisk"
 
+    def _init(self):
+        super()._init()
+        self.create("compositeindex", datastore_class=CompositeIndex)
+
+    def _onmessage_hook(self, msg: Any, event: str, data: Any):
+        super()._onmessage_hook(msg, event, data)
+        if self._is_compositeindex_msg(msg, event):
+            self.compositeindex._onmessage(data)
+
+    def _is_compositeindex_msg(self, msg: Any, event: str):
+        return event == "compositeIndex"
+
+    @property
+    def compositeindex(self) -> "CompositeIndex":
+        return self.get("compositeindex", CompositeIndex)
+
+
 
 class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
     _ORDERBOOK_INIT_ENDPOINT = "/dapi/v1/depth"
@@ -414,6 +431,18 @@ class IndexPrice(DataStore):
 
     def _onmessage(self, item: Item) -> None:
         self._update([item])
+
+
+class CompositeIndex(DataStore):
+    _KEYS = ["s"]
+
+    def _onmessage(self, item: Item) -> None:
+        self._update([{
+            "s": item["s"],
+            "p": item["p"],
+            "E": item["E"],
+            "c": item["c"]
+        }])
 
 
 class Kline(DataStore):
