@@ -747,7 +747,3 @@ class OCOOrder(DataStore):
             self._delete([item])
         else:
             self._update([item])
-
-
-# 古いデータストアへのalias
-BinanceDataStore = BinanceUSDSMDataStore

@@ -17,8 +17,15 @@ logger = logging.getLogger(__name__)
 
 class BinanceDataStore(DataStoreManager):
     """
-    Binanceのデータストアマネージャー(※v0.4.0: Binance Futures USDⓈ-Mのみ)
+    非推奨: Binanceのデータストアマネージャー(※v0.4.0: Binance Futures USDⓈ-Mのみ)
     """
+
+    def __new__(cls, *args, **kwargs) -> BinanceDataStore:
+        logger.warning(
+            "DEPRECATION WARNING: BinanceDataStore will be changed to "
+            "BinanceUSDSMDataStore"
+        )
+        return super().__new__(cls)
 
     def _init(self) -> None:
         self.create("trade", datastore_class=Trade)
