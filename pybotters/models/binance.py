@@ -355,6 +355,7 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
         self.create("compositeindex", datastore_class=CompositeIndex)
 
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
+        super()._initialize_hook(resp, data, endpoint)
         if self._is_target_endpoint(self._COMPOSITEINDEX_INIT_ENDPOINT, endpoint):
             self.compositeindex._onresponse(data)
 
