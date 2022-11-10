@@ -230,10 +230,7 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
 
     def _onmessage_hook(self, msg: Any, event: str, data: Any):
-        if self._is_position_msg(msg, event):
-            self.position._onmessage(data)
-
-        elif self._is_markprice_msg(msg, event):
+        if self._is_markprice_msg(msg, event):
             self.markprice._onmessage(data)
 
         elif self._is_continouskline_msg(msg, event):
@@ -242,10 +239,8 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
         elif self._is_liquidation_msg(msg, event):
             self.liquidation._onmessage(data)
 
-        elif self._is_balance_msg(msg, event):
+        elif self._is_account_msg(msg, event):
             self.balance._onmessage(data)
-
-        elif self._is_position_msg(msg, event):
             self.position._onmessage(data)
 
 
@@ -264,10 +259,7 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
     def _is_liquidation_msg(self, msg: Any, event: str):
         return event == "forceOrder"
 
-    def _is_balance_msg(self, msg: Any, event: str):
-        return event == "ACCOUNT_UPDATE"
-
-    def _is_position_msg(self, msg: Any, event: str):
+    def _is_account_msg(self, msg: Any, event: str):
         return event == "ACCOUNT_UPDATE"
 
     def _is_order_msg(self, msg: Any, event: str):
