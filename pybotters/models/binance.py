@@ -60,7 +60,7 @@ class BinanceDataStoreBase(DataStoreManager):
         - GET /fapi/v1/indexInfo (DataStore: compositeindex)
 
 
-        """
+        """  # noqa
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
