@@ -501,7 +501,9 @@ class Kline(DataStore):
                 "q": kline_data[7],  # Quote asset volume
                 "V": kline_data[9],  # Taker buy base asset volume
                 "Q": kline_data[10],  # Taker buy quote asset volume
-                "B": kline_data[11],  # Ignore
+                "B": kline_data[11],  # Ignore,
+                "f": None,            # First trade ID
+                "L": None             # Last trade ID
             }
             for kline_data in data
         ]
