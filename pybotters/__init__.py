@@ -10,7 +10,12 @@ from aiohttp import hdrs
 from rich import print
 
 from .client import Client
-from .models.binance import BinanceDataStore, BinanceSpotDataStore, BinanceUSDSMDataStore, BinanceCOINMDataStore
+from .models.binance import (
+    BinanceDataStore,
+    BinanceSpotDataStore,
+    BinanceUSDSMDataStore,
+    BinanceCOINMDataStore,
+)
 from .models.bitbank import bitbankDataStore
 from .models.bitflyer import bitFlyerDataStore
 from .models.bitget import BitgetDataStore

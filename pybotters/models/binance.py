@@ -77,9 +77,7 @@ class BinanceDataStoreBase(DataStoreManager):
             self._initialize_hook(resp, data, endpoint)
 
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
-        """ 子クラス用initialize hook
-
-        """
+        """子クラス用initialize hook"""
         ...
 
     def _is_target_endpoint(self, target: Union[str, tuple[str], None], endpoint: str):
@@ -98,16 +96,12 @@ class BinanceDataStoreBase(DataStoreManager):
             self.orderbook._onresponse(resp.url.query["symbol"], data)
 
     def _initialize_order(self, resp: aiohttp.ClientResponse, data: Any):
-        symbol = (
-            resp.url.query["symbol"] if "symbol" in resp.url.query else None
-        )
+        symbol = resp.url.query["symbol"] if "symbol" in resp.url.query else None
         self.order._onresponse(symbol, data)
 
     def _initialize_listenkey(self, resp: aiohttp.ClientResponse, data: Any):
         self.listenkey = data["listenKey"]
-        asyncio.create_task(
-            self._listenkey(resp.url, resp.__dict__["_raw_session"])
-        )
+        asyncio.create_task(self._listenkey(resp.url, resp.__dict__["_raw_session"]))
 
     def _initialize_kline(self, resp: aiohttp.ClientResponse, data: Any):
         self.kline._onresponse(
@@ -148,9 +142,7 @@ class BinanceDataStoreBase(DataStoreManager):
             return None
 
     def _onmessage_hook(self, msg: Any, event: str, data: Any):
-        """ 子クラス用メッセージハンドラーhook
-
-        """
+        """子クラス用メッセージハンドラーhook"""
         ...
 
     def _is_trade_msg(self, msg: Any, event: str):
@@ -173,7 +165,6 @@ class BinanceDataStoreBase(DataStoreManager):
 
     def _is_order_msg(self, msg: Any, event: str):
         raise NotImplementedError
-
 
     @staticmethod
     async def _listenkey(url, session: aiohttp.ClientSession):
@@ -221,13 +212,11 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
         self.create("balance", datastore_class=Balance)
         self.create("position", datastore_class=Position)
 
-
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
         if self._is_target_endpoint(self._BALANCE_INIT_ENDPOINT, endpoint):
             self._initialize_balance(resp, data)
         elif self._is_target_endpoint(self._POSITION_INIT_ENDPOINT, endpoint):
             self._initialize_position(resp, data)
-
 
     def _onmessage_hook(self, msg: Any, event: str, data: Any):
         if self._is_markprice_msg(msg, event):
@@ -242,7 +231,6 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
         elif self._is_account_msg(msg, event):
             self.balance._onmessage(data)
             self.position._onmessage(data)
-
 
     def _initialize_position(self, resp: aiohttp.ClientResponse, data: Any):
         self.position._onresponse(data)
@@ -284,8 +272,6 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
     @property
     def position(self) -> "Position":
         return self.get("position", Position)
-
-
 
 
 class BinanceSpotDataStore(BinanceDataStoreBase):
@@ -364,13 +350,16 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
         return self.get("compositeindex", CompositeIndex)
 
 
-
 class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
     _ORDERBOOK_INIT_ENDPOINT = "/dapi/v1/depth"
     _BALANCE_INIT_ENDPOINT = "/dapi/v1/balance"
     _ORDER_INIT_ENDPOINT = "/dapi/v1/openOrders"
     _LISTENKEY_INIT_ENDPOINT = "/dapi/v1/listenKey"
-    _KLINE_INIT_ENDPOINT = ("/dapi/v1/klines", "/dapi/v1/indexPriceKlines", "/dapi/v1/markPriceKlines")
+    _KLINE_INIT_ENDPOINT = (
+        "/dapi/v1/klines",
+        "/dapi/v1/indexPriceKlines",
+        "/dapi/v1/markPriceKlines",
+    )
     _POSITION_INIT_ENDPOINT = "/dapi/v1/positionRisk"
 
     def _init(self):
@@ -456,26 +445,28 @@ class CompositeIndex(DataStore):
 
     def _onresponse(self, item: list[Item]):
         for i in item:
-            self._update([{
-                "s": i["symbol"],
-                "p": None,
-                "E": i["time"],
-                "c": [{
-                    "b": a["baseAsset"],
-                    "q": a["quoteAsset"],
-                    "w": a["weightInQuantity"],
-                    "W": a["weightInPercentage"],
-                    "i": None
-                } for a in i["baseAssetList"]]
-            }])
+            self._update(
+                [
+                    {
+                        "s": i["symbol"],
+                        "p": None,
+                        "E": i["time"],
+                        "c": [
+                            {
+                                "b": a["baseAsset"],
+                                "q": a["quoteAsset"],
+                                "w": a["weightInQuantity"],
+                                "W": a["weightInPercentage"],
+                                "i": None,
+                            }
+                            for a in i["baseAssetList"]
+                        ],
+                    }
+                ]
+            )
 
     def _onmessage(self, item: Item) -> None:
-        self._update([{
-            "s": item["s"],
-            "p": item["p"],
-            "E": item["E"],
-            "c": item["c"]
-        }])
+        self._update([{"s": item["s"], "p": item["p"], "E": item["E"], "c": item["c"]}])
 
 
 class Kline(DataStore):
@@ -502,8 +493,8 @@ class Kline(DataStore):
                 "V": kline_data[9],  # Taker buy base asset volume
                 "Q": kline_data[10],  # Taker buy quote asset volume
                 "B": kline_data[11],  # Ignore,
-                "f": None,            # First trade ID
-                "L": None             # Last trade ID
+                "f": None,  # First trade ID
+                "L": None,  # Last trade ID
             }
             for kline_data in data
         ]
@@ -715,7 +706,7 @@ class Order(DataStore):
                             "E": item["time"],
                             "T": item["updateTime"],
                             "w": item["isWorking"],
-                            "Q": item['origQuoteOrderQty']
+                            "Q": item["origQuoteOrderQty"],
                         }
                     ]
                 )
@@ -726,27 +717,30 @@ class OCOOrder(DataStore):
 
     def _onresponse(self, data: list[Item]) -> None:
         for d in data:
-            self._update([{
-                "e": "listStatus",
-                "E": None,
-                "s": d["symbol"],
-                "g": d["orderListId"],
-                "c": d["contingencyType"],
-                "l": d["listStatusType"],
-                "L": d["listOrderStatus"],
-                "r": "NONE",
-                "C": d["listClientOrderId"],
-                "T": d["transactionTime"],
-                "O": [
+            self._update(
+                [
                     {
-                        "s": o["symbol"],
-                        "i": o["orderId"],
-                        "c": o["clientOrderId"]
-                    } for o in d["orders"]
+                        "e": "listStatus",
+                        "E": None,
+                        "s": d["symbol"],
+                        "g": d["orderListId"],
+                        "c": d["contingencyType"],
+                        "l": d["listStatusType"],
+                        "L": d["listOrderStatus"],
+                        "r": "NONE",
+                        "C": d["listClientOrderId"],
+                        "T": d["transactionTime"],
+                        "O": [
+                            {
+                                "s": o["symbol"],
+                                "i": o["orderId"],
+                                "c": o["clientOrderId"],
+                            }
+                            for o in d["orders"]
+                        ],
+                    }
                 ]
-            }])
-
-
+            )
 
     def _onmessage(self, item: Item) -> None:
         if item["l"] == "ALL_DONE":
