@@ -36,7 +36,7 @@ An advanced api client for python botters.
 | Name | API auth | DataStore | API docs |
 | --- | --- | --- | --- |
 | Bybit | ✅ | ✅ | [Official](https://bybit-exchange.github.io/docs/inverse) |
-| Binance | ✅ | ✅(USDⓈ-M) | [Official](https://binance-docs.github.io/apidocs/futures/en/) |
+| Binance | ✅ | ✅ | [Official](https://binance-docs.github.io/apidocs/spot/en/) |
 | OKX | ✅ | ✅ | [Official](https://www.okx.com/docs-v5/en/) |
 | Phemex | ✅ | ✅ | [Official](https://github.com/phemex/phemex-api-docs) |
 | Bitget | ✅ | ✅ | [Official](https://bitgetlimited.github.io/apidoc/en/mix/) |
