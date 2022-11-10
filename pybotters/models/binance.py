@@ -385,6 +385,7 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
             self.indexprice._onmessage(data)
 
         if self._is_indexpricekline_msg(msg, event):
+            data["k"]["s"] = data["ps"]
             self.indexpricekline._onmessage(data)
 
         if self._is_markpricekline_msg(msg, event):
