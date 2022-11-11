@@ -1,16 +1,14 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.238.0/containers/python-3/.devcontainer/base.Dockerfile
+FROM mcr.microsoft.com/devcontainers/python:0-3.7-bullseye
 
-# [Choice] Python version (use -bullseye variants on local arm64/Apple Silicon): 3, 3.10, 3.9, 3.8, 3.7, 3.6, 3-bullseye, 3.10-bullseye, 3.9-bullseye, 3.8-bullseye, 3.7-bullseye, 3.6-bullseye, 3-buster, 3.10-buster, 3.9-buster, 3.8-buster, 3.7-buster, 3.6-buster
-ARG VARIANT="3.7-bullseye"
-FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends \
+    bash-completion \
+    && rm -rf /var/lib/apt/lists/*
 
-# Poetry
-USER vscode
-RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/home/vscode/.poetry python3 -
-ENV PATH "/home/vscode/.poetry/bin:$PATH"
-RUN poetry config virtualenvs.create false
+ENV POETRY_HOME="/etc/poetry" \
+    POETRY_VIRTUALENVS_CREATE="false"
+ENV PATH="$POETRY_HOME/bin:$PATH"
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.1.15 python3 - \
+    && poetry completions bash > /etc/bash_completion.d/poetry.bash-completion
 
-WORKDIR /workspaces/pybotters
-COPY . $PWD
-
-RUN poetry install
+RUN rm -rf "$PIPX_HOME"
