@@ -5,8 +5,13 @@
 	},
 	"mounts": [
 		{
-			"source": "${localEnv:PYBOTTERS_APIS}",
-			"target": "${localEnv:PYBOTTERS_APIS}",
+			"source": "${localEnv:HOME}/.cache",
+			"target": "/home/vscode/.cache",
+			"type": "bind"
+		},
+		{
+			"source": "${localEnv:PYBOTTERS_APIS:/dev/null}",
+			"target": "${localEnv:PYBOTTERS_APIS:/dev/null}",
 			"type": "bind"
 		}
 	],
