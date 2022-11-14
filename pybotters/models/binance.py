@@ -166,10 +166,19 @@ class BinanceDataStoreBase(DataStoreManager):
     def _is_order_msg(self, msg: Any, event: str):
         raise NotImplementedError
 
-    @staticmethod
-    async def _listenkey(url, session: aiohttp.ClientSession):
+    async def _listenkey(self, url: aiohttp.client.URL, session: aiohttp.ClientSession):
+        if url.path.startswith(BinanceSpotDataStore._LISTENKEY_INIT_ENDPOINT):
+            params = {"listenKey": self.listenkey}
+        else:
+            params = None
         while not session.closed:
-            await session.put(url, auth=Auth)
+            async with session.put(url, params=params, auth=Auth) as resp:
+                text = await resp.text()
+            try:
+                resp.raise_for_status()
+            except aiohttp.ClientResponseError:
+                logger.error(text)
+                raise
             await asyncio.sleep(1800.0)  # 30 minutes
 
     @property
