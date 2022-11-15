@@ -672,11 +672,16 @@ class Positions(DataStore):
         reason = d["changeReason"]
         if reason == "positionChange":
             if d["isOpen"]:
+                # 新規ポジション or ポジション数量変化
                 d["side"] = "BUY" if d["currentQty"] > 0 else "SELL"
                 self._update([d])
             else:
+                # ポジション解消
                 self._delete([d])
         elif reason == "markPriceChange":
+            # mark priceの変化によるポジション情報の部分更新
+            # 性質上prev_itemは必ず存在するはず（ポジションが解消された後にマークプライス変化に
+            # よるポジション情報の更新メッセージは来ないはず）
             prev_item = self.get(d)
             updated_item = {**prev_item, **d}
             self._update([updated_item])
