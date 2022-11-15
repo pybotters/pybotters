@@ -669,19 +669,14 @@ class Positions(DataStore):
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
         d = msg["data"]
-        if msg["subject"] == "position.change":
-            d["side"] = self._get_side(d)
-
-            if d.get("currentQty", 1) > 0:
+        reason = d["changeReason"]
+        if reason == "positionChange":
+            if d["isOpen"]:
+                d["side"] = "BUY" if d["currentQty"] > 0 else "SELL"
                 self._update([d])
             else:
                 self._delete([d])
-
-        # TODO: 未対応subject
-        # - position.settlement
-        # - position.adjustRiskLimit
-
-    @classmethod
-    def _get_side(cls, d):
-        if "currentQty" in d:
-            return "BUY" if d["currentQty"] > 0 else "SELL"
+        elif reason == "markPriceChange":
+            prev_item = self.get(d)
+            updated_item = {**prev_item, **d}
+            self._update([updated_item])
