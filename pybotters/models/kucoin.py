@@ -665,7 +665,8 @@ class Positions(DataStore):
 
     def _onresponse(self, data) -> None:
         for d in data:
-            self._insert([{"side": self._get_side(d), **d}])
+            if d["isOpen"]:
+                self._insert([{"side": "BUY" if d["currentQty"] > 0 else "SELL", **d}])
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
         d = msg["data"]
