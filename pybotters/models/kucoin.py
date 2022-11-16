@@ -674,10 +674,12 @@ class Positions(DataStore):
         if reason == "positionChange":
             if d["isOpen"]:
                 # 新規ポジション or ポジション数量変化
+                assert d["currentQty"] != 0
                 d["side"] = "BUY" if d["currentQty"] > 0 else "SELL"
                 self._update([d])
             else:
                 # ポジション解消
+                assert d["currentQty"] == 0
                 self._delete([d])
         elif reason == "markPriceChange":
             # mark priceの変化によるポジション情報の部分更新
