@@ -156,6 +156,7 @@ async def test_client_ws_connect(mocker: pytest_mock.MockerFixture):
             hdlr_str=hdlr_str,
             hdlr_bytes=hdlr_bytes,
             hdlr_json=hdlr_json,
+            heartbeat=42.0,
         )
     assert m.called
     assert m.call_args == [
@@ -167,6 +168,7 @@ async def test_client_ws_connect(mocker: pytest_mock.MockerFixture):
             "hdlr_str": hdlr_str,
             "hdlr_bytes": hdlr_bytes,
             "hdlr_json": hdlr_json,
+            "heartbeat": 42.0,
         },
     ]
     assert ret == runner_mock
