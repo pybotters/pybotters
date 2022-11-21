@@ -665,23 +665,27 @@ class Positions(DataStore):
 
     def _onresponse(self, data) -> None:
         for d in data:
-            self._insert([{"side": self._get_side(d), **d}])
+            if d["isOpen"]:
+                assert d["currentQty"] != 0
+                self._insert([{"side": "BUY" if d["currentQty"] > 0 else "SELL", **d}])
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
         d = msg["data"]
-        if msg["subject"] == "position.change":
-            d["side"] = self._get_side(d)
-
-            if d.get("currentQty", 1) > 0:
+        reason = d["changeReason"]
+        if reason == "positionChange":
+            if d["isOpen"]:
+                # 新規ポジション or ポジション数量変化
+                assert d["currentQty"] != 0
+                d["side"] = "BUY" if d["currentQty"] > 0 else "SELL"
                 self._update([d])
             else:
+                # ポジション解消
+                assert d["currentQty"] == 0
                 self._delete([d])
-
-        # TODO: 未対応subject
-        # - position.settlement
-        # - position.adjustRiskLimit
-
-    @classmethod
-    def _get_side(cls, d):
-        if "currentQty" in d:
-            return "BUY" if d["currentQty"] > 0 else "SELL"
+        elif reason == "markPriceChange":
+            # mark priceの変化によるポジション情報の部分更新
+            # 性質上prev_itemは必ず存在するはず（ポジションが解消された後にマークプライス変化に
+            # よるポジション情報の更新メッセージは来ないはず）
+            prev_item = self.get(d)
+            updated_item = {**prev_item, **d}
+            self._update([updated_item])
