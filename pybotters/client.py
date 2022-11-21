@@ -193,6 +193,7 @@ class Client:
         hdlr_str: Optional[WsStrHandler] = None,
         hdlr_bytes: Optional[WsBytesHandler] = None,
         hdlr_json: Optional[WsJsonHandler] = None,
+        heartbeat: float = 10.0,
         **kwargs: Any,
     ) -> WebSocketRunner:
         """
@@ -217,6 +218,7 @@ class Client:
             hdlr_str=hdlr_str,
             hdlr_bytes=hdlr_bytes,
             hdlr_json=hdlr_json,
+            heartbeat=heartbeat,
             **kwargs,
         )
         await ws.wait()
