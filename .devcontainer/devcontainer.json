@@ -5,11 +5,6 @@
 	},
 	"mounts": [
 		{
-			"source": "${localEnv:HOME}/.cache",
-			"target": "/home/vscode/.cache",
-			"type": "bind"
-		},
-		{
 			"source": "${localEnv:PYBOTTERS_APIS:/dev/null}",
 			"target": "${localEnv:PYBOTTERS_APIS:/dev/null}",
 			"type": "bind"
@@ -26,25 +21,51 @@
 				"be5invis.toml"
 			],
 			"settings": {
+				// overwrite
+				"python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+				"python.formatting.autopep8Path": "autopep8",
 				"python.formatting.blackPath": "black",
+				"python.formatting.yapfPath": "yapf",
+				"python.linting.banditPath": "bandit",
 				"python.linting.flake8Path": "flake8",
+				"python.linting.mypyPath": "mypy",
+				"python.linting.pycodestylePath": "pycodestyle",
+				"python.linting.pydocstylePath": "pydocstyle",
+				"python.linting.pylintPath": "pylint",
+				"python.linting.enabled": true,
 				"python.linting.pylintEnabled": false,
-				"python.linting.flake8Enabled": true,
+				// formatting
 				"python.formatting.provider": "black",
-				"editor.formatOnSave": true,
-				"editor.codeActionsOnSave": {
-					"source.organizeImports": true
+				"[python]": {
+					"editor.formatOnSave": true,
+					"editor.codeActionsOnSave": {
+						"source.organizeImports": true
+					},
+					"editor.rulers": [
+						88
+					]
 				},
+				"isort.path": [
+					"isort"
+				],
+				"isort.args": [
+					"--profile=black"
+				],
+				// linting
+				"python.linting.flake8Enabled": true,
+				"python.linting.flake8Args": [
+					"--max-line-length=88",
+					"--extend-ignore=E203"
+				],
+				// testing
+				"python.testing.pytestEnabled": true,
 				"python.testing.pytestArgs": [
 					"tests"
-				],
-				"python.testing.pytestEnabled": true
+				]
 			}
 		}
 	},
-	"build": {
-		"dockerfile": "Dockerfile",
-		"context": ".."
-	},
-	"postCreateCommand": "poetry install"
+	"image": "mcr.microsoft.com/devcontainers/python:0-3.7-bullseye",
+	"postCreateCommand": ".devcontainer/post-install.sh",
+	"waitFor": "postCreateCommand"
 }
