@@ -24,9 +24,10 @@ class CoincheckDataStore(DataStoreManager):
                 self.orderbook._onresponse(symbol, data)
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
-        if len(msg) == 5:
-            self.trades._onmessage(*msg)
-        elif len(msg) == 2:
+        first_item = next(iter(msg), None)
+        if isinstance(first_item, list):
+            self.trades._onmessage(msg)
+        elif isinstance(first_item, str):
             self.orderbook._onmessage(*msg)
 
     @property
@@ -41,14 +42,29 @@ class CoincheckDataStore(DataStoreManager):
 class Trades(DataStore):
     _MAXLEN = 99999
 
-    def _onmessage(self, id: int, pair: str, rate: str, amount: str, side: str) -> None:
-        self._insert(
-            [{"id": id, "pair": pair, "rate": rate, "amount": amount, "side": side}]
-        )
+    def _onmessage(self, msg: list[list[str]]) -> None:
+        for item in msg:
+            self._insert(
+                [
+                    {
+                        "timestamp": item[0],
+                        "id": item[1],
+                        "pair": item[2],
+                        "rate": item[3],
+                        "amount": item[4],
+                        "side": item[5],
+                        "taker_id": item[6],
+                        "maker_id": item[7],
+                    }
+                ]
+            )
 
 
 class Orderbook(DataStore):
     _KEYS = ["side", "rate"]
+
+    def _init(self):
+        self.last_update_at: Optional[str] = None
 
     def sorted(self, query: Optional[Item] = None) -> dict[str, list[list[str]]]:
         if query is None:
@@ -73,9 +89,12 @@ class Orderbook(DataStore):
         self._insert(result)
 
     def _onmessage(self, pair: str, data: dict[str, list[list[str]]]) -> None:
+        self.last_update_at = data.pop("last_update_at")
         for side in data:
             for rate, amount in data[side]:
                 if amount == "0":
-                    self._delete([{"side": side, "rate": rate}])
+                    self._delete([{"pair": pair, "side": side, "rate": rate}])
                 else:
-                    self._update([{"side": side, "rate": rate, "amount": amount}])
+                    self._update(
+                        [{"pair": pair, "side": side, "rate": rate, "amount": amount}]
+                    )
