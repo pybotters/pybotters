@@ -20,8 +20,8 @@ class CoincheckDataStore(DataStoreManager):
             resp = await f
             data = await resp.json()
             if resp.url.path == "/api/order_books":
-                symbol = resp.url.query.get("symbol")
-                self.orderbook._onresponse(symbol, data)
+                pair = resp.url.query.get("pair")
+                self.orderbook._onresponse(pair, data)
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         first_item = next(iter(msg), None)
@@ -61,7 +61,7 @@ class Trades(DataStore):
 
 
 class Orderbook(DataStore):
-    _KEYS = ["side", "rate"]
+    _KEYS = ["pair", "side", "rate"]
 
     def _init(self):
         self.last_update_at: Optional[str] = None
@@ -77,16 +77,15 @@ class Orderbook(DataStore):
         result["bids"].sort(key=lambda x: float(x[0]), reverse=True)
         return result
 
-    def _onresponse(self, symbol: Optional[str], data: dict[list[str]]) -> None:
-        if symbol is None:
-            symbol = "btc_jpy"
-        result = []
+    def _onresponse(self, pair: Optional[str], data: dict[list[str]]) -> None:
+        if pair is None:
+            pair = "btc_jpy"
+        self._find_and_delete({"pair": pair})
         for side in data:
             for rate, amount in data[side]:
-                result.append(
-                    {"symbol": symbol, "side": side, "rate": rate, "amount": amount}
+                self._insert(
+                    [{"pair": pair, "side": side, "rate": rate, "amount": amount}]
                 )
-        self._insert(result)
 
     def _onmessage(self, pair: str, data: dict[str, list[list[str]]]) -> None:
         self.last_update_at = data.pop("last_update_at")
