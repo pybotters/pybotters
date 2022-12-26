@@ -61,7 +61,12 @@
 				"python.testing.pytestEnabled": true,
 				"python.testing.pytestArgs": [
 					"tests"
-				]
+				],
+				// other
+				"python.interpreter.infoVisibility": "always",
+				"files.exclude": {
+					"**/.venv": true
+				}
 			}
 		}
 	},
