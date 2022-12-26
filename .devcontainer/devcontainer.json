@@ -1,44 +1,76 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.238.0/containers/python-3
 {
-	"name": "Python 3",
-	"build": {
-		"dockerfile": "Dockerfile",
-		"context": "..",
-		"args": {
-			// Update 'VARIANT' to pick a Python version: 3, 3.10, 3.9, 3.8, 3.7, 3.6
-			// Append -bullseye or -buster to pin to an OS version.
-			// Use -bullseye variants on local on arm64/Apple Silicon.
-			"VARIANT": "3.7-bullseye"
-		}
+	"name": "pybotters",
+	"remoteEnv": {
+		"PYBOTTERS_APIS": "${localEnv:PYBOTTERS_APIS}"
 	},
-	// Configure tool-specific properties.
-	"customizations": {
-		// Configure properties specific to VS Code.
-		"vscode": {
-			// Set *default* container specific settings.json values on container create.
-			"settings": {
-				"python.defaultInterpreterPath": "/usr/local/bin/python",
-				"python.linting.enabled": true,
-				"python.linting.flake8Enabled": true,
-				"python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-				"python.linting.flake8Path": "/usr/local/py-utils/bin/flake8"
-			},
-			// Add the IDs of extensions you want installed when the container is created.
-			"extensions": [
-				"ms-python.python",
-				"ms-python.vscode-pylance"
-			]
+	"mounts": [
+		{
+			"source": "${localEnv:PYBOTTERS_APIS:/dev/null}",
+			"target": "${localEnv:PYBOTTERS_APIS:/dev/null}",
+			"type": "bind"
 		}
-	},
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "",
-	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "vscode",
-	"workspaceFolder": "/workspaces/pybotters",
+	],
 	"features": {
-		"github-cli": "latest"
-	}
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"GitHub.vscode-pull-request-github",
+				"eamodio.gitlens",
+				"be5invis.toml"
+			],
+			"settings": {
+				// overwrite
+				"python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+				"python.formatting.autopep8Path": "autopep8",
+				"python.formatting.blackPath": "black",
+				"python.formatting.yapfPath": "yapf",
+				"python.linting.banditPath": "bandit",
+				"python.linting.flake8Path": "flake8",
+				"python.linting.mypyPath": "mypy",
+				"python.linting.pycodestylePath": "pycodestyle",
+				"python.linting.pydocstylePath": "pydocstyle",
+				"python.linting.pylintPath": "pylint",
+				"python.linting.enabled": true,
+				"python.linting.pylintEnabled": false,
+				// formatting
+				"python.formatting.provider": "black",
+				"[python]": {
+					"editor.formatOnSave": true,
+					"editor.codeActionsOnSave": {
+						"source.organizeImports": true
+					},
+					"editor.rulers": [
+						88
+					]
+				},
+				"isort.path": [
+					"isort"
+				],
+				"isort.args": [
+					"--profile=black"
+				],
+				// linting
+				"python.linting.flake8Enabled": true,
+				"python.linting.flake8Args": [
+					"--max-line-length=88",
+					"--extend-ignore=E203"
+				],
+				// testing
+				"python.testing.pytestEnabled": true,
+				"python.testing.pytestArgs": [
+					"tests"
+				],
+				// other
+				"python.interpreter.infoVisibility": "always",
+				"files.exclude": {
+					"**/.venv": true
+				}
+			}
+		}
+	},
+	"image": "mcr.microsoft.com/devcontainers/python:0-3.7-bullseye",
+	"postCreateCommand": ".devcontainer/post-install.sh",
+	"waitFor": "postCreateCommand"
 }
