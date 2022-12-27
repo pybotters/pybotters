@@ -161,6 +161,29 @@ class WebSocketRunner:
         return self._task.__await__()
 
 
+class WebSocketQueue(asyncio.Queue):
+    def onmessage(self, msg: Any, ws: aiohttp.ClientWebSocketResponse):
+        self.put_nowait((msg, ws))
+
+    async def wait_for(
+        self, timeout: Optional[float] = None
+    ) -> tuple[Any, aiohttp.ClientWebSocketResponse]:
+        return await asyncio.wait_for(self.get(), timeout)
+
+    async def iter(
+        self, *, timeout: Optional[float] = None
+    ) -> Generator[tuple[Any, aiohttp.ClientWebSocketResponse], None, None]:
+        while True:
+            yield await self.wait_for(timeout)
+
+    async def iter_msg(
+        self, *, timeout: Optional[float] = None
+    ) -> Generator[Any, None, None]:
+        while True:
+            msg, ws = await self.wait_for(timeout)
+            yield msg
+
+
 class Heartbeat:
     @staticmethod
     async def bybit(ws: aiohttp.ClientWebSocketResponse):
