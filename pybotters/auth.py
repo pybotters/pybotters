@@ -4,7 +4,6 @@ import base64
 import datetime
 import hashlib
 import hmac
-import json
 import time
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -152,42 +151,6 @@ class Auth:
         headers.update(
             {"API-KEY": key, "API-TIMESTAMP": timestamp, "API-SIGN": signature}
         )
-
-        return args
-
-    @staticmethod
-    def liquid(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
-        url: URL = args[1]
-        data: dict[str, Any] = kwargs["data"] or {}
-        headers: CIMultiDict = kwargs["headers"]
-
-        session: aiohttp.ClientSession = kwargs["session"]
-        key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
-        secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
-
-        json_payload = json.dumps(
-            {
-                "path": url.raw_path_qs,
-                "nonce": str(int(time.time() * 1000)),
-                "token_id": key,
-            },
-            separators=(",", ":"),
-        ).encode()
-        json_header = json.dumps(
-            {"typ": "JWT", "alg": "HS256"},
-            separators=(",", ":"),
-        ).encode()
-        segments = [
-            base64.urlsafe_b64encode(json_header).replace(b"=", b""),
-            base64.urlsafe_b64encode(json_payload).replace(b"=", b""),
-        ]
-        signing_input = b".".join(segments)
-        signature = hmac.new(secret, signing_input, hashlib.sha256).digest()
-        segments.append(base64.urlsafe_b64encode(signature).replace(b"=", b""))
-        encoded_string = b".".join(segments).decode()
-        body = JsonPayload(data) if data else FormData(data)()
-        kwargs.update({"data": body})
-        headers.update({"X-Quoine-API-Version": "2", "X-Quoine-Auth": encoded_string})
 
         return args
 
@@ -527,7 +490,6 @@ class Hosts:
         "testnetws.binanceops.com": Item("binance_testnet", Auth.binance),
         "api.bitflyer.com": Item("bitflyer", Auth.bitflyer),
         "api.coin.z.com": Item("gmocoin", Auth.gmocoin),
-        "api.liquid.com": Item("liquid", Auth.liquid),
         "api.bitbank.cc": Item("bitbank", Auth.bitbank),
         "ftx.com": Item("ftx", Auth.ftx),
         "www.bitmex.com": Item("bitmex", Auth.bitmex),

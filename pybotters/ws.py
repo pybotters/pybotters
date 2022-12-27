@@ -175,12 +175,6 @@ class Heartbeat:
             await asyncio.sleep(15.0)
 
     @staticmethod
-    async def liquid(ws: aiohttp.ClientWebSocketResponse):
-        while not ws.closed:
-            await ws.send_str('{"event":"pusher:ping","data":{}}')
-            await asyncio.sleep(60.0)
-
-    @staticmethod
     async def ftx(ws: aiohttp.ClientWebSocketResponse):
         while not ws.closed:
             await ws.send_str('{"op":"ping"}')
@@ -263,47 +257,6 @@ class Auth:
                         break
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 break
-
-    @staticmethod
-    async def liquid(ws: aiohttp.ClientWebSocketResponse):
-        key: str = ws._response._session.__dict__["_apis"][
-            AuthHosts.items[ws._response.url.host].name
-        ][0]
-        secret: bytes = ws._response._session.__dict__["_apis"][
-            AuthHosts.items[ws._response.url.host].name
-        ][1]
-
-        json_payload = json.dumps(
-            {
-                "path": "/realtime",
-                "nonce": str(int(time.time() * 1000)),
-                "token_id": key,
-            },
-            separators=(",", ":"),
-        ).encode()
-        json_header = json.dumps(
-            {"typ": "JWT", "alg": "HS256"},
-            separators=(",", ":"),
-        ).encode()
-        segments = [
-            base64.urlsafe_b64encode(json_header).replace(b"=", b""),
-            base64.urlsafe_b64encode(json_payload).replace(b"=", b""),
-        ]
-        signing_input = b".".join(segments)
-        signature = hmac.new(secret, signing_input, hashlib.sha256).digest()
-        segments.append(base64.urlsafe_b64encode(signature).replace(b"=", b""))
-        encoded_string = b".".join(segments).decode()
-
-        await ws.send_json(
-            {
-                "event": "quoine:auth_request",
-                "data": {
-                    "path": "/realtime",
-                    "headers": {"X-Quoine-Auth": encoded_string},
-                },
-            },
-            _itself=True,
-        )
 
     @staticmethod
     async def ftx(ws: aiohttp.ClientWebSocketResponse):
@@ -477,7 +430,6 @@ class HeartbeatHosts:
         "stream.bybit.com": Heartbeat.bybit,
         "stream.bytick.com": Heartbeat.bybit,
         "stream-testnet.bybit.com": Heartbeat.bybit,
-        "tap.liquid.com": Heartbeat.liquid,
         "ftx.com": Heartbeat.ftx,
         "stream.binance.com": Heartbeat.binance,
         "fstream.binance.com": Heartbeat.binance,
@@ -501,7 +453,6 @@ class HeartbeatHosts:
 class AuthHosts:
     items = {
         "ws.lightstream.bitflyer.com": Item("bitflyer", Auth.bitflyer),
-        "tap.liquid.com": Item("liquid", Auth.liquid),
         "ftx.com": Item("ftx", Auth.ftx),
         "phemex.com": Item("phemex", Auth.phemex),
         "testnet.phemex.com": Item("phemex_testnet", Auth.phemex),

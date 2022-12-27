@@ -167,39 +167,6 @@ async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
 
 
 @pytest.mark.asyncio
-async def test_liquid_ws(mocker: pytest_mock.MockerFixture):
-    mocker.patch("time.time", return_value=2085848896.0)
-
-    async def dummy_send(msg, **kwargs):
-        expected = {
-            "event": "quoine:auth_request",
-            "data": {
-                "path": "/realtime",
-                "headers": {
-                    "X-Quoine-Auth": (
-                        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL3JlYWx0aW1lI"
-                        "iwibm9uY2UiOiIyMDg1ODQ4ODk2MDAwIiwidG9rZW5faWQiOiI1RGp6Z21RWFJ"
-                        "rc1FOREJRNUcxck5JdjcifQ.9BS3xGAJW_Ggr_0LzfH1TNf8LjFeXl95yGvn9A"
-                        "7sKm4"
-                    )
-                },
-            },
-        }
-        assert msg == expected
-
-    ws = MagicMock()
-    ws._response.url.host = "tap.liquid.com"
-    ws._response._session.__dict__["_apis"] = {
-        "liquid": (
-            "5DjzgmQXRksQNDBQ5G1rNIv7",
-            b"WXlZDDzyjWtz1bd7MsGoXPMEohkdUuB95HHgBbKwKBaCyDrp",
-        ),
-    }
-    ws.send_json.side_effect = dummy_send
-    await pybotters.ws.Auth.liquid(ws)
-
-
-@pytest.mark.asyncio
 async def test_ftx_ws(mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
 

@@ -88,7 +88,6 @@ Phemex   ``phemex``\ \ ``phemex_testnet``
 BitMEX   ``bitmex``\ \ ``bitmex_testnet``
 bitFlyer ``bitflyer``
 GMO Coin ``gmocoin``
-Liquid   ``liquid``
 bitbank  ``bitbank``
 ======== ==================================
 
