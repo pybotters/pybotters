@@ -198,12 +198,6 @@ class Heartbeat:
             await asyncio.sleep(15.0)
 
     @staticmethod
-    async def ftx(ws: aiohttp.ClientWebSocketResponse):
-        while not ws.closed:
-            await ws.send_str('{"op":"ping"}')
-            await asyncio.sleep(15.0)
-
-    @staticmethod
     async def binance(ws: aiohttp.ClientWebSocketResponse):
         while not ws.closed:
             await ws.pong()
@@ -280,30 +274,6 @@ class Auth:
                         break
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 break
-
-    @staticmethod
-    async def ftx(ws: aiohttp.ClientWebSocketResponse):
-        key: str = ws._response._session.__dict__["_apis"][
-            AuthHosts.items[ws._response.url.host].name
-        ][0]
-        secret: bytes = ws._response._session.__dict__["_apis"][
-            AuthHosts.items[ws._response.url.host].name
-        ][1]
-
-        ts = int(time.time() * 1000)
-        sign = hmac.new(
-            secret, f"{ts}websocket_login".encode(), digestmod=hashlib.sha256
-        ).hexdigest()
-
-        msg = {
-            "op": "login",
-            "args": {"key": key, "sign": sign, "time": ts},
-        }
-        if "FTX-SUBACCOUNT" in ws._response.request_info.headers:
-            msg["args"]["subaccount"] = ws._response.request_info.headers[
-                "FTX-SUBACCOUNT"
-            ]
-        await ws.send_json(msg, _itself=True)
 
     @staticmethod
     async def phemex(ws: aiohttp.ClientWebSocketResponse):
@@ -453,7 +423,6 @@ class HeartbeatHosts:
         "stream.bybit.com": Heartbeat.bybit,
         "stream.bytick.com": Heartbeat.bybit,
         "stream-testnet.bybit.com": Heartbeat.bybit,
-        "ftx.com": Heartbeat.ftx,
         "stream.binance.com": Heartbeat.binance,
         "fstream.binance.com": Heartbeat.binance,
         "dstream.binance.com": Heartbeat.binance,
@@ -476,7 +445,6 @@ class HeartbeatHosts:
 class AuthHosts:
     items = {
         "ws.lightstream.bitflyer.com": Item("bitflyer", Auth.bitflyer),
-        "ftx.com": Item("ftx", Auth.ftx),
         "phemex.com": Item("phemex", Auth.phemex),
         "testnet.phemex.com": Item("phemex_testnet", Auth.phemex),
         "ws.okx.com": Item("okx", Auth.okx),
