@@ -219,10 +219,15 @@ class Orders(DataStore):
     def _onmessage(self, data: list[Item]) -> None:
         for item in data:
             if item["ordStatus"] == "New":
+                if self.get(item):
+                    self._update([item])
+                else:
+                    self._insert([item])
+            elif item["ordStatus"] == "Untriggered":
                 self._insert([item])
             elif item["ordStatus"] == "PartiallyFilled":
                 self._update([item])
-            elif item["ordStatus"] == "Filled":
+            elif item["ordStatus"] in ("Filled", "Deactivated"):
                 self._delete([item])
             elif item["ordStatus"] == "Canceled" and item["action"] != "Replace":
                 self._delete([item])
