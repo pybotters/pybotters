@@ -29,6 +29,7 @@ from .models.kucoin import KuCoinDataStore
 from .models.okx import OKXDataStore
 from .models.phemex import PhemexDataStore
 from .typedefs import WsJsonHandler, WsStrHandler
+from .ws import WebSocketQueue
 
 __all__: Tuple[str, ...] = (
     "Client",
@@ -57,6 +58,7 @@ __all__: Tuple[str, ...] = (
     "experimental",
     "print",
     "print_handler",
+    "WebSocketQueue",
 )
 
 
