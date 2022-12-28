@@ -74,10 +74,10 @@ class DataStore:
                         _id = uuid.uuid4()
                         self._data[_id] = item
                         self._index[keyhash] = _id
-                        self._put("insert", item, item)
+                        self._put("insert", None, item)
                     else:
                         self._data[self._index[keyhash]] = item
-                        self._put("insert", item, item)
+                        self._put("insert", None, item)
             self._sweep_with_key()
         else:
             for item in data:
@@ -85,7 +85,7 @@ class DataStore:
                     self._cast_item(item)
                 _id = uuid.uuid4()
                 self._data[_id] = item
-                self._put("insert", item, item)
+                self._put("insert", None, item)
             self._sweep_without_key()
         # !TODO! This behaviour might be undesirable.
         self._set(data)
@@ -108,7 +108,7 @@ class DataStore:
                         _id = uuid.uuid4()
                         self._data[_id] = item
                         self._index[keyhash] = _id
-                        self._put("update", item, item)
+                        self._put("update", None, item)
             self._sweep_with_key()
         else:
             for item in data:
@@ -116,7 +116,7 @@ class DataStore:
                     self._cast_item(item)
                 _id = uuid.uuid4()
                 self._data[_id] = item
-                self._put("update", item, item)
+                self._put("update", None, item)
             self._sweep_without_key()
         # !TODO! This behaviour might be undesirable.
         self._set(data)
