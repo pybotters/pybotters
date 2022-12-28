@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import operator
 from decimal import Decimal
 from typing import Awaitable
@@ -25,6 +26,7 @@ class bitFlyerDataStore(DataStoreManager):
         self.create("parentorderevents", datastore_class=ParentOrderEvents)
         self.create("parentorders", datastore_class=ParentOrders)
         self.create("positions", datastore_class=Positions)
+        self.create("balance", datastore_class=Balance)
         self._snapshots = set()
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
@@ -37,6 +39,8 @@ class bitFlyerDataStore(DataStoreManager):
                 self.parentorders._onresponse(data)
             elif resp.url.path == "/v1/me/getpositions":
                 self.positions._onresponse(data)
+            elif resp.url.path == "/v1/me/getbalance":
+                self.balance._onresponse(data)
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if "error" in msg:
@@ -70,6 +74,7 @@ class bitFlyerDataStore(DataStoreManager):
                 self.childorderevents._onmessage(message)
                 self.childorders._onmessage(message)
                 self.positions._onmessage(message)
+                self.balance._onmessage(message)
             elif channel == "parent_order_events":
                 self.parentorderevents._onmessage(message)
                 self.parentorders._onmessage(message)
@@ -105,6 +110,10 @@ class bitFlyerDataStore(DataStoreManager):
     @property
     def positions(self) -> "Positions":
         return self.get("positions", Positions)
+
+    @property
+    def balance(self) -> "Balance":
+        return self.get("balance", Balance)
 
 
 class Board(DataStore):
@@ -250,8 +259,13 @@ class Positions(DataStore):
 
     def _onmessage(self, message: list[Item]) -> None:
         for item in message:
+            product_code: str = item["product_code"]
+            # skip spot
+            if product_code != "FX_BTC_JPY" or not product_code.startswith("BTCJPY"):
+                continue
+
             if item["event_type"] == "EXECUTION":
-                positions = self._find_with_uuid({"product_code": item["product_code"]})
+                positions = self._find_with_uuid({"product_code": product_code})
                 if positions:
                     if positions[next(iter(positions))]["side"] == item["side"]:
                         self._insert([self._common_keys(item)])
@@ -288,3 +302,67 @@ class Positions(DataStore):
                         self._insert([self._common_keys(item)])
                     except KeyError:
                         pass
+
+
+class Balance(DataStore):
+    _KEYS = ["currency_code"]
+
+    _BASE_OPERATOR = {"SELL": operator.sub, "BUY": operator.add}
+    _QUOTE_OPERATOR = {"SELL": operator.add, "BUY": operator.sub}
+    _ROUNDER = {"SELL": math.floor, "BUY": math.ceil}
+
+    def _onresponse(self, data: list[Item]) -> None:
+        self._update(data)
+
+    def _onmessage(self, message: list[Item]) -> None:
+        for item in message:
+            product_code: str = item["product_code"]
+            # skip fx and futures
+            if product_code == "FX_BTC_JPY" or product_code.startswith("BTCJPY"):
+                continue
+
+            base, quote = product_code.split("_")
+
+            # amount
+            if item["event_type"] == "EXECUTION":
+                # base
+                orig = self.get({"currency_code": base})
+                if orig:
+                    ope = self._BASE_OPERATOR[item["side"]]
+
+                    base_amount = Decimal(str(item["size"]))
+                    amount = ope(Decimal(str(orig["amount"])), base_amount)
+                    amount -= Decimal(str(item["commission"]))
+
+                    self._update(
+                        [
+                            {
+                                "currency_code": base,
+                                "amount": float(amount),
+                                "available": None,
+                            }
+                        ]
+                    )
+
+                # quote
+                orig = self.get({"currency_code": quote})
+                if orig:
+                    ope = self._QUOTE_OPERATOR[item["side"]]
+                    rounder = self._ROUNDER[item["side"]]
+
+                    quote_amount = Decimal(str(item["size"])) * Decimal(
+                        str(item["price"])
+                    )
+                    if quote == "JPY":
+                        quote_amount = rounder(quote_amount)  # JPY hasu
+                    amount = ope(Decimal(str(orig["amount"])), quote_amount)
+
+                    self._update(
+                        [
+                            {
+                                "currency_code": quote,
+                                "amount": float(amount),
+                                "available": None,
+                            }
+                        ]
+                    )
