@@ -15,11 +15,13 @@ class DataStore:
 
     def __init__(
         self,
+        name: Optional[str] = None,
         keys: Optional[list[str]] = None,
         data: Optional[list[Item]] = None,
         *,
         auto_cast: bool = False,
     ) -> None:
+        self.name: str = name
         self._data: dict[uuid.UUID, Item] = {}
         self._index: dict[int, uuid.UUID] = {}
         self._keys: tuple[str, ...] = tuple(keys if keys else self._KEYS)
@@ -72,10 +74,10 @@ class DataStore:
                         _id = uuid.uuid4()
                         self._data[_id] = item
                         self._index[keyhash] = _id
-                        self._put("insert", item)
+                        self._put("insert", item, item)
                     else:
                         self._data[self._index[keyhash]] = item
-                        self._put("insert", item)
+                        self._put("insert", item, item)
             self._sweep_with_key()
         else:
             for item in data:
@@ -83,7 +85,7 @@ class DataStore:
                     self._cast_item(item)
                 _id = uuid.uuid4()
                 self._data[_id] = item
-                self._put("insert", item)
+                self._put("insert", item, item)
             self._sweep_without_key()
         # !TODO! This behaviour might be undesirable.
         self._set(data)
@@ -101,12 +103,12 @@ class DataStore:
                     keyhash = self._hash(keyitem)
                     if keyhash in self._index:
                         self._data[self._index[keyhash]].update(item)
-                        self._put("update", self._data[self._index[keyhash]])
+                        self._put("update", item, self._data[self._index[keyhash]])
                     else:
                         _id = uuid.uuid4()
                         self._data[_id] = item
                         self._index[keyhash] = _id
-                        self._put("update", item)
+                        self._put("update", item, item)
             self._sweep_with_key()
         else:
             for item in data:
@@ -114,7 +116,7 @@ class DataStore:
                     self._cast_item(item)
                 _id = uuid.uuid4()
                 self._data[_id] = item
-                self._put("update", item)
+                self._put("update", item, item)
             self._sweep_without_key()
         # !TODO! This behaviour might be undesirable.
         self._set(data)
@@ -131,7 +133,7 @@ class DataStore:
                 else:
                     keyhash = self._hash(keyitem)
                     if keyhash in self._index:
-                        self._put("delete", self._data[self._index[keyhash]])
+                        self._put("delete", item, self._data[self._index[keyhash]])
                         del self._data[self._index[keyhash]]
                         del self._index[keyhash]
         # !TODO! This behaviour might be undesirable.
@@ -143,20 +145,20 @@ class DataStore:
                 if _id in self._data:
                     item = self._data[_id]
                     keyhash = self._hash({k: item[k] for k in self._keys})
-                    self._put("delete", self._data[_id])
+                    self._put("delete", None, self._data[_id])
                     del self._data[_id]
                     del self._index[keyhash]
         else:
             for _id in uuids:
                 if _id in self._data:
-                    self._put("delete", self._data[_id])
+                    self._put("delete", None, self._data[_id])
                     del self._data[_id]
         # !TODO! This behaviour might be undesirable.
         self._set([])
 
     def _clear(self) -> None:
         for item in self:
-            self._put("delete", item)
+            self._put("delete", None, item)
         self._data.clear()
         self._index.clear()
         self._set([])
@@ -256,9 +258,9 @@ class DataStore:
         del self._events[event]
         return ret
 
-    def _put(self, operation: str, item: Item) -> None:
+    def _put(self, operation: str, source: Optional[Item], item: Item) -> None:
         for queue in self._queues:
-            queue.put_nowait(StoreChange(operation, item))
+            queue.put_nowait(StoreChange(self, operation, source, item))
 
     def watch(self) -> "StoreStream":
         return StoreStream(self)
@@ -269,7 +271,9 @@ TDataStore = TypeVar("TDataStore", bound=DataStore)
 
 @dataclass
 class StoreChange:
+    store: DataStore
     operation: str
+    source: Optional[Item]
     data: Item
 
 
@@ -329,7 +333,9 @@ class DataStoreManager:
             keys = []
         if data is None:
             data = []
-        self._stores[name] = datastore_class(keys, data, auto_cast=self._auto_cast)
+        self._stores[name] = datastore_class(
+            name, keys, data, auto_cast=self._auto_cast
+        )
 
     def get(self, name: str, type: Type[TDataStore]) -> TDataStore:
         return cast(type, self._stores.get(name))
