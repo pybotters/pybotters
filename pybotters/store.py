@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import uuid
 from dataclasses import dataclass
 from typing import Any, Hashable, Iterator, Optional, Type, TypeVar, cast
@@ -260,7 +261,9 @@ class DataStore:
 
     def _put(self, operation: str, source: Optional[Item], item: Item) -> None:
         for queue in self._queues:
-            queue.put_nowait(StoreChange(self, operation, source, item))
+            queue.put_nowait(
+                StoreChange(self, operation, copy.deepcopy(source), copy.deepcopy(item))
+            )
 
     def watch(self) -> "StoreStream":
         return StoreStream(self)
