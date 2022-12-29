@@ -261,7 +261,7 @@ class Positions(DataStore):
         for item in message:
             product_code: str = item["product_code"]
             # skip spot
-            if product_code != "FX_BTC_JPY" or not product_code.startswith("BTCJPY"):
+            if not (product_code == "FX_BTC_JPY" or product_code.startswith("BTCJPY")):
                 continue
 
             if item["event_type"] == "EXECUTION":
