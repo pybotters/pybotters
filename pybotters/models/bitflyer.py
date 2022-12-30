@@ -294,6 +294,11 @@ class Positions(DataStore):
                                         - Decimal(str(item["size"]))
                                     )
                                     item["size"] = 0.0
+                                self._put(
+                                    operation="update",
+                                    source=item,
+                                    item=pos,
+                                )  # !NOTE! This is manual call to `_put` method.
                                 break
                             else:
                                 if isinstance(pos["size"], int) and isinstance(
