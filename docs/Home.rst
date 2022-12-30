@@ -83,7 +83,6 @@ Exchange ``apis`` Key Name
 ======== ==================================
 Bybit    ``bybit``\ \ ``bybit_testnet``
 Binance  ``binance``\ \ ``binance_testnet``
-FTX      ``ftx``
 Phemex   ``phemex``\ \ ``phemex_testnet``
 BitMEX   ``bitmex``\ \ ``bitmex_testnet``
 bitFlyer ``bitflyer``
@@ -150,14 +149,13 @@ REST APIを利用するためには ``request``, ``get``, ``post``, ``put``,
 クライアントクラスの生成時に引数 ``headers``
 を指定しておくことでデフォルトヘッダーの指定が可能です。
 リクエストメソッドでも上書きで使用できます。
-例えばFTXのサブアカウントを利用する場合に便利です。
+例えばOKXのデモトレードを利用する場合に便利です。
 
 .. code:: python
 
    async def main():
-       async with pybotters.Client(apis=apis, base_url='https://ftx.com/api', headers={'FTX-SUBACCOUNT': 'my_subaccount_nickname'}) as client:
+       async with pybotters.Client(apis=apis, base_url='https://www.okx.com', headers={'x-simulated-trading': '1'}) as client:
            r = await client.get('...')
-           r = await client.get('...', headers={'FTX-SUBACCOUNT': 'my_alt_subaccount_nickname'})
 
 WebSocket API
 -------------

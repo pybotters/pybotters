@@ -181,27 +181,6 @@ class Auth:
         return args
 
     @staticmethod
-    def ftx(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
-        method: str = args[0]
-        url: URL = args[1]
-        data: dict[str, Any] = kwargs["data"] or {}
-        headers: CIMultiDict = kwargs["headers"]
-
-        session: aiohttp.ClientSession = kwargs["session"]
-        key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
-        secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
-
-        path = url.raw_path_qs
-        body = JsonPayload(data) if data else FormData(data)()
-        ts = str(int(time.time() * 1000))
-        text = f"{ts}{method}{path}".encode() + body._value
-        signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
-        kwargs.update({"data": body})
-        headers.update({"FTX-KEY": key, "FTX-SIGN": signature, "FTX-TS": ts})
-
-        return args
-
-    @staticmethod
     def bitmex(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         method: str = args[0]
         url: URL = args[1]
@@ -491,7 +470,6 @@ class Hosts:
         "api.bitflyer.com": Item("bitflyer", Auth.bitflyer),
         "api.coin.z.com": Item("gmocoin", Auth.gmocoin),
         "api.bitbank.cc": Item("bitbank", Auth.bitbank),
-        "ftx.com": Item("ftx", Auth.ftx),
         "www.bitmex.com": Item("bitmex", Auth.bitmex),
         "testnet.bitmex.com": Item("bitmex_testnet", Auth.bitmex),
         "api.phemex.com": Item("phemex", Auth.phemex),

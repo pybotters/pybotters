@@ -254,35 +254,6 @@ async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
 
 
 @pytest.mark.asyncio
-async def test_ftx_ws(mocker: pytest_mock.MockerFixture):
-    mocker.patch("time.time", return_value=2085848896.0)
-
-    async def dummy_send(msg, **kwargs):
-        expected = {
-            "op": "login",
-            "args": {
-                "key": "J6vXtiZunV4lsRWoLHNYNiCa",
-                "sign": (
-                    "b810f0085a627ea8cad1b2923d63ee05916166a464ab4f89e366abfc7f76a8ac"
-                ),
-                "time": 2085848896000,
-            },
-        }
-        assert msg == expected
-
-    ws = MagicMock()
-    ws._response.url.host = "ftx.com"
-    ws._response._session.__dict__["_apis"] = {
-        "ftx": (
-            "J6vXtiZunV4lsRWoLHNYNiCa",
-            b"8ORbaZIrTNcV6Lw48x12RrEzuT0YqbCiluml7LITzG2ud2Nf",
-        ),
-    }
-    ws.send_json.side_effect = dummy_send
-    await pybotters.ws.Auth.ftx(ws)
-
-
-@pytest.mark.asyncio
 async def test_phemex_ws(mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
 

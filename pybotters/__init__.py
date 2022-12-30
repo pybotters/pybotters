@@ -23,7 +23,6 @@ from .models.bybit import BybitInverseDataStore, BybitUSDTDataStore
 from .models.coincheck import CoincheckDataStore
 from .models.deprecated.binance import BinanceDataStore
 from .models.deprecated.bybit import BybitDataStore
-from .models.ftx import FTXDataStore
 from .models.gmocoin import GMOCoinDataStore
 from .models.kucoin import KuCoinDataStore
 from .models.okx import OKXDataStore
@@ -42,7 +41,6 @@ __all__: Tuple[str, ...] = (
     "CoincheckDataStore",
     "BybitInverseDataStore",
     "BybitUSDTDataStore",
-    "FTXDataStore",
     "BinanceDataStore",
     "BinanceSpotDataStore",
     "BinanceUSDSMDataStore",
