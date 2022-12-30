@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import logging
 import math
 import operator
@@ -71,13 +72,13 @@ class bitFlyerDataStore(DataStoreManager):
                 product_code = channel.replace("lightning_executions_", "")
                 self.executions._onmessage(product_code, message)
             elif channel == "child_order_events":
-                self.childorderevents._onmessage(message)
-                self.childorders._onmessage(message)
-                self.positions._onmessage(message)
-                self.balance._onmessage(message)
+                self.childorderevents._onmessage(copy.deepcopy(message))
+                self.childorders._onmessage(copy.deepcopy(message))
+                self.positions._onmessage(copy.deepcopy(message))
+                self.balance._onmessage(copy.deepcopy(message))
             elif channel == "parent_order_events":
-                self.parentorderevents._onmessage(message)
-                self.parentorders._onmessage(message)
+                self.parentorderevents._onmessage(copy.deepcopy(message))
+                self.parentorders._onmessage(copy.deepcopy(message))
 
     @property
     def board(self) -> "Board":
@@ -195,17 +196,26 @@ class ChildOrders(DataStore):
                 self._delete([item])
             elif item["event_type"] == "EXECUTION":
                 if item["outstanding_size"]:
-                    childorder = self.get(item)
-                    if childorder:
-                        if isinstance(childorder["size"], int) and isinstance(
+                    orig = self.get(item)
+                    if orig:
+                        if isinstance(orig["size"], int) and isinstance(
                             item["size"], int
                         ):
-                            childorder["size"] -= item["size"]
+                            size = orig["size"] - item["size"]
                         else:
-                            childorder["size"] = float(
-                                Decimal(str(childorder["size"]))
-                                - Decimal(str(item["size"]))
+                            size = float(
+                                Decimal(str(orig["size"])) - Decimal(str(item["size"]))
                             )
+                        self._update(
+                            [
+                                {
+                                    "child_order_acceptance_id": item[
+                                        "child_order_acceptance_id"
+                                    ],
+                                    "size": size,
+                                }
+                            ]
+                        )
                 else:
                     self._delete([item])
 
@@ -227,9 +237,9 @@ class ParentOrders(DataStore):
             elif item["event_type"] in ("CANCEL", "EXPIRE"):
                 self._delete([item])
             elif item["event_type"] == "COMPLETE":
-                parentorder = self.get(item)
-                if parentorder:
-                    if parentorder["parent_order_type"] in ("IFD", "IFDOCO"):
+                orig = self.get(item)
+                if orig:
+                    if orig["parent_order_type"] in ("IFD", "IFDOCO"):
                         if item["parameter_index"] >= 2:
                             self._delete([item])
                     else:
@@ -267,8 +277,9 @@ class Positions(DataStore):
             if item["event_type"] == "EXECUTION":
                 positions = self._find_with_uuid({"product_code": product_code})
                 if positions:
+                    item = self._common_keys(item)
                     if positions[next(iter(positions))]["side"] == item["side"]:
-                        self._insert([self._common_keys(item)])
+                        self._insert([item])
                     else:
                         for uid, pos in positions.items():
                             if pos["size"] > item["size"]:
@@ -296,10 +307,10 @@ class Positions(DataStore):
                                     )
                                 self._remove([uid])
                         if item["size"] > 0:
-                            self._insert([self._common_keys(item)])
+                            self._insert([item])
                 else:
                     try:
-                        self._insert([self._common_keys(item)])
+                        self._insert([item])
                     except KeyError:
                         pass
 

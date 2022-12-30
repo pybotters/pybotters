@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import logging
 import time
 from typing import Any, Awaitable, Optional
@@ -111,8 +112,8 @@ class KuCoinDataStore(DataStoreManager):
                 self.markprice._onmessage(msg)
 
             elif topic.endswith("tradeOrders") or topic.endswith("advancedOrders"):
-                self.orderevents._onmessage(msg)
-                self.orders._onmessage(msg)
+                self.orderevents._onmessage(copy.deepcopy(msg))
+                self.orders._onmessage(copy.deepcopy(msg))
 
             elif topic.startswith("/contract/instrument"):
                 self.instrument._onmessage(msg)
@@ -130,12 +131,12 @@ class KuCoinDataStore(DataStoreManager):
                 self.marginfundingbook._onmessage(msg)
 
             elif topic.startswith("/margin/position"):
-                self.marginpositions._onmessage(msg)
-                self.marginpositionevents._onmessage(msg)
+                self.marginpositions._onmessage(copy.deepcopy(msg))
+                self.marginpositionevents._onmessage(copy.deepcopy(msg))
 
             elif topic.startswith("/margin/loan"):
-                self.marginorders._onmessage(msg)
-                self.marginorderevents._onmessage(msg)
+                self.marginorders._onmessage(copy.deepcopy(msg))
+                self.marginorderevents._onmessage(copy.deepcopy(msg))
 
             elif topic.startswith("/contractAccount/wallet"):
                 self.balanceevents._onmessage(msg)
