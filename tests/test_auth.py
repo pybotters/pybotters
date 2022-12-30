@@ -57,10 +57,6 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             "GnHvwP7d5FbWdZinoI2hKBTR",
             b"jFRfAL7PiFLvYP6rS9u6TmTjTyVI1z21QXgDqxsCdPkMmN6I",
         ),
-        "liquid": (
-            "5DjzgmQXRksQNDBQ5G1rNIv7",
-            b"WXlZDDzyjWtz1bd7MsGoXPMEohkdUuB95HHgBbKwKBaCyDrp",
-        ),
         "bitbank": (
             "l5HGaEzIC3KiMqbYwtAl1r48",
             b"6lgYlHSYj31SAU67jCtxn6qh60pZTeekd5iRseYZNzrC2kX5",
@@ -521,86 +517,6 @@ def test_gmocoin_post(mock_session, mocker: pytest_mock.MockerFixture):
         "session": mock_session,
     }
     args = pybotters.auth.Auth.gmocoin(args, kwargs)
-    assert args == expected_args
-    assert kwargs["data"]._value == expected_kwargs["data"]._value
-    assert kwargs["headers"] == expected_kwargs["headers"]
-
-
-def test_liquid_get(mock_session, mocker: pytest_mock.MockerFixture):
-    mocker.patch("time.time", return_value=2085848896.0)
-    args = (
-        "GET",
-        URL("https://api.liquid.com/orders").with_query(
-            {
-                "id": 5,
-            }
-        ),
-    )
-    kwargs = {
-        "data": None,
-        "headers": CIMultiDict(),
-        "session": mock_session,
-    }
-    expected_args = ("GET", URL("https://api.liquid.com/orders?id=5"))
-    expected_kwargs = {
-        "data": aiohttp.formdata.FormData({})(),
-        "headers": CIMultiDict(
-            {
-                "X-Quoine-API-Version": "2",
-                "X-Quoine-Auth": (
-                    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL29yZGVycz9pZD01I"
-                    "iwibm9uY2UiOiIyMDg1ODQ4ODk2MDAwIiwidG9rZW5faWQiOiI1RGp6Z21RWFJrc1F"
-                    "OREJRNUcxck5JdjcifQ.Q8jvnnFafWJ_piQyB1GyEc1nxfil0uwnyjMvNV2icgA"
-                ),
-            }
-        ),
-        "session": mock_session,
-    }
-    args = pybotters.auth.Auth.liquid(args, kwargs)
-    assert args == expected_args
-    assert kwargs["data"]._value == expected_kwargs["data"]._value
-    assert kwargs["headers"] == expected_kwargs["headers"]
-
-
-def test_liquid_post(mock_session, mocker: pytest_mock.MockerFixture):
-    mocker.patch("time.time", return_value=2085848896.0)
-    args = (
-        "POST",
-        URL("https://api.liquid.com/orders"),
-    )
-    kwargs = {
-        "data": {
-            "quantity": 0.01,
-            "order_type": "market",
-            "product_id": 5,
-            "side": "buy",
-        },
-        "headers": CIMultiDict(),
-        "session": mock_session,
-    }
-    expected_args = ("POST", URL("https://api.liquid.com/orders"))
-    expected_kwargs = {
-        "data": aiohttp.payload.JsonPayload(
-            {
-                "quantity": 0.01,
-                "order_type": "market",
-                "product_id": 5,
-                "side": "buy",
-            }
-        ),
-        "headers": CIMultiDict(
-            {
-                "X-Quoine-API-Version": "2",
-                "X-Quoine-Auth": (
-                    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL29yZGVycyIsIm5vb"
-                    "mNlIjoiMjA4NTg0ODg5NjAwMCIsInRva2VuX2lkIjoiNURqemdtUVhSa3NRTkRCUTV"
-                    "HMXJOSXY3In0.vS_l9BAKGTrROl2uVFlEP1SA4FaI9TL4JuRpLCyilG0"
-                ),
-            }
-        ),
-        "session": mock_session,
-    }
-    args = pybotters.auth.Auth.liquid(args, kwargs)
     assert args == expected_args
     assert kwargs["data"]._value == expected_kwargs["data"]._value
     assert kwargs["headers"] == expected_kwargs["headers"]

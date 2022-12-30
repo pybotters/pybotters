@@ -46,7 +46,6 @@ An advanced api client for python botters.
 | BitMEX | ✅ | ✅ | [Official](https://www.bitmex.com/app/apiOverview) |
 | bitFlyer | ✅ | ✅ | [Official](https://lightning.bitflyer.com/docs) |
 | GMO Coin | ✅ | ✅ | [Official](https://api.coin.z.com/docs/) |
-| Liquid | ✅ | WIP | [Official](https://document.liquid.com/) |
 | bitbank | ✅ | ✅ | [Official](https://docs.bitbank.cc/) |
 | Coincheck | ✅ | ✅ | [Official](https://coincheck.com/documents/exchange/api) |
 
