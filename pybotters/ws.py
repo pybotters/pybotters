@@ -239,6 +239,9 @@ class Heartbeat:
 class Auth:
     @staticmethod
     async def bybit(ws: aiohttp.ClientWebSocketResponse):
+        if not ws._response.url.path.startswith("/contract/private/v3"):
+            return
+
         key: str = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][0]
