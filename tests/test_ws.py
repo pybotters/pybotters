@@ -209,6 +209,40 @@ async def test_websocketqueue_timeout():
 
 
 @pytest.mark.asyncio
+async def test_bybit_ws(mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+
+    async def dummy_send(msg, **kwargs):
+        expected = {
+            "op": "auth",
+            "args": [
+                "77SQfUG7X33JhYZ3Jswpx5To",
+                2085848901000,
+                "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",
+            ],
+        }
+        assert msg == expected
+
+    ws = MagicMock()
+    ws._response.url.host = "stream.bybit.com"
+    ws._response._session.__dict__["_apis"] = {
+        "bybit": (
+            "77SQfUG7X33JhYZ3Jswpx5To",
+            b"PrYiNnCnP76YzpTLvRtV9O1RBa5ecOXqrOTyXuTADCEXYoEX",
+        ),
+    }
+    ws.send_json.side_effect = dummy_send
+    # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
+    if sys.version_info.major == 3 and sys.version_info.minor == 7:
+        with pytest.raises(TypeError):
+            await pybotters.ws.Auth.bybit(ws)
+    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
+        await pybotters.ws.Auth.bybit(ws)
+    else:
+        raise RuntimeError(f"Unsupported Python version: {sys.version}")
+
+
+@pytest.mark.asyncio
 async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
     mocker.patch(

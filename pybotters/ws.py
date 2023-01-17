@@ -238,6 +238,40 @@ class Heartbeat:
 
 class Auth:
     @staticmethod
+    async def bybit(ws: aiohttp.ClientWebSocketResponse):
+        if not ws._response.url.path.startswith("/contract/private/v3"):
+            return
+
+        key: str = ws._response._session.__dict__["_apis"][
+            AuthHosts.items[ws._response.url.host].name
+        ][0]
+        secret: bytes = ws._response._session.__dict__["_apis"][
+            AuthHosts.items[ws._response.url.host].name
+        ][1]
+
+        expires = int((time.time() + 5.0) * 1000)
+        path = f"GET/realtime{expires}"
+        signature = hmac.new(
+            secret, path.encode(), digestmod=hashlib.sha256
+        ).hexdigest()
+
+        await ws.send_json(
+            {"op": "auth", "args": [key, expires, signature]},
+            _itself=True,
+        )
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                data = msg.json()
+                if "success" in data:
+                    if data["success"] is False:
+                        logger.warning(data)
+                if "op" in data:
+                    if data["op"] == "auth":
+                        break
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                break
+
+    @staticmethod
     async def bitflyer(ws: aiohttp.ClientWebSocketResponse):
         key: str = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
@@ -444,6 +478,9 @@ class HeartbeatHosts:
 
 class AuthHosts:
     items = {
+        "stream.bybit.com": Item("bybit", Auth.bybit),
+        "stream.bytick.com": Item("bybit", Auth.bybit),
+        "stream-testnet.bybit.com": Item("bybit_testnet", Auth.bybit),
         "ws.lightstream.bitflyer.com": Item("bitflyer", Auth.bitflyer),
         "phemex.com": Item("phemex", Auth.phemex),
         "testnet.phemex.com": Item("phemex_testnet", Auth.phemex),
