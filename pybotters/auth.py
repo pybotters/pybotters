@@ -62,6 +62,25 @@ class Auth:
         return args
 
     @staticmethod
+    def binance_auth_exception(path: str):
+        if (
+           path == "/api/v3/ping" or
+           path == "/api/v3/exchangeInfo" or
+           path == "/api/v3/depth" or
+           path == "/api/v3/historicalTrades" or
+           path == "/api/v3/aggTrades" or
+           path == "/api/v3/klines" or
+           path == "/api/v3/uiKlines" or
+           path == "/api/v3/avgPrice" or
+           path == "/api/v3/ticker/24hr" or
+           path == "/api/v3/ticker/price" or
+           path == "/api/v3/ticker/bookTicker"
+        ):
+            return True
+        else:
+            return False
+
+    @staticmethod
     def binance(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
         method: str = args[0]
         url: URL = args[1]
@@ -76,12 +95,14 @@ class Auth:
         if method == METH_GET:
             if url.scheme == "https":
                 query = MultiDict(url.query)
-                query.extend({"timestamp": expires})
+                if not Auth.binance_auth_exception( url.path):
+                    query.extend({"timestamp": expires})
                 query_string = "&".join(f"{k}={v}" for k, v in query.items())
                 signature = hmac.new(
                     secret, query_string.encode(), hashlib.sha256
                 ).hexdigest()
-                query.extend({"signature": signature})
+                if not Auth.binance_auth_exception( url.path):
+                    query.extend({"signature": signature})
                 url = url.with_query(query)
                 args = (
                     method,
