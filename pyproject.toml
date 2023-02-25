@@ -11,7 +11,7 @@ homepage = "https://github.com/MtkN1/pybotters"
 python = "^3.7"
 aiohttp = "^3.7.4"
 rich = "^10.1.0"
-typing-extensions = "^4.1.1"
+typing-extensions = { version = ">=3.7.4", python = "<3.8" }
 python-dateutil = "^2.8.2"
 
 [tool.poetry.dev-dependencies]
