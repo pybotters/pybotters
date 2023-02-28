@@ -19,45 +19,27 @@ from yarl import URL
 class Auth:
     @staticmethod
     def bybit(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
-        method: str = args[0]
         url: URL = args[1]
         data: dict[str, Any] = kwargs["data"] or {}
+        headers: CIMultiDict = kwargs["headers"]
 
         session: aiohttp.ClientSession = kwargs["session"]
         key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
         secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
 
-        if url.scheme == "https":
-            expires = str(int((time.time() - 5.0) * 1000))
-            recv_window = (
-                "recv_window" if not url.path.startswith("/spot") else "recvWindow"
-            )
-            auth_params = {"api_key": key, "timestamp": expires, recv_window: 10000}
-            if method in (METH_GET, METH_DELETE):
-                query = MultiDict(url.query)
-                query.extend(auth_params)
-                query_string = "&".join(f"{k}={v}" for k, v in sorted(query.items()))
-                sign = hmac.new(
-                    secret, query_string.encode(), hashlib.sha256
-                ).hexdigest()
-                query.extend({"sign": sign})
-                url = url.with_query(query)
-                args = (method, url)
-            else:
-                data.update(auth_params)
-                body = FormData(sorted(data.items()))()
-                sign = hmac.new(secret, body._value, hashlib.sha256).hexdigest()
-                body._value += f"&sign={sign}".encode()
-                body._size = len(body._value)
-                kwargs.update({"data": body})
-        elif url.scheme == "wss":
-            query = MultiDict(url.query)
-            expires = str(int((time.time() + 5.0) * 1000))
-            path = f"{method}/realtime{expires}"
-            signature = hmac.new(secret, path.encode(), hashlib.sha256).hexdigest()
-            query.extend({"api_key": key, "expires": expires, "signature": signature})
-            url = url.with_query(query)
-            args = (method, url)
+        timestamp = str(int(time.time() * 1000))
+        query_string = url.raw_query_string
+        body = JsonPayload(data) if data else FormData(data)()
+        text = f"{timestamp}{key}{query_string}".encode() + body._value
+        signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
+        kwargs.update({"data": body})
+        headers.update(
+            {
+                "X-BAPI-API-KEY": key,
+                "X-BAPI-TIMESTAMP": timestamp,
+                "X-BAPI-SIGN": signature,
+            }
+        )
 
         return args
 
@@ -446,10 +428,7 @@ class Hosts:
     items = {
         "api.bybit.com": Item("bybit", Auth.bybit),
         "api.bytick.com": Item("bybit", Auth.bybit),
-        "stream.bybit.com": Item("bybit", Auth.bybit),
-        "stream.bytick.com": Item("bybit", Auth.bybit),
         "api-testnet.bybit.com": Item("bybit_testnet", Auth.bybit),
-        "stream-testnet.bybit.com": Item("bybit_testnet", Auth.bybit),
         "api.binance.com": Item("binance", Auth.binance),
         "api1.binance.com": Item("binance", Auth.binance),
         "api2.binance.com": Item("binance", Auth.binance),

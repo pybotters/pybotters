@@ -225,6 +225,7 @@ async def test_bybit_ws(mocker: pytest_mock.MockerFixture):
 
     ws = MagicMock()
     ws._response.url.host = "stream.bybit.com"
+    ws._response.url.path = "/v5/private"
     ws._response._session.__dict__["_apis"] = {
         "bybit": (
             "77SQfUG7X33JhYZ3Jswpx5To",

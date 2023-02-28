@@ -144,111 +144,11 @@ def test_bybit_get(mock_session, mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
     args = (
         "GET",
-        URL("https://api.bybit.com/v2/private/order/list").with_query(
+        URL("https://api.bybit.com/v5/order/history").with_query(
             {
-                "symbol": "BTCUSD",
-                "cursor": (
-                    "w01XFyyZc8lhtCLl6NgAaYBRfsN9Qtpp1f2AUy3AS4+fFDzNSlVKa0od8DKCqgAn"
-                ),
-            }
-        ),
-    )
-    kwargs = {
-        "data": None,
-        "session": mock_session,
-    }
-    expected_args = (
-        "GET",
-        URL(
-            "https://api.bybit.com/v2/private/order/list?symbol=BTCUSD&cursor=w01XFyyZc"
-            "8lhtCLl6NgAaYBRfsN9Qtpp1f2AUy3AS4%2BfFDzNSlVKa0od8DKCqgAn&api_key=77SQfUG7"
-            "X33JhYZ3Jswpx5To&timestamp=2085848891000&recv_window=10000&sign=4f21ff83f9"
-            "243422333d12905b167e075516a978307ff14899b90dd14091a0a9"
-        ),
-    )
-    expected_kwargs = {
-        "data": None,
-        "session": mock_session,
-    }
-    args = pybotters.auth.Auth.bybit(args, kwargs)
-    assert args == expected_args
-    assert kwargs["data"] == expected_kwargs["data"]
-
-
-def test_bybit_post(mock_session, mocker: pytest_mock.MockerFixture):
-    mocker.patch("time.time", return_value=2085848896.0)
-    args = (
-        "POST",
-        URL("https://api.bybit.com/v2/private/order/create"),
-    )
-    kwargs = {
-        "data": {
-            "symbol": "BTCUSD",
-            "side": "Buy",
-            "order_type": "Market",
-            "qty": 100,
-            "time_in_force": "GoodTillCancel",
-        },
-        "session": mock_session,
-    }
-    expected_args = ("POST", URL("https://api.bybit.com/v2/private/order/create"))
-    expected_kwargs = {
-        "data": aiohttp.formdata.FormData(
-            {
-                "api_key": "77SQfUG7X33JhYZ3Jswpx5To",
-                "order_type": "Market",
-                "qty": "100",
-                "recv_window": "10000",
-                "side": "Buy",
-                "symbol": "BTCUSD",
-                "time_in_force": "GoodTillCancel",
-                "timestamp": "2085848891000",
-                "sign": (
-                    "1547e15445903b6c4cb541f79830fd502c843c7d88f90022f122bca8a311819e"
-                ),
-            }
-        )(),
-        "session": mock_session,
-    }
-    args = pybotters.auth.Auth.bybit(args, kwargs)
-    assert args == expected_args
-    assert kwargs["data"]._value == expected_kwargs["data"]._value
-
-
-def test_bybit_ws(mock_session, mocker: pytest_mock.MockerFixture):
-    mocker.patch("time.time", return_value=2085848896.0)
-    args = (
-        "GET",
-        URL("wss://stream.bybit.com/realtime"),
-    )
-    kwargs = {
-        "data": None,
-        "session": mock_session,
-    }
-    expected_args = (
-        "GET",
-        URL(
-            "wss://stream.bybit.com/realtime?api_key=77SQfUG7X33JhYZ3Jswpx5To&expires=2"
-            "085848901000&signature=a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667"
-            "fb181ecbc29a4"
-        ),
-    )
-    expected_kwargs = {
-        "data": None,
-        "session": mock_session,
-    }
-    args = pybotters.auth.Auth.bybit(args, kwargs)
-    assert args == expected_args
-    assert kwargs["data"] == expected_kwargs["data"]
-
-
-def test_binance_get(mock_session, mocker: pytest_mock.MockerFixture):
-    mocker.patch("time.time", return_value=2085848896.0)
-    args = (
-        "GET",
-        URL("https://dapi.binance.com/dapi/v1/order").with_query(
-            {
-                "symbol": "BTCUSD_PERP",
+                "category": "linear",
+                "symbol": "BTCUSDT",
+                "cursor": ("page_token%3D26854%26"),
             }
         ),
     )
@@ -260,19 +160,71 @@ def test_binance_get(mock_session, mocker: pytest_mock.MockerFixture):
     expected_args = (
         "GET",
         URL(
-            "https://dapi.binance.com/dapi/v1/order?symbol=BTCUSD_PERP&timestamp=208584"
-            "8896000&signature=cfd48880dc0ceb003e5f009205a4ebd6415ddeb40addafd1c1345286"
-            "81d98ccf"
+            "https://api.bybit.com/v5/order/history?category=linear&symbol=BTCUSDT&curs"
+            "or=page_token%253D26854%2526"
         ),
     )
     expected_kwargs = {
-        "data": None,
-        "headers": CIMultiDict({"X-MBX-APIKEY": "9qm1u2s4GoHt9ryIm1D2fHV8"}),
+        "data": aiohttp.formdata.FormData({})(),
+        "headers": CIMultiDict(
+            {
+                "X-BAPI-API-KEY": "77SQfUG7X33JhYZ3Jswpx5To",
+                "X-BAPI-TIMESTAMP": "2085848896000",
+                "X-BAPI-SIGN": (
+                    "862bf2b354912bb4cf84113929aa8145376b5419d2a41457265394516e82afa9"
+                ),
+            }
+        ),
         "session": mock_session,
     }
-    args = pybotters.auth.Auth.binance(args, kwargs)
+    args = pybotters.auth.Auth.bybit(args, kwargs)
     assert args == expected_args
-    assert kwargs["data"] == expected_kwargs["data"]
+    assert kwargs["data"]._value == expected_kwargs["data"]._value
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_bybit_post(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+    args = (
+        "POST",
+        URL("https://api.bybit.com/v5/order/create"),
+    )
+    kwargs = {
+        "data": {
+            "category": "linear",
+            "symbol": "BTCUSDT",
+            "side": "Buy",
+            "orderType": "Market",
+            "qty": "0.001",
+        },
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = ("POST", URL("https://api.bybit.com/v5/order/create"))
+    expected_kwargs = {
+        "data": aiohttp.payload.JsonPayload(
+            {
+                "category": "linear",
+                "symbol": "BTCUSDT",
+                "side": "Buy",
+                "orderType": "Market",
+                "qty": "0.001",
+            }
+        ),
+        "headers": CIMultiDict(
+            {
+                "X-BAPI-API-KEY": "77SQfUG7X33JhYZ3Jswpx5To",
+                "X-BAPI-TIMESTAMP": "2085848896000",
+                "X-BAPI-SIGN": (
+                    "97918f80ac923cebb49dd0e643d949c2d79a79e2da697865b40c565fdf877591"
+                ),
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.bybit(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"]._value == expected_kwargs["data"]._value
     assert kwargs["headers"] == expected_kwargs["headers"]
 
 
