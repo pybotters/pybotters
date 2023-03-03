@@ -239,7 +239,9 @@ class Heartbeat:
 class Auth:
     @staticmethod
     async def bybit(ws: aiohttp.ClientWebSocketResponse):
-        if not ws._response.url.path.startswith("/contract/private/v3"):
+        if ("public" in ws._response.url.path) or (
+            ws._response.url.path.startswith("/spot/quote")  # for spot v1 only
+        ):
             return
 
         key: str = ws._response._session.__dict__["_apis"][
@@ -262,12 +264,16 @@ class Auth:
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 data = msg.json()
-                if "success" in data:
-                    if data["success"] is False:
-                        logger.warning(data)
-                if "op" in data:
-                    if data["op"] == "auth":
+                if "success" in data:  # for almost all
+                    if data["success"]:
                         break
+                    else:
+                        logger.warning(data)
+                else:  # for spot v1 only
+                    if "auth" in data:
+                        break
+                    elif "code" in data:
+                        logger.warning(data)
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 break
 
