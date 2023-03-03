@@ -5,6 +5,9 @@ name: pytest
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   pytest:
 
@@ -27,7 +30,7 @@ jobs:
         poetry-version: ${{ matrix.poetry-version }}
     - name: Install dependencies
       run: |
-        poetry install --no-root
+        poetry install
     - name: Lint with flake8
       run: |
         poetry run flake8
