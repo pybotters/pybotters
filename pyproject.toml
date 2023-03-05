@@ -5,7 +5,22 @@ description = "An advanced api client for python botters."
 license = "MIT"
 authors = ["MtkN1 <51289448+MtkN1@users.noreply.github.com>"]
 readme = "README.md"
-homepage = "https://github.com/MtkN1/pybotters"
+repository = "https://github.com/MtkN1/pybotters"
+documentation = "https://pybotters.readthedocs.io/ja/latest/"
+classifiers = [
+    "Framework :: AsyncIO",
+    "Framework :: aiohttp",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Natural Language :: Japanese",
+    "Typing :: Typed"
+]
+
 
 [tool.poetry.dependencies]
 python = "^3.7"
