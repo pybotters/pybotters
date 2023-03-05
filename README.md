@@ -21,11 +21,11 @@ An advanced API client for python botters.
 
 ## 📌 Description
 
-`pybotters` は [仮想通貨botter](https://note.com/hht/n/n61e6ecefd059) 向けの Python ライブラリです。
+`pybotters` は [仮想通貨 botter](https://note.com/hht/n/n61e6ecefd059) 向けの Python ライブラリです。
 
 複数取引所に対応した非同期 I/O の API クライアントであり、bot 開発により素晴らしい DX を提供します。
 
-## 👩‍💻👨‍💻 In development
+## 🚧 In development
 
 `pybotters` は現在 ** **Previewバージョン** ** です。
 一部機能は開発中です。
