@@ -243,7 +243,14 @@ class Wallet(DataStore):
     _KEYS = ["accountType"]
 
     def _onmessage(self, msg: Item, topic_ext: list[str]) -> None:
-        self._update(msg["data"])
+        for item in msg["data"]:
+            orig_item = self.get(item)
+            if orig_item:
+                current_coins = set(map(lambda x: x["coin"], item["coin"]))
+                item["coin"].extend(
+                    filter(lambda x: x["coin"] not in current_coins, orig_item["coin"])
+                )
+            self._update([item])
 
 
 class Greek(DataStore):
