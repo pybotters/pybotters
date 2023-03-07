@@ -27,7 +27,7 @@ class BybitV5DataStore(DataStoreManager):
         self.create("execution", datastore_class=Execution)
         self.create("order", datastore_class=Order)
         self.create("wallet", datastore_class=Wallet)
-        self.create("greek", datastore_class=Greek)
+        self.create("greeks", datastore_class=Greek)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """
@@ -112,7 +112,7 @@ class BybitV5DataStore(DataStoreManager):
 
     @property
     def greek(self) -> "Greek":
-        return self.get("greek", Greek)
+        return self.get("greeks", Greek)
 
 
 class OrderBook(DataStore):
@@ -247,7 +247,7 @@ class Wallet(DataStore):
 
 
 class Greek(DataStore):
-    _KEYS = ["greeks"]
+    _KEYS = ["baseCoin"]
 
     def _onmessage(self, msg: Item, topic_ext: list[str]) -> None:
         self._update(msg["data"])
