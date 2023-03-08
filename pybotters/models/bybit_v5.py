@@ -40,7 +40,9 @@ class BybitV5DataStore(DataStoreManager):
         """
         対応エンドポイント
 
-        - GET /v2/private/order (DataStore: order)
+        - GET /v5/position/list (DataStore: position)
+        - GET /v5/order/realtime (DataStore: order)
+        - GET /v5/account/wallet-balance (DataStore: wallet)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
