@@ -5,6 +5,7 @@ import logging
 from typing import Awaitable, Optional
 
 import aiohttp
+from yarl import URL
 
 from ..store import DataStore, DataStoreManager
 from ..typedefs import Item
@@ -29,6 +30,12 @@ class BybitV5DataStore(DataStoreManager):
         self.create("wallet", datastore_class=Wallet)
         self.create("greeks", datastore_class=Greek)
 
+    _MAP_PATH_TOPIC = {
+        "/v5/position/list": "position",
+        "/v5/order/realtime": "order",
+        "/v5/account/wallet-balance": "wallet",
+    }
+
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """
         対応エンドポイント
@@ -38,17 +45,18 @@ class BybitV5DataStore(DataStoreManager):
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
-            if data["ret_code"] != 0:
+
+            if data is None or "retCode" not in data or data["retCode"] != 0:
                 raise ValueError(
                     "Response error at DataStore initialization\n"
                     f"URL: {resp.url}\n"
                     f"Data: {data}"
                 )
-            if resp.url.path in (
-                "/v2/private/order",
-                "/futures/private/order",
-            ):
-                self.order._onresponse(data["result"])
+
+            if resp.url.path in self._MAP_PATH_TOPIC:
+                topic = self._MAP_PATH_TOPIC[resp.url.path]
+                if topic in self:
+                    getattr(self[topic], "_onresponse")(resp.url, data)
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if "success" in msg:
@@ -200,6 +208,9 @@ class LTNav(Ticker):
 class Position(DataStore):
     _KEYS = ["symbol", "positionIdx"]
 
+    def _onresponse(self, url: URL, data: Item) -> None:
+        self._update(data["result"]["list"])
+
     def _onmessage(self, msg: Item, topic_ext: list[str]) -> None:
         self._update(msg["data"])
 
@@ -213,34 +224,78 @@ class Execution(DataStore):
 
 class Order(DataStore):
     _KEYS = ["orderId"]
+    _MAP_ORDER_STATUS = {
+        "Created": "pending",
+        "New": "pending",
+        "Rejected": "failure",
+        "PartiallyFilled": "pending",
+        "PartiallyFilledCanceled": "filled",
+        "Filled": "filled",
+        "Cancelled": "canceled",
+        "Untriggered": "pending",
+        "Triggered": "filled",
+        "Deactivated": "canceled",
+        "Active": "pending",
+    }
+
+    def _onresponse(self, url: URL, data: dict[str, dict[str, list[Item]]]) -> None:
+        # Delete inactive orders
+        if "symbol" in url.query:
+            delete_orders = list(
+                filter(
+                    lambda x: x["symbol"] == url.query["symbol"],
+                    self.find({"category": url.query["category"]}),
+                )
+            )
+            self._delete(delete_orders)
+        elif "baseCoin" in url.query:
+            delete_orders = list(
+                filter(
+                    lambda x: x["symbol"].startswith(url.query["baseCoin"]),
+                    self.find({"category": url.query["category"]}),
+                )
+            )
+            self._delete(delete_orders)
+        elif "settleCoin" in url.query:
+            delete_orders = list(
+                filter(
+                    lambda x: x["symbol"].endswith(url.query["settleCoin"]),
+                    self.find({"category": url.query["category"]}),
+                )
+            )
+            self._delete(delete_orders)
+
+        # Update active orders
+        for item in data["result"]["list"]:
+            item["category"] = url.query["category"]
+            self._update([item])
 
     def _onmessage(self, msg: Item, topic_ext: list[str]) -> None:
-        map_order_status = {
-            "Created": "pending",
-            "New": "pending",
-            "Rejected": "failure",
-            "PartiallyFilled": "pending",
-            "PartiallyFilledCanceled": "filled",
-            "Filled": "filled",
-            "Cancelled": "canceled",
-            "Untriggered": "pending",
-            "Triggered": "filled",
-            "Deactivated": "canceled",
-            "Active": "pending",
-        }
-
         for item in msg["data"]:
-            order_status = map_order_status.get(item["orderStatus"])
+            order_status = self._MAP_ORDER_STATUS.get(item["orderStatus"])
+            # Update active order
             if order_status == "pending":
                 self._update([item])
+            # Delete inactive order
             elif order_status in ("filled", "canceled", "failure"):
                 self._delete([item])
-                if item["orderLinkId"]:  # delete conditional order for spot
+                # inactive conditional order in spot
+                if item["orderLinkId"]:
                     self._delete(self.find({"orderLinkId": item["orderLinkId"]}))
 
 
 class Wallet(DataStore):
     _KEYS = ["accountType"]
+
+    def _onresponse(self, url: URL, data: Item) -> None:
+        for item in data["result"]["list"]:
+            orig_item = self.get(item)
+            if orig_item:
+                current_coins = set(map(lambda x: x["coin"], item["coin"]))
+                item["coin"].extend(
+                    filter(lambda x: x["coin"] not in current_coins, orig_item["coin"])
+                )
+            self._update([item])
 
     def _onmessage(self, msg: Item, topic_ext: list[str]) -> None:
         for item in msg["data"]:
