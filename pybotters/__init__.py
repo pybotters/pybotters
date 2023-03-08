@@ -19,6 +19,7 @@ from .models.bitbank import bitbankDataStore
 from .models.bitflyer import bitFlyerDataStore
 from .models.bitget import BitgetDataStore
 from .models.bitmex import BitMEXDataStore
+from .models.bybit_v5 import BybitV5DataStore
 from .models.bybit import BybitInverseDataStore, BybitUSDTDataStore
 from .models.coincheck import CoincheckDataStore
 from .models.deprecated.binance import BinanceDataStore
@@ -39,6 +40,7 @@ __all__: Tuple[str, ...] = (
     "delete",
     "BybitDataStore",
     "CoincheckDataStore",
+    "BybitV5DataStore",
     "BybitInverseDataStore",
     "BybitUSDTDataStore",
     "BinanceDataStore",
