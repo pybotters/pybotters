@@ -347,7 +347,7 @@ class Auth:
 
     @staticmethod
     async def okx(ws: aiohttp.ClientWebSocketResponse):
-        if not ws._response.url.path.endswith("private"):
+        if ws._response.url.path.endswith("public"):
             return
 
         key: str = ws._response._session.__dict__["_apis"][
