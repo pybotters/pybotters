@@ -452,6 +452,7 @@ class Hosts:
         "www.bitmex.com": Item("bitmex", Auth.bitmex),
         "testnet.bitmex.com": Item("bitmex_testnet", Auth.bitmex),
         "api.phemex.com": Item("phemex", Auth.phemex),
+        "vapi.phemex.com": Item("phemex", Auth.phemex),
         "testnet-api.phemex.com": Item("phemex_testnet", Auth.phemex),
         "coincheck.com": Item("coincheck", Auth.coincheck),
         "www.okx.com": Item(NameSelector.okx, Auth.okx),
