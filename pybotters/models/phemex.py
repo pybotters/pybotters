@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import logging
 from typing import Awaitable, Optional
-import urllib.parse
 
 import aiohttp
 
@@ -34,36 +33,43 @@ class PhemexDataStore(DataStoreManager):
         """
         対応エンドポイント
 
+        - GET /exchange/public/md/v2/kline (DataStore: kline)
         - GET /exchange/public/md/kline (DataStore: kline)
+        - GET /exchange/public/md/v2/kline/last (DataStore: kline)
+        - GET /exchange/public/md/v2/kline/list (DataStore: kline)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
-            symbol = urllib.parse.parse_qs(urllib.parse.urlparse(str(resp.url)).query)[
-                "symbol"
-            ][0]
             data = await resp.json()
-            if resp.url.path in ("/exchange/public/md/kline",):
-                self.kline._onmessage({"symbol": symbol, "kline": data["data"]["rows"]})
+            if resp.url.path in (
+                "/exchange/public/md/v2/kline",
+                "/exchange/public/md/kline",
+                "/exchange/public/md/v2/kline/last",
+                "/exchange/public/md/v2/kline/list",
+            ):
+                symbol = resp.url.query.get("symbol")
+                if symbol:
+                    self.kline._onresponse(symbol, data)
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if not msg.get("id"):
-            if "trades" in msg:
+            if "trades" in msg or "trades_p" in msg:
                 self.trade._onmessage(msg)
-            elif "book" in msg:
+            elif "book" in msg or "orderbook_p" in msg:
                 self.orderbook._onmessage(msg)
-            elif "tick" in msg:
+            elif "tick" in msg or "tick_p" in msg:
                 self.ticker._onmessage(msg)
-            elif "market24h" in msg:
-                self.market24h._onmessage(msg["market24h"])
-            elif "kline" in msg:
+            elif "market24h" in msg or "market24h_p" in msg:
+                self.market24h._onmessage(msg)
+            elif "kline" in msg or "kline_p" in msg:
                 self.kline._onmessage(msg)
 
-            if "accounts" in msg:
-                self.accounts._onmessage(msg.get("accounts"))
-            if "orders" in msg:
-                self.orders._onmessage(msg.get("orders"))
-            if "positions" in msg:
-                self.positions._onmessage(msg.get("positions"))
+            if "accounts" in msg or "accounts_p" in msg:
+                self.accounts._onmessage(msg)
+            if "orders" in msg or "orders_p" in msg:
+                self.orders._onmessage(msg)
+            if "positions" in msg or "positions_p" in msg:
+                self.positions._onmessage(msg)
 
         if msg.get("error"):
             logger.warning(msg)
@@ -107,18 +113,19 @@ class Trade(DataStore):
 
     def _onmessage(self, message: Item) -> None:
         symbol = message.get("symbol")
-        self._insert(
-            [
-                {
-                    "symbol": symbol,
-                    "timestamp": item[0],
-                    "side": item[1],
-                    "price": item[2] / 10000,
-                    "size": item[3],
-                }
-                for item in message.get("trades", [])
-            ]
-        )
+        for trades in (message.get("trades", []), message.get("trades_p", [])):
+            self._insert(
+                [
+                    {
+                        "symbol": symbol,
+                        "timestamp": item[0],
+                        "side": item[1],
+                        "price": item[2],
+                        "qty": item[3],
+                    }
+                    for item in trades
+                ]
+            )
 
 
 class OrderBook(DataStore):
@@ -140,31 +147,32 @@ class OrderBook(DataStore):
 
     def _onmessage(self, message: Item) -> None:
         symbol = message["symbol"]
-        book = message["book"]
-        for key, side in (("bids", "BUY"), ("asks", "SELL")):
-            for item in book[key]:
-                if item[1] != 0:
-                    self._insert(
-                        [
-                            {
-                                "symbol": symbol,
-                                "side": side,
-                                "price": item[0],
-                                "size": item[1],
-                            }
-                        ]
-                    )
-                else:
-                    self._delete(
-                        [
-                            {
-                                "symbol": symbol,
-                                "side": side,
-                                "price": item[0],
-                                "size": item[1],
-                            }
-                        ]
-                    )
+        for book in (message.get("book"), message.get("orderbook_p")):
+            if book is None:
+                continue
+            for key, side in (("bids", "BUY"), ("asks", "SELL")):
+                for item in book[key]:
+                    if item[1] != 0:
+                        self._insert(
+                            [
+                                {
+                                    "symbol": symbol,
+                                    "side": side,
+                                    "price": item[0],
+                                    "qty": item[1],
+                                }
+                            ]
+                        )
+                    else:
+                        self._delete(
+                            [
+                                {
+                                    "symbol": symbol,
+                                    "side": side,
+                                    "price": item[0],
+                                }
+                            ]
+                        )
 
         self.timestamp = message["timestamp"]
 
@@ -172,73 +180,99 @@ class OrderBook(DataStore):
 class Ticker(DataStore):
     _KEYS = ["symbol"]
 
-    def _onmessage(self, message):
-        self._update([message.get("tick")])
+    def _onmessage(self, message: Item):
+        if "tick" in message:
+            self._update([message["tick"]])
+        if "tick_p" in message:
+            self._update([message["tick_p"]])
 
 
 class Market24h(DataStore):
     _KEYS = ["symbol"]
 
-    def _onmessage(self, item: Item) -> None:
-        self._update([item])
+    def _onmessage(self, message: Item) -> None:
+        if "market24h" in message:
+            self._update([message["market24h"]])
+        if "market24h_p" in message:
+            self._update([message["market24h_p"]])
 
 
 class Kline(DataStore):
-    _KEYS = ["symbol", "interval", "timestamp"]
+    _KEYS = ["symbol", "timestamp", "interval"]
 
-    def _onmessage(self, message: Item) -> None:
-        symbol = message.get("symbol")
+    def _onresponse(self, symbol: str, data: list[Item]) -> None:
         self._insert(
             [
                 {
                     "symbol": symbol,
-                    "interval": item[1],
                     "timestamp": item[0],
-                    "open": item[3] / 10000,
-                    "high": item[4] / 10000,
-                    "low": item[5] / 10000,
-                    "close": item[6] / 10000,
+                    "interval": item[1],
+                    "last_close": item[2],
+                    "open": item[3],
+                    "high": item[4],
+                    "low": item[5],
+                    "close": item[6],
                     "volume": item[7],
-                    "turnover": item[8] / 10000,
+                    "turnover": item[8],
                 }
-                for item in message.get("kline", [])
+                for item in data["data"]["rows"]
             ]
         )
+
+    def _onmessage(self, message: Item) -> None:
+        symbol = message.get("symbol")
+        for kline in (message.get("kline", []), message.get("kline_p", [])):
+            self._insert(
+                [
+                    {
+                        "symbol": symbol,
+                        "timestamp": item[0],
+                        "interval": item[1],
+                        "last_close": item[2],
+                        "open": item[3],
+                        "high": item[4],
+                        "low": item[5],
+                        "close": item[6],
+                        "volume": item[7],
+                        "turnover": item[8],
+                    }
+                    for item in kline
+                ]
+            )
 
 
 class Accounts(DataStore):
     _KEYS = ["accountID", "currency"]
 
-    def _onmessage(self, data: list[Item]) -> None:
-        self._update(data)
+    def _onmessage(self, message: Item) -> None:
+        for data in (message.get("accounts", []), message.get("accounts_p", [])):
+            self._update(data)
 
 
 class Orders(DataStore):
     _KEYS = ["orderID"]
 
-    def _onmessage(self, data: list[Item]) -> None:
-        for item in data:
-            if item["ordStatus"] == "New":
-                if self.get(item):
-                    self._update([item])
-                else:
+    def _onmessage(self, message: Item) -> None:
+        for data in (message.get("orders", []), message.get("orders_p", [])):
+            for item in data:
+                if item["ordStatus"] == "New":
+                    if self.get(item):
+                        self._update([item])
+                    else:
+                        self._insert([item])
+                elif item["ordStatus"] == "Untriggered":
                     self._insert([item])
-            elif item["ordStatus"] == "Untriggered":
-                self._insert([item])
-            elif item["ordStatus"] == "PartiallyFilled":
-                self._update([item])
-            elif item["ordStatus"] in ("Filled", "Deactivated"):
-                self._delete([item])
-            elif item["ordStatus"] == "Canceled" and item["action"] != "Replace":
-                self._delete([item])
+                elif item["ordStatus"] == "PartiallyFilled":
+                    self._update([item])
+                elif item["ordStatus"] in ("Filled", "Deactivated"):
+                    self._delete([item])
+                elif item["ordStatus"] == "Canceled" and item["action"] != "Replace":
+                    self._delete([item])
 
 
 class Positions(DataStore):
     _KEYS = ["accountID", "symbol"]
 
-    def _onmessage(self, data: list[Item]) -> None:
-        for item in data:
-            if item["size"] == 0:
-                self._delete([item])
-            else:
-                self._insert([item])
+    def _onmessage(self, message: Item) -> None:
+        for data in (message.get("positions", []), message.get("positions_p", [])):
+            self._insert(data)
