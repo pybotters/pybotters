@@ -63,6 +63,7 @@ class WebSocketRunner:
                 **kwargs,
             )
         )
+        self.ws: aiohttp.ClientWebSocketResponse | None = None
 
     async def _run_forever(
         self,
@@ -88,6 +89,7 @@ class WebSocketRunner:
             try:
                 async with session.ws_connect(url, auth=auth, **kwargs) as ws:
                     self.connected = True
+                    self.ws = ws
                     self._event.set()
                     if send_str is not None:
                         if isinstance(send_str, list):
@@ -152,6 +154,7 @@ class WebSocketRunner:
             ) as e:
                 logger.warning(f"{pretty_modulename(e)}: {e}")
             self.connected = False
+            self.ws = None
             self._event.clear()
             await cooldown
 
@@ -538,6 +541,19 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
         _itself = kwargs.pop("_itself", False)
         if not _itself:
             await self._wait_authtask()
+
+        if (
+            (kwargs.pop("auth", _Auth) is _Auth)
+            and (self._response.url.host in MessageSignHosts.items)
+            and (
+                MessageSignHosts.items[self._response.url.host].name
+                in self._response._session.__dict__["_apis"]
+            )
+        ):
+            data = kwargs.get("data", args[0] if len(args) > 0 else None)
+            if data:
+                MessageSignHosts.items[self._response.url.host].func(self, data)
+
         return await super().send_json(*args, **kwargs)
 
 
@@ -587,4 +603,42 @@ class RequestLimitHosts:
     items = {
         "api.coin.z.com": RequestLimit.gmocoin,
         "stream.binance.com": RequestLimit.binance,
+    }
+
+
+class MessageSign:
+    @staticmethod
+    def binance(ws: aiohttp.ClientWebSocketResponse, data: dict[str, Any]):
+        key: str = ws._response._session.__dict__["_apis"][
+            MessageSignHosts.items[ws._response.url.host].name
+        ][0]
+        secret: bytes = ws._response._session.__dict__["_apis"][
+            MessageSignHosts.items[ws._response.url.host].name
+        ][1]
+
+        if not ws._response.url.path.startswith("/ws-api"):
+            return
+
+        params = data.get("params")
+
+        if not isinstance(params, dict):
+            return
+
+        timestamp = int(time.time() * 1000)
+
+        params["apiKey"] = key
+        params["timestamp"] = timestamp
+
+        payload = "&".join(
+            [f"{param}={value}" for param, value in sorted(params.items())]
+        )
+        signature = hmac.new(secret, payload.encode(), hashlib.sha256).hexdigest()
+
+        params["signature"] = signature
+
+
+class MessageSignHosts:
+    items = {
+        "ws-api.binance.com": Item("binance", MessageSign.binance),
+        "testnet.binance.vision": Item("binance_testnet", MessageSign.binance),
     }
