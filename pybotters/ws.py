@@ -147,6 +147,7 @@ class WebSocketRunner:
             except (
                 aiohttp.WSServerHandshakeError,
                 aiohttp.ClientOSError,
+                aiohttp.ServerDisconnectedError,
                 ConnectionResetError,
             ) as e:
                 logger.warning(f"{pretty_modulename(e)}: {e}")
