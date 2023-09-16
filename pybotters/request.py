@@ -28,7 +28,7 @@ class ClientRequest(aiohttp.ClientRequest):
                 if isinstance(Hosts.items[url.host].name, str):
                     api_name = Hosts.items[url.host].name
                 elif callable(Hosts.items[url.host].name):
-                    api_name = Hosts.items[url.host].name(kwargs["headers"])
+                    api_name = Hosts.items[url.host].name(args, kwargs)
                 if api_name in kwargs["session"].__dict__["_apis"]:
                     args = Hosts.items[url.host].func(args, kwargs)
 
