@@ -11,13 +11,11 @@ Welcome to pybotters's documentation!
    :caption: Contents:
 
    Home
-   Example
    Advanced-Usage
    Exchanges
+   Example
+   Reference
    Contributing
-
-API Reference
--------------
 
 .. autosummary::
    :toctree: generated

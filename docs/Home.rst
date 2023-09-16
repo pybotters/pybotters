@@ -1,4 +1,4 @@
-Getting Started
+QuickStart
 ===============
 
 Installation
@@ -49,6 +49,7 @@ APIを叩いた際、ホスト名を判別し自動で認証情報の付与が�
    apis = {
        'bybit': ['BYBIT_API_KEY', 'BYBIT_API_SECRET'],
        'binance': ['BINANCE_API_KEY', 'BINANCE_API_SECRET'],
+       "okx": ["OKX_API_KEY", "OKX_API_SECRET", "OKX_API_PASSPHRASE"],
        '...': ['...', '...'],
    }
 
@@ -83,7 +84,11 @@ Exchange ``apis`` Key Name
 ======== ==================================
 Bybit    ``bybit``\ \ ``bybit_testnet``
 Binance  ``binance``\ \ ``binance_testnet``
+OKX      ``okx``\ \ ``okx_demo``
 Phemex   ``phemex``\ \ ``phemex_testnet``
+Bitget   ``bitget``
+MEXC     ``mexc``
+KuCoin   ``kucoin``
 BitMEX   ``bitmex``\ \ ``bitmex_testnet``
 bitFlyer ``bitflyer``
 GMO Coin ``gmocoin``

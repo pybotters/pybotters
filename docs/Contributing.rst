@@ -4,16 +4,6 @@ Contributing
 pybottersはオープンソースソフトウェアですので、どなたでも開発に参加できます。
 当プロジェクトに参加する方法や選定しているツールなどの環境構築する方法を記載します。
 
-Table of Content
-----------------
-
-- `Python <#python>`__
-- `poetry <#poetry>`__
-- `Formatter, Linter <#formatter-linter>`__
-- `Testing <#testing>`__
-- `Pull Request <#pull-request>`__
-- `Incentive(?) <#incentive>`__
-
 Python
 ------
 
@@ -152,9 +142,3 @@ Requestは同ブランチに対して行ってください。
 お気軽にプルリクください！
 
 OSS開発にご興味がある方、是非プロジェクトにご参加ください✨🍰✨
-
-Incentive(?)
-------------
-
-将来的には取引所へのReferralリンク等作成する予定です。
-多大な貢献をして頂いた方にはReferralの収益分配するような事を行うかもしれません。(かなり先の展望です)

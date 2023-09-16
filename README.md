@@ -56,7 +56,7 @@ An advanced API client for python botters.
 | Phemex | ✅ | ✅ | [Official](https://phemex-docs.github.io/) |
 | Bitget | ✅ | ✅ | [Official](https://bitgetlimited.github.io/apidoc/en/mix/) |
 | MEXC | ✅ | WIP | [Official](https://mxcdevelop.github.io/APIDoc/) / [v3](https://mxcdevelop.github.io/apidocs/spot_v3_en/) |
-| KuCoin | ✅ | ✅ | [Official](https://docs.kucoin.com/) |
+| KuCoin | ✅ | ✅ | [Official](https://www.kucoin.com/docs/beginners/introduction) |
 | BitMEX | ✅ | ✅ | [Official](https://www.bitmex.com/app/apiOverview) |
 | bitFlyer | ✅ | ✅ | [Official](https://lightning.bitflyer.com/docs) |
 | GMO Coin | ✅ | ✅ | [Official](https://api.coin.z.com/docs/) |
@@ -121,11 +121,9 @@ async def main():
         ...
 ```
 
-## 📖 Wiki
+## 📖 Documents
 
-詳しい利用方法は 👉 [GitHub Wiki](https://github.com/MtkN1/pybotters/wiki)
-
-現在こちらに移行中です 👉 [Read the Docs](https://pybotters.readthedocs.io/ja/latest/)
+👉 [Read the Docs](https://pybotters.readthedocs.io/ja/latest/)
 
 ## 🗽 License
 
