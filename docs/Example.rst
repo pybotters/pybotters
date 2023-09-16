@@ -3,6 +3,25 @@ Example
 
 このページでは ``pybotters`` を利用したbotの実装例を紹介します。
 
+bitFlyer
+========
+
+[ペ（@peihsun3）さん ](https://twitter.com/peihsun3)による実践的なサンプル bot です。
+高度なロジックが組まれた、実稼働レベルの素晴らしいコードです。
+
+**pybotters-magito-mm**
+
+mmbot のサンプル  
+https://github.com/ko0hi/pybotters-magito-mm
+
+**pybotters-inago-flyer**
+
+イナゴ bot のサンプル  
+https://github.com/ko0hi/pybotters-inago-flyer
+
+これらを参考にすることで pybotters や非同期処理の応用を学ぶことができると思います。
+逆にそれらについて初心者の場合は参考にするのは難易度が高いかもしれません。
+
 Bybit インバース無期限契約
 --------------------------
 
