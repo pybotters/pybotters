@@ -95,19 +95,14 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             "0uVJRVNmR2ZHiCXtf6yEwrwy",
             b"39aw3fMqFhHsuhbkQ0wa8JzuUgodvbTVl9tZblpSKFnB9Qh3",
         ),
-        "kucoinspot": (
-            "CYdTygFbGgM1re2J54lU2t83",
-            b"r9ugGEq5pJkrBuqs6GYFgHFIgsPr4iAw06awzFByoZPRjTJs",
-            "MyPassphrase123",
-        ),
-        "kucoinfuture": (
+        "kucoin": (
             "CYdTygFbGgM1re2J54lU2t83",
             b"r9ugGEq5pJkrBuqs6GYFgHFIgsPr4iAw06awzFByoZPRjTJs",
             "MyPassphrase123",
         ),
     }
     assert set(apis.keys()) == set(
-        item.name if isinstance(item.name, str) else item.name({})
+        item.name if isinstance(item.name, str) else item.name.__name__
         for item in pybotters.auth.Hosts.items.values()
     )
     m_sess.__dict__["_apis"] = apis
@@ -135,9 +130,41 @@ def test_item():
 
 
 def test_selector_okx():
-    assert pybotters.auth.NameSelector.okx({}) == "okx"
-    assert pybotters.auth.NameSelector.okx({"foo": "bar"}) == "okx"
-    assert pybotters.auth.NameSelector.okx({"x-simulated-trading": "1"}) == "okx_demo"
+    api_name = pybotters.auth.NameSelector.okx(args=tuple(), kwargs={"headers": {}})
+    assert api_name == "okx"
+
+    api_name = pybotters.auth.NameSelector.okx(
+        args=tuple(), kwargs={"headers": {"foo": "bar"}}
+    )
+    assert api_name == "okx"
+
+    api_name = pybotters.auth.NameSelector.okx(
+        args=tuple(), kwargs={"headers": {"x-simulated-trading": "1"}}
+    )
+    assert api_name == "okx_demo"
+
+
+def test_selector_kucoin(mock_session, mocker: pytest_mock.MockerFixture):
+    api_name = pybotters.auth.NameSelector.kucoin(
+        args=("GET", URL("https://api-kucoin.com")),
+        kwargs={"session": mock_session},
+    )
+    assert api_name == "kucoin"
+
+    m_sess = mocker.MagicMock()
+    m_sess.__dict__["_apis"] = dict()
+
+    api_name = pybotters.auth.NameSelector.kucoin(
+        args=("GET", URL("https://api.kucoin.com")),
+        kwargs={"session": m_sess},
+    )
+    assert api_name == "kucoinspot"
+
+    api_name = pybotters.auth.NameSelector.kucoin(
+        args=("GET", URL("https://api-futures.kucoin.com")),
+        kwargs={"session": m_sess},
+    )
+    assert api_name == "kucoinfuture"
 
 
 def test_bybit_get(mock_session, mocker: pytest_mock.MockerFixture):
