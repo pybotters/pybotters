@@ -4,8 +4,7 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Path setup --------------------------------------------------------------
-
+import datetime
 import sys
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -22,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 # -- Project information -----------------------------------------------------
 
 project = "pybotters"
-copyright = "2021, MtkN1XBt"
+copyright = f"2013-{datetime.date.today().year}, MtkN1XBt"
 author = "MtkN1XBt"
 
 

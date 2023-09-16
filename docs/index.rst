@@ -11,9 +11,9 @@ Welcome to pybotters's documentation!
    :caption: Contents:
 
    Home
-   Example
    Advanced-Usage
    Exchanges
+   Example
    Contributing
 
 API Reference

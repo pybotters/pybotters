@@ -4,9 +4,9 @@ Example
 このページでは ``pybotters`` を利用したbotの実装例を紹介します。
 
 bitFlyer
-========
+--------------------------
 
-[ペ（@peihsun3）さん ](https://twitter.com/peihsun3)による実践的なサンプル bot です。
+`ペ（@peihsun3）さん <https://twitter.com/peihsun3>`_
 高度なロジックが組まれた、実稼働レベルの素晴らしいコードです。
 
 **pybotters-magito-mm**
