@@ -6,7 +6,7 @@ Example
 bitFlyer
 --------------------------
 
-`ペ（@peihsun3）さん <https://twitter.com/peihsun3>`_
+`ペ（@peihsun3）さん <https://twitter.com/peihsun3>`_ による実践的なサンプル bot です。
 高度なロジックが組まれた、実稼働レベルの素晴らしいコードです。
 
 **pybotters-magito-mm**
