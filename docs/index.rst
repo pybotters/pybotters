@@ -15,9 +15,7 @@ Welcome to pybotters's documentation!
    Exchanges
    Example
    Contributing
-
-API Reference
--------------
+   Reference
 
 .. autosummary::
    :toctree: generated
