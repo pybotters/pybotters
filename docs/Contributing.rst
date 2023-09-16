@@ -4,16 +4,6 @@ Contributing
 pybottersはオープンソースソフトウェアですので、どなたでも開発に参加できます。
 当プロジェクトに参加する方法や選定しているツールなどの環境構築する方法を記載します。
 
-Table of Content
-----------------
-
-- `Python <#python>`__
-- `poetry <#poetry>`__
-- `Formatter, Linter <#formatter-linter>`__
-- `Testing <#testing>`__
-- `Pull Request <#pull-request>`__
-- `Incentive(?) <#incentive>`__
-
 Python
 ------
 

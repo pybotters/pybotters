@@ -1,6 +1,9 @@
 API Reference
 =============
 
+Legacy API Reference
+----------------
+
 Legacy reference page (GitHub Wiki):
 
 https://github.com/MtkN1/pybotters/wiki/Reference

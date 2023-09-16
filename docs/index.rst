@@ -14,8 +14,8 @@ Welcome to pybotters's documentation!
    Advanced-Usage
    Exchanges
    Example
-   Contributing
    Reference
+   Contributing
 
 .. autosummary::
    :toctree: generated
