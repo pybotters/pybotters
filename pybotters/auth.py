@@ -383,16 +383,14 @@ class Auth:
         passphrase: str = session.__dict__["_apis"][Hosts.items[url.host].name][2]
 
         now = int(time.time() * 1000)
-        if method == "GET":
-            str_to_sign = str(now) + method + url.path_qs
-        else:
-            body = JsonPayload(data) if data else FormData(data)()
-            headers["Content-Type"] = "application/json"
-            kwargs.update({"data": body._value})
-            str_to_sign = str(now) + method + url.path + body._value.decode()
+        body = JsonPayload(data) if data else FormData(data)()
+        if body._value:
+            kwargs.update({"data": body})
+
+        str_to_sign = f"{now}{method}{url.path_qs}".encode() + body._value
 
         signature = base64.b64encode(
-            hmac.new(secret, str_to_sign.encode("utf-8"), hashlib.sha256).digest()
+            hmac.new(secret, str_to_sign, hashlib.sha256).digest()
         ).decode()
         passphrase = base64.b64encode(
             hmac.new(secret, passphrase.encode("utf-8"), hashlib.sha256).digest()
