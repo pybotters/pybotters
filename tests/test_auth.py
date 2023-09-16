@@ -1229,10 +1229,9 @@ def test_kucoin_post(mock_session, mocker: pytest_mock.MockerFixture):
                 "price": "19200",
                 "size": 1,
             }
-        )._value,
+        ),
         "headers": CIMultiDict(
             {
-                "Content-Type": "application/json",
                 "KC-API-SIGN": "aoxLuRURO0t1z9hhh9ERbHjVp6bJ1K5bfoU2xHH25Y4=",
                 "KC-API-TIMESTAMP": "2085848896000",
                 "KC-API-KEY": "CYdTygFbGgM1re2J54lU2t83",
@@ -1244,5 +1243,5 @@ def test_kucoin_post(mock_session, mocker: pytest_mock.MockerFixture):
     }
     args = pybotters.auth.Auth.kucoin(args, kwargs)
     assert args == expected_args
-    assert kwargs["data"] == expected_kwargs["data"]
+    assert kwargs["data"]._value == expected_kwargs["data"]._value
     assert kwargs["headers"] == expected_kwargs["headers"]
