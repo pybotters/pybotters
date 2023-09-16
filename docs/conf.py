@@ -65,3 +65,5 @@ source_suffix = [".rst"]
 autoclass_content = "both"
 
 templates_path = ["_templates"]
+
+html_title = "pybotters Docs"
