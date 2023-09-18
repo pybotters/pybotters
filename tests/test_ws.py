@@ -348,6 +348,7 @@ async def test_okx_ws(mocker: pytest_mock.MockerFixture):
 
     ws = MagicMock()
     ws._response.url.host = "ws.okx.com"
+    ws._response.url.path = "/ws/v5/private"
     ws._response._session.__dict__["_apis"] = {
         "okx": (
             "gYmX9fr0kqqxptUlDKESxetg",
@@ -375,33 +376,27 @@ async def test_bitget_ws(mocker: pytest_mock.MockerFixture):
             "op": "login",
             "args": [
                 {
-                    "apiKey": "jbcfbye8AJzXxXwMKluXM12t",
+                    "api_key": "jbcfbye8AJzXxXwMKluXM12t",
                     "passphrase": "MyPassphrase123",
                     "timestamp": "2085848896",
-                    "sign": "QAyHX41dxONjr5Wx/SVfHGxEo5Q+NECtOh22tZ7ledA=",
+                    "sign": "RmRhCixsMce8H7j2uyvR6sk11tCRbYenohbd87nchH8=",
                 }
             ],
         }
         assert msg == expected
 
     ws = MagicMock()
-    ws._response.url.host = "ws.okx.com"
+    ws._response.url.host = "ws.bitget.com"
     ws._response._session.__dict__["_apis"] = {
-        "okx": (
+        "bitget": (
             "jbcfbye8AJzXxXwMKluXM12t",
             b"mVd40qhnarPtxk3aqg0FCyY1qlTgBOKOXEcmMYfkerGUKmvr",
             "MyPassphrase123",
         ),
     }
     ws.send_json.side_effect = dummy_send
-    # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
-    if sys.version_info.major == 3 and sys.version_info.minor == 7:
-        with pytest.raises(TypeError):
-            await pybotters.ws.Auth.okx(ws)
-    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
-        await pybotters.ws.Auth.okx(ws)
-    else:
-        raise RuntimeError(f"Unsupported Python version: {sys.version}")
+
+    await pybotters.ws.Auth.bitget(ws)
 
 
 def test_websocketrunner(mocker: pytest_mock.MockerFixture):
