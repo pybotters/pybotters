@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybotters"
-version = "0.16.0"
+version = "0.17.0"
 description = "An advanced API client for python botters."
 license = "MIT"
 authors = ["MtkN1 <51289448+MtkN1@users.noreply.github.com>"]
