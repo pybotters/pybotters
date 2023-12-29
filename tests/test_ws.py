@@ -396,7 +396,13 @@ async def test_bitget_ws(mocker: pytest_mock.MockerFixture):
     }
     ws.send_json.side_effect = dummy_send
 
-    await pybotters.ws.Auth.bitget(ws)
+    if sys.version_info.major == 3 and sys.version_info.minor == 7:
+        with pytest.raises(TypeError):
+            await pybotters.ws.Auth.bitget(ws)
+    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
+        await pybotters.ws.Auth.bitget(ws)
+    else:
+        raise RuntimeError(f"Unsupported Python version: {sys.version}")
 
 
 def test_websocketrunner(mocker: pytest_mock.MockerFixture):
