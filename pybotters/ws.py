@@ -424,6 +424,21 @@ class Auth:
             ],
         }
         await ws.send_json(msg, _itself=True)
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                try:
+                    data = msg.json()
+                except json.JSONDecodeError:
+                    pass
+                else:
+                    if "event" in data:
+                        if data["event"] == "login":
+                            break
+                        elif data["event"] == "error":
+                            logger.warning(data)
+                            break
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                break
 
     @staticmethod
     async def mexc(ws: aiohttp.ClientWebSocketResponse):
