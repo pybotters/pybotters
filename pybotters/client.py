@@ -4,11 +4,13 @@ import copy
 import json
 import logging
 import os
+from dataclasses import dataclass
 from typing import Any, Mapping, Optional, Union
 
 import aiohttp
 from aiohttp import hdrs
 from aiohttp.client import _RequestContextManager
+from typing_extensions import Literal
 
 from . import __version__
 from .auth import Auth
@@ -147,6 +149,26 @@ class Client:
         """
         return self._request(method, url, params=params, data=data, **kwargs)
 
+    async def fetch(
+        self,
+        method: Literal["GET", "POST", "PUT", "DELETE"],
+        url: str,
+        *,
+        params: Optional[Mapping[str, str]] = None,
+        data: Any = None,
+        **kwargs: Any,
+    ) -> FetchResult:
+        async with self.request(
+            method, url, params=params, data=data, **kwargs
+        ) as resp:
+            text = await resp.text()
+            try:
+                data = await resp.json()
+            except json.JSONDecodeError as e:
+                data = e
+
+        return FetchResult(response=resp, text=text, data=data)
+
     def get(
         self,
         url: str,
@@ -265,3 +287,10 @@ class Client:
                 apis[name][1] = apis[name][1].encode()
             encoded[name] = tuple(apis[name])
         return encoded
+
+
+@dataclass
+class FetchResult:
+    response: aiohttp.ClientResponse
+    text: str
+    data: Any | json.JSONDecodeError
