@@ -9,7 +9,7 @@ import aiohttp
 from aiohttp import hdrs
 from rich import print
 
-from .client import Client
+from .client import Client, FetchResult
 from .models.binance import (
     BinanceCOINMDataStore,
     BinanceSpotDataStore,
@@ -19,8 +19,8 @@ from .models.bitbank import bitbankDataStore
 from .models.bitflyer import bitFlyerDataStore
 from .models.bitget import BitgetDataStore
 from .models.bitmex import BitMEXDataStore
-from .models.bybit_v5 import BybitV5DataStore
 from .models.bybit import BybitInverseDataStore, BybitUSDTDataStore
+from .models.bybit_v5 import BybitV5DataStore
 from .models.coincheck import CoincheckDataStore
 from .models.deprecated.binance import BinanceDataStore
 from .models.deprecated.bybit import BybitDataStore
@@ -33,6 +33,7 @@ from .ws import WebSocketQueue
 
 __all__: Tuple[str, ...] = (
     "Client",
+    "FetchResult",
     "request",
     "get",
     "post",

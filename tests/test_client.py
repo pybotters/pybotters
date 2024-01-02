@@ -1,10 +1,12 @@
+import json
 from unittest.mock import mock_open
 
 import aiohttp
-import pybotters
 import pytest
 import pytest_mock
 from asyncmock import AsyncMock
+
+import pybotters
 
 
 async def test_client():
@@ -101,6 +103,48 @@ async def test_client_request_post(mocker: pytest_mock.MockerFixture):
         ret = client.request("POST", "http://example.com", data={"foo": "bar"})
     assert patched.called
     assert isinstance(ret, aiohttp.client._RequestContextManager)
+
+
+@pytest.mark.asyncio
+async def test_client_fetch(mocker: pytest_mock.MockerFixture):
+    m_resp = AsyncMock()
+    m_resp.text.return_value = '{"foo":"bar"}'
+    m_resp.json.return_value = {"foo": "bar"}
+    m_actx = AsyncMock()
+    m_actx.aenter_return_value = m_resp
+    m_req = mocker.patch("pybotters.client.Client.request")
+    m_req.return_value = m_actx
+
+    async with pybotters.Client() as client:
+        r = await client.fetch("GET", "http://example.com", params={"foo": "bar"})
+
+    assert isinstance(r, pybotters.FetchResult)
+    assert isinstance(r.response, type(m_resp))
+    assert r.text == m_resp.text.return_value
+    assert r.data == m_resp.json.return_value
+    assert m_req.called
+
+
+@pytest.mark.asyncio
+async def test_client_fetch_error(mocker: pytest_mock.MockerFixture):
+    m_resp = AsyncMock()
+    m_resp.text.return_value = "pong"
+    m_resp.json.side_effect = json.JSONDecodeError(
+        msg="Expecting value", doc="pong", pos=0
+    )
+    m_actx = AsyncMock()
+    m_actx.aenter_return_value = m_resp
+    m_req = mocker.patch("pybotters.client.Client.request")
+    m_req.return_value = m_actx
+
+    async with pybotters.Client() as client:
+        r = await client.fetch("GET", "http://example.com", params={"foo": "bar"})
+
+    assert isinstance(r, pybotters.FetchResult)
+    assert isinstance(r.response, type(m_resp))
+    assert r.text == m_resp.text.return_value
+    assert isinstance(r.data, json.JSONDecodeError)
+    assert m_req.called
 
 
 @pytest.mark.asyncio

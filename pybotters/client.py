@@ -4,6 +4,7 @@ import copy
 import json
 import logging
 import os
+from dataclasses import dataclass
 from typing import Any, Mapping, Optional, Union
 
 import aiohttp
@@ -15,6 +16,11 @@ from .auth import Auth
 from .request import ClientRequest
 from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
 from .ws import ClientWebSocketResponse, WebSocketRunner
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
 logger = logging.getLogger(__name__)
 
@@ -147,6 +153,26 @@ class Client:
         """
         return self._request(method, url, params=params, data=data, **kwargs)
 
+    async def fetch(
+        self,
+        method: Literal["GET", "POST", "PUT", "DELETE"],
+        url: str,
+        *,
+        params: Optional[Mapping[str, str]] = None,
+        data: Any = None,
+        **kwargs: Any,
+    ) -> FetchResult:
+        async with self.request(
+            method, url, params=params, data=data, **kwargs
+        ) as resp:
+            text = await resp.text()
+            try:
+                data = await resp.json()
+            except json.JSONDecodeError as e:
+                data = e
+
+        return FetchResult(response=resp, text=text, data=data)
+
     def get(
         self,
         url: str,
@@ -265,3 +291,10 @@ class Client:
                 apis[name][1] = apis[name][1].encode()
             encoded[name] = tuple(apis[name])
         return encoded
+
+
+@dataclass
+class FetchResult:
+    response: aiohttp.ClientResponse
+    text: str
+    data: Any | json.JSONDecodeError
