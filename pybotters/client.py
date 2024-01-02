@@ -10,13 +10,17 @@ from typing import Any, Mapping, Optional, Union
 import aiohttp
 from aiohttp import hdrs
 from aiohttp.client import _RequestContextManager
-from typing_extensions import Literal
 
 from . import __version__
 from .auth import Auth
 from .request import ClientRequest
 from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
 from .ws import ClientWebSocketResponse, WebSocketRunner
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
 logger = logging.getLogger(__name__)
 
