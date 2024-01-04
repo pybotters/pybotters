@@ -1,5 +1,4 @@
 import asyncio
-import sys
 from unittest.mock import MagicMock
 
 import pytest
@@ -233,14 +232,7 @@ async def test_bybit_ws(mocker: pytest_mock.MockerFixture):
         ),
     }
     ws.send_json.side_effect = dummy_send
-    # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
-    if sys.version_info.major == 3 and sys.version_info.minor == 7:
-        with pytest.raises(TypeError):
-            await pybotters.ws.Auth.bybit(ws)
-    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
-        await pybotters.ws.Auth.bybit(ws)
-    else:
-        raise RuntimeError(f"Unsupported Python version: {sys.version}")
+    await pybotters.ws.Auth.bybit(ws)
 
 
 @pytest.mark.asyncio
@@ -278,14 +270,7 @@ async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
     }
     ws.send_json.side_effect = dummy_send
     # ws.__aiter__.side_effect = dummy_generator
-    # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
-    if sys.version_info.major == 3 and sys.version_info.minor == 7:
-        with pytest.raises(TypeError):
-            await pybotters.ws.Auth.bitflyer(ws)
-    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
-        await pybotters.ws.Auth.bitflyer(ws)
-    else:
-        raise RuntimeError(f"Unsupported Python version: {sys.version}")
+    await pybotters.ws.Auth.bitflyer(ws)
 
 
 @pytest.mark.asyncio
@@ -318,14 +303,7 @@ async def test_phemex_ws(mocker: pytest_mock.MockerFixture):
     }
     ws.send_json.side_effect = dummy_send
     # ws.__aiter__.side_effect = dummy_generator
-    # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
-    if sys.version_info.major == 3 and sys.version_info.minor == 7:
-        with pytest.raises(TypeError):
-            await pybotters.ws.Auth.phemex(ws)
-    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
-        await pybotters.ws.Auth.phemex(ws)
-    else:
-        raise RuntimeError(f"Unsupported Python version: {sys.version}")
+    await pybotters.ws.Auth.phemex(ws)
 
 
 @pytest.mark.asyncio
@@ -357,14 +335,7 @@ async def test_okx_ws(mocker: pytest_mock.MockerFixture):
         ),
     }
     ws.send_json.side_effect = dummy_send
-    # TODO: Test __aiter__ code, Currently MagicMock does not have __aiter__
-    if sys.version_info.major == 3 and sys.version_info.minor == 7:
-        with pytest.raises(TypeError):
-            await pybotters.ws.Auth.okx(ws)
-    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
-        await pybotters.ws.Auth.okx(ws)
-    else:
-        raise RuntimeError(f"Unsupported Python version: {sys.version}")
+    await pybotters.ws.Auth.okx(ws)
 
 
 @pytest.mark.asyncio
@@ -396,13 +367,7 @@ async def test_bitget_ws(mocker: pytest_mock.MockerFixture):
     }
     ws.send_json.side_effect = dummy_send
 
-    if sys.version_info.major == 3 and sys.version_info.minor == 7:
-        with pytest.raises(TypeError):
-            await pybotters.ws.Auth.bitget(ws)
-    elif sys.version_info.major == 3 and sys.version_info.minor > 7:
-        await pybotters.ws.Auth.bitget(ws)
-    else:
-        raise RuntimeError(f"Unsupported Python version: {sys.version}")
+    await pybotters.ws.Auth.bitget(ws)
 
 
 def test_websocketrunner(mocker: pytest_mock.MockerFixture):
