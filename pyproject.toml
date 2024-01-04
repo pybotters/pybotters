@@ -23,10 +23,9 @@ classifiers = [
 
 
 [tool.poetry.dependencies]
-python = "^3.7"
-aiohttp = "^3.7.4"
+python = "^3.8"
+aiohttp = "^3.9.0"
 rich = "^10.1.0"
-typing-extensions = { version = ">=3.7.4", python = "<3.8" }
 python-dateutil = "^2.8.2"
 
 [tool.poetry.dev-dependencies]
