@@ -1,10 +1,9 @@
 import json
-from unittest.mock import mock_open
+from unittest.mock import AsyncMock, mock_open
 
 import aiohttp
 import pytest
 import pytest_mock
-from asyncmock import AsyncMock
 
 import pybotters
 
@@ -111,7 +110,7 @@ async def test_client_fetch(mocker: pytest_mock.MockerFixture):
     m_resp.text.return_value = '{"foo":"bar"}'
     m_resp.json.return_value = {"foo": "bar"}
     m_actx = AsyncMock()
-    m_actx.aenter_return_value = m_resp
+    m_actx.__aenter__.return_value = m_resp
     m_req = mocker.patch("pybotters.client.Client.request")
     m_req.return_value = m_actx
 
@@ -133,7 +132,7 @@ async def test_client_fetch_error(mocker: pytest_mock.MockerFixture):
         msg="Expecting value", doc="pong", pos=0
     )
     m_actx = AsyncMock()
-    m_actx.aenter_return_value = m_resp
+    m_actx.__aenter__.return_value = m_resp
     m_req = mocker.patch("pybotters.client.Client.request")
     m_req.return_value = m_actx
 
