@@ -65,7 +65,7 @@ An advanced API client for python botters.
 
 ## 🐍 Requires
 
-Python 3.7+
+Python 3.8+
 
 ## 🔧 Installation
 

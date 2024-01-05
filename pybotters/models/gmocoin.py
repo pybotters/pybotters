@@ -3,22 +3,18 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime, timezone
-from dateutil import parser
 from decimal import Decimal
 from enum import Enum, auto
-from typing import Any, Awaitable, Optional, cast
+from typing import Any, Awaitable, Optional, TypedDict, cast
 
 import aiohttp
+from dateutil import parser
+
 from pybotters.store import DataStore, DataStoreManager
 from pybotters.typedefs import Item
 
 from ..auth import Auth
 from ..ws import ClientWebSocketResponse
-
-try:
-    from typing import TypedDict
-except ImportError:
-    from typing_extensions import TypedDict
 
 logger = logging.getLogger(__name__)
 

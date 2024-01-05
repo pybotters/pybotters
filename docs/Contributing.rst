@@ -7,10 +7,10 @@ pybottersはオープンソースソフトウェアですので、どなたで�
 Python
 ------
 
-pybottersはPython 3.7以上を対象としています。 可能な限り最新のPython
-3.7でコーディングを行ってください。
+pybottersはPython 3.8以上を対象としています。 可能な限り最新のPython
+3.8でコーディングを行ってください。
 
-参考 Python 3.7のインストール～仮想環境の作成方法
+参考 Python 3.8のインストール～仮想環境の作成方法
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
@@ -19,18 +19,18 @@ pybottersはPython 3.7以上を対象としています。 可能な限り最新
    # See pyenv Wiki
    # https://github.com/pyenv/pyenv/wiki#suggested-build-environment
 
-   # 2. Get latest Python 3.7 source, extract it.
-   wget https://www.python.org/ftp/python/3.7.11/Python-3.7.11.tgz
-   # See here for the latest Python 3.7.
+   # 2. Get latest Python 3.8 source, extract it.
+   wget https://www.python.org/ftp/python/3.8.18/Python-3.8.18.tgz
+   # See here for the latest Python 3.8.
    # https://www.python.org/downloads/source/
-   tar -xf Python-3.7.11.tgz
+   tar -xf Python-3.8.18.tgz
 
    # 3. Build, Install.
-   cd Python-3.7.11
+   cd Python-3.8.18
    ./configure --prefix=${HOME}/.local && make && make altinstall
 
    # 4. Create virtual environment, activate it.
-   ~/.local/bin/python3.7 -m venv ~/.venv/pybotters
+   ~/.local/bin/python3.8 -m venv ~/.venv/pybotters
    . ~/.venv/pybotters/bin/activate
 
 poetry

@@ -70,7 +70,7 @@
 			}
 		}
 	},
-	"image": "mcr.microsoft.com/devcontainers/python:0-3.7-bullseye",
+	"image": "mcr.microsoft.com/devcontainers/python:0-3.8-bookworm",
 	"postCreateCommand": ".devcontainer/post-install.sh",
 	"waitFor": "postCreateCommand"
 }
