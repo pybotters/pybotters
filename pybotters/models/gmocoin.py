@@ -3,12 +3,13 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime, timezone
-from dateutil import parser
 from decimal import Decimal
 from enum import Enum, auto
 from typing import Any, Awaitable, Optional, cast
 
 import aiohttp
+from dateutil import parser
+
 from pybotters.store import DataStore, DataStoreManager
 from pybotters.typedefs import Item
 
@@ -115,7 +116,6 @@ class Symbol(Enum):
     XEM = auto()
     XLM = auto()
     BAT = auto()
-    OMG = auto()
     XTZ = auto()
     QTUM = auto()
     ENJ = auto()
@@ -128,6 +128,9 @@ class Symbol(Enum):
     FCR = auto()
     ADA = auto()
     LINK = auto()
+    DOGE = auto()
+    SOL = auto()
+    ASTR = auto()
     BTC_JPY = auto()
     ETH_JPY = auto()
     BCH_JPY = auto()
