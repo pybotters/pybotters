@@ -24,7 +24,7 @@ from .models.bybit_v5 import BybitV5DataStore
 from .models.coincheck import CoincheckDataStore
 from .models.deprecated.binance import BinanceDataStore
 from .models.deprecated.bybit import BybitDataStore
-# from .models.gmocoin import GMOCoinDataStore
+from .models.gmocoin import GMOCoinDataStore
 from .models.kucoin import KuCoinDataStore
 from .models.okx import OKXDataStore
 from .models.phemex import PhemexDataStore
@@ -52,7 +52,7 @@ __all__: Tuple[str, ...] = (
     "bitFlyerDataStore",
     "BitgetDataStore",
     "BitMEXDataStore",
-    # "GMOCoinDataStore",
+    "GMOCoinDataStore",
     "KuCoinDataStore",
     "OKXDataStore",
     "PhemexDataStore",
