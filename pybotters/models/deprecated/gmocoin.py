@@ -13,8 +13,8 @@ from dateutil import parser
 from pybotters.store import DataStore, DataStoreManager
 from pybotters.typedefs import Item
 
-from ..auth import Auth
-from ..ws import ClientWebSocketResponse
+from ...auth import Auth
+from ...ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
