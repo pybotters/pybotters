@@ -8,7 +8,6 @@ from enum import Enum, auto
 from typing import Any, Awaitable, Optional, TypedDict, cast
 
 import aiohttp
-from dateutil import parser
 
 from pybotters.store import DataStore, DataStoreManager
 from pybotters.typedefs import Item
@@ -21,21 +20,10 @@ logger = logging.getLogger(__name__)
 
 def parse_datetime(x: Any) -> datetime:
     if isinstance(x, str):
-        try:
-            exec_date = x.replace("T", " ")[:-1]
-            exec_date = exec_date + "00000000"
-            dt = datetime(
-                int(exec_date[0:4]),
-                int(exec_date[5:7]),
-                int(exec_date[8:10]),
-                int(exec_date[11:13]),
-                int(exec_date[14:16]),
-                int(exec_date[17:19]),
-                int(exec_date[20:26]),
-            )
-        except Exception:
-            dt = parser.parse(x)
-        return dt
+        if len(x) > 20:
+            return datetime.strptime(x, "%Y-%m-%dT%H:%M:%S.%f%z")
+        else:
+            return datetime.strptime(x, "%Y-%m-%dT%H:%M:%S%z")
     else:
         raise ValueError(f"x only support str, but {type(x)} passed.")
 
