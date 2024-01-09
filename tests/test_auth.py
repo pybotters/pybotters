@@ -1123,6 +1123,40 @@ def test_mexc_v2_post(mock_session, mocker: pytest_mock.MockerFixture):
 
 def test_mexc_v3_get(mock_session, mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
+
+    # without query
+    args = (
+        "GET",
+        URL("https://api.mexc.com/api/v3/account"),
+    )
+    kwargs = {
+        "data": None,
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = (
+        "GET",
+        URL(
+            "https://api.mexc.com/api/v3/account?timestamp=2085848896000&signature=bea4"
+            "958a74f3d56f984e7fafd012cb2474813ff98d857b9e75d5eb46e4bcc5bc"
+        ),
+    )
+    expected_kwargs = {
+        "data": b"",
+        "headers": CIMultiDict(
+            {
+                "X-MEXC-APIKEY": "0uVJRVNmR2ZHiCXtf6yEwrwy",
+                "Content-Type": "application/json",
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.mexc_v3(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"] == expected_kwargs["data"]
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+    # with query
     args = (
         "GET",
         URL("https://api.mexc.com/api/v3/openOrders").with_query(
@@ -1176,7 +1210,13 @@ def test_mexc_v3_post(mock_session, mocker: pytest_mock.MockerFixture):
         "headers": CIMultiDict(),
         "session": mock_session,
     }
-    expected_args = ("POST", URL("https://api.mexc.com/api/v3/order"))
+    expected_args = (
+        "POST",
+        URL(
+            "https://api.mexc.com/api/v3/order?timestamp=2085848896000&signature=692fc1"
+            "41d6a0bb9abc90714e253369b715b74c115358d9cbf6f450bdde688fdd"
+        ),
+    )
     expected_kwargs = {
         "data": aiohttp.formdata.FormData(
             {
@@ -1184,10 +1224,6 @@ def test_mexc_v3_post(mock_session, mocker: pytest_mock.MockerFixture):
                 "side": "BUY",
                 "type": "MARKET",
                 "quoteOrderQty": "5",
-                "timestamp": "2085848896000",
-                "signature": (
-                    "4b5e31a683df50d43d4e0774fafb869e1b4d517f8fdbff23c275092517c84161"
-                ),
             }
         )()._value,
         "headers": CIMultiDict(

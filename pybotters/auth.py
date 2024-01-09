@@ -345,23 +345,16 @@ class Auth:
         query = MultiDict(url.query)
         body = FormData(data)()
 
-        if query:
-            query.extend({"timestamp": timestamp})
-            url = url.with_query(query)
-            query = MultiDict(url.query)
-        else:
-            body._value += f"&timestamp={timestamp}".encode()
+        query.extend({"timestamp": timestamp})
+        url = url.with_query(query)
+        query = MultiDict(url.query)
 
         query_string = url.raw_query_string.encode()
         signature = hmac.new(
             secret, query_string + body._value, hashlib.sha256
         ).hexdigest()
 
-        if query:
-            query.extend({"signature": signature})
-        else:
-            body._value += f"&signature={signature}".encode()
-            body._size += len(body._value)
+        query.extend({"signature": signature})
 
         url = url.with_query(query)
         args = (method, url)
