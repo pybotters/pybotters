@@ -3,7 +3,7 @@ from __future__ import annotations
 __version__ = "0.17.0"
 
 
-from .client import Client, FetchResult
+from .client import Client, FetchResult, NotJSONContent
 from .models.binance import (
     BinanceCOINMDataStore,
     BinanceSpotDataStore,
@@ -25,6 +25,7 @@ __all__: tuple[str, ...] = (
     # client
     "Client",
     "FetchResult",
+    "NotJSONContent",
     # ws
     "WebSocketQueue",
     # models
