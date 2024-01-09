@@ -17,11 +17,8 @@ from .models.bitbank import bitbankDataStore
 from .models.bitflyer import bitFlyerDataStore
 from .models.bitget import BitgetDataStore
 from .models.bitmex import BitMEXDataStore
-from .models.bybit import BybitInverseDataStore, BybitUSDTDataStore
 from .models.bybit_v5 import BybitV5DataStore
 from .models.coincheck import CoincheckDataStore
-from .models.deprecated.binance import BinanceDataStore
-from .models.deprecated.bybit import BybitDataStore
 from .models.gmocoin import GMOCoinDataStore
 from .models.kucoin import KuCoinDataStore
 from .models.okx import OKXDataStore
@@ -36,12 +33,8 @@ __all__: Tuple[str, ...] = (
     "post",
     "put",
     "delete",
-    "BybitDataStore",
     "CoincheckDataStore",
     "BybitV5DataStore",
-    "BybitInverseDataStore",
-    "BybitUSDTDataStore",
-    "BinanceDataStore",
     "BinanceSpotDataStore",
     "BinanceUSDSMDataStore",
     "BinanceCOINMDataStore",
