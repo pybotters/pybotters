@@ -142,7 +142,8 @@ async def test_client_fetch_error(mocker: pytest_mock.MockerFixture):
     assert isinstance(r, pybotters.FetchResult)
     assert isinstance(r.response, type(m_resp))
     assert r.text == m_resp.text.return_value
-    assert isinstance(r.data, json.JSONDecodeError)
+    assert isinstance(r.data, pybotters.NotJSONContent)
+    assert not r.data
     assert m_req.called
 
 
