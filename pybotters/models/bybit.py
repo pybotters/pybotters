@@ -14,7 +14,7 @@ from ..ws import ClientWebSocketResponse
 logger = logging.getLogger(__name__)
 
 
-class BybitV5DataStore(DataStoreManager):
+class BybitDataStore(DataStoreManager):
     def _init(self) -> None:
         self.create("orderbook", datastore_class=OrderBook)
         self.create("publicTrade", datastore_class=Trade)
