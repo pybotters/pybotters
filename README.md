@@ -193,7 +193,7 @@ async def main():
         )
 
         # Iterate message (Ctrl+C to break)
-        async for msg in wsqueue.iter_msg():
+        async for msg in wsqueue:
             print(msg)
 
 
