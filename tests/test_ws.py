@@ -1,4 +1,3 @@
-import asyncio
 from unittest.mock import MagicMock
 
 import pytest
@@ -122,7 +121,7 @@ def test_wsresponse_with_auth(mocker: pytest_mock.MockerFixture):
 
 
 @pytest.mark.asyncio
-async def test_websocketqueue_wait_for():
+async def test_websocketqueue():
     wsq = pybotters.ws.WebSocketQueue()
 
     menu = [
@@ -136,75 +135,13 @@ async def test_websocketqueue_wait_for():
         wsq.onmessage(dish, ws)
 
     result = []
-    result.append(await wsq.wait_for(0.1))
-    result.append(await wsq.wait_for(0.1))
-    result.append(await wsq.wait_for(0.1))
-
-    assert result == [(dish, ws) for dish in menu]
-
-
-@pytest.mark.asyncio
-async def test_websocketqueue_iter():
-    wsq = pybotters.ws.WebSocketQueue()
-
-    menu = [
-        "spam",
-        "ham",
-        "eggs",
-    ]
-    ws = MagicMock()
-
-    for dish in menu:
-        wsq.onmessage(dish, ws)
-
-    result = []
-    async for item in wsq.iter(timeout=len(menu) / 10):
+    async for item in wsq:
         result.append(item)
 
         if len(result) == len(menu):
             break
 
-    assert result == [(dish, ws) for dish in menu]
-
-
-@pytest.mark.asyncio
-async def test_websocketqueue_iter_msg():
-    wsq = pybotters.ws.WebSocketQueue()
-
-    menu = [
-        "spam",
-        "ham",
-        "eggs",
-    ]
-
-    for dish in menu:
-        wsq.onmessage(dish, MagicMock())
-
-    result = []
-    async for msg in wsq.iter_msg(timeout=len(menu) / 10):
-        result.append(msg)
-
-        if len(result) == len(menu):
-            break
-
     assert result == menu
-
-
-@pytest.mark.asyncio
-async def test_websocketqueue_timeout():
-    wsq = pybotters.ws.WebSocketQueue()
-
-    with pytest.raises(asyncio.TimeoutError):
-        await wsq.wait_for(0.1)
-
-    with pytest.raises(asyncio.TimeoutError):
-        async for item in wsq.iter(timeout=0.1):
-            pass
-        await wsq.wait_for(0.1)
-
-    with pytest.raises(asyncio.TimeoutError):
-        async for msg in wsq.iter_msg(timeout=0.1):
-            pass
 
 
 @pytest.mark.asyncio

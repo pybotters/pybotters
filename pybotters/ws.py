@@ -11,13 +11,11 @@ import time
 import uuid
 from dataclasses import dataclass
 from secrets import token_hex
-from typing import Any, Generator, Optional, Union
+from typing import Any, AsyncIterator, Generator, Optional, Union
 
 import aiohttp
 from aiohttp.http_websocket import json
 from aiohttp.typedefs import StrOrURL
-
-import pybotters
 
 from .auth import Auth as _Auth
 
@@ -79,8 +77,6 @@ class WebSocketRunner:
         auth=_Auth,
         **kwargs: Any,
     ) -> None:
-        if all([hdlr_str is None, hdlr_json is None]):
-            hdlr_json = pybotters.print_handler
         iscorofunc_str = asyncio.iscoroutinefunction(hdlr_str)
         iscorofunc_bytes = asyncio.iscoroutinefunction(hdlr_bytes)
         iscorofunc_json = asyncio.iscoroutinefunction(hdlr_json)
@@ -167,25 +163,11 @@ class WebSocketRunner:
 
 class WebSocketQueue(asyncio.Queue):
     def onmessage(self, msg: Any, ws: aiohttp.ClientWebSocketResponse):
-        self.put_nowait((msg, ws))
+        self.put_nowait(msg)
 
-    async def wait_for(
-        self, timeout: Optional[float] = None
-    ) -> tuple[Any, aiohttp.ClientWebSocketResponse]:
-        return await asyncio.wait_for(self.get(), timeout)
-
-    async def iter(
-        self, *, timeout: Optional[float] = None
-    ) -> Generator[tuple[Any, aiohttp.ClientWebSocketResponse], None, None]:
+    async def __aiter__(self) -> AsyncIterator[Any]:
         while True:
-            yield await self.wait_for(timeout)
-
-    async def iter_msg(
-        self, *, timeout: Optional[float] = None
-    ) -> Generator[Any, None, None]:
-        while True:
-            msg, ws = await self.wait_for(timeout)
-            yield msg
+            yield await self.get()
 
 
 class Heartbeat:
@@ -223,8 +205,8 @@ class Heartbeat:
     async def bitget(ws: aiohttp.ClientWebSocketResponse):
         while not ws.closed:
             await ws.send_str("ping")
-            # 公式サンプルが25秒ごとに送っていたので25秒に設定
-            # https://github.com/BitgetLimited/v3-bitget-api-sdk/blob/master/bitget-python-sdk-api/bitget/ws/bitget_ws_client.py
+            # Refer to official SDK
+            # https://github.com/BitgetLimited/v3-bitget-api-sdk/blob/09179123a62cf2a63ea1cfbb289b85e3a40018f8/bitget-python-sdk-api/bitget/ws/bitget_ws_client.py#L58
             await asyncio.sleep(25.0)
 
     @staticmethod

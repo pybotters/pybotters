@@ -43,7 +43,7 @@ class Client:
                 wstask = await client.ws_connect(
                     'wss://...',
                     send_json={'foo': 'bar'},
-                    hdlr_json=pybotters.print_handler
+                    hdlr_json=print
                     )
                 await wstask
                 # Ctrl+C to break
@@ -69,7 +69,7 @@ class Client:
         pybotters.ws_connect(
                 'wss://...',
                 send_json={'foo': 'bar'},
-                hdlr_json=pybotters.print_handler,
+                hdlr_json=print,
                 apis={'example': ['KEY', 'SECRET']}
             )
         # Ctrl+C to break
