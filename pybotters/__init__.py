@@ -3,8 +3,6 @@ from __future__ import annotations
 __version__ = "0.17.0"
 
 
-from typing import Tuple
-
 from .client import Client, FetchResult
 from .models.binance import (
     BinanceCOINMDataStore,
@@ -23,7 +21,7 @@ from .models.okx import OKXDataStore
 from .models.phemex import PhemexDataStore
 from .ws import WebSocketQueue
 
-__all__: Tuple[str, ...] = (
+__all__: tuple[str, ...] = (
     # client
     "Client",
     "FetchResult",
