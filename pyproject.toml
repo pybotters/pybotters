@@ -25,7 +25,6 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.8"
 aiohttp = "^3.9.0"
-rich = "^10.1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.3"

@@ -2,10 +2,8 @@ from __future__ import annotations
 
 __version__ = "0.17.0"
 
-from typing import Any, Tuple
 
-import aiohttp
-from rich import print
+from typing import Tuple
 
 from .client import Client, FetchResult
 from .models.binance import (
@@ -45,10 +43,4 @@ __all__: Tuple[str, ...] = (
     "PhemexDataStore",
     "bitFlyerDataStore",
     "bitbankDataStore",
-    # top-level
-    "print_handler",
 )
-
-
-def print_handler(msg: Any, ws: aiohttp.ClientWebSocketResponse):
-    print(msg)

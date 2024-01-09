@@ -178,9 +178,6 @@ WebSocket APIを利用するためには ``ws_connect`` メソッドを利用し
 にそれぞれ接続時に送信するメッセージオブジェクト、受信したメッセージを処理するハンドラ関数を指定します。
 文字列で処理したい場合は ``send_str``, ``hdlr_str`` を指定します。
 また、接続時に複数のメッセージを送信したい場合はリスト形式のデータを引数に指定します。
-``send_json``, ``hdlr_json`` どちらも指定していない場合はデフォルトで
-``hdlr_json`` に ``pybotters.print_handler``
-が設定されWebSocketで受信したメッセージが表示されます。
 
 .. code:: python
 
@@ -189,10 +186,10 @@ WebSocket APIを利用するためには ``ws_connect`` メソッドを利用し
            wstask = await client.ws_connect(
                'wss://...',
                send_json={'foo': 'bar'},
-               hdlr_json=pybotters.print_handler,
+               hdlr_json=print,
                # OR string
                # send_str='{"foo":"bar"}',
-               # hdlr_str=pybotters.print_handler,
+               # hdlr_str=print,
                # OR Multiple request
                # send_json=[{'foo': 'bar'}, {'baz': 'foobar'}],
                # send_str=['{"foo": "bar"}', '{"baz": "foobar"}'],
