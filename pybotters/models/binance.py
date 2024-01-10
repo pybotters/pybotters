@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections import deque
+from collections import defaultdict, deque
 from typing import Any, Awaitable, Optional, Union
 
 import aiohttp
@@ -544,8 +544,8 @@ class OrderBook(DataStore):
     _MAPSIDE = {"BUY": "b", "SELL": "a"}
 
     def _init(self) -> None:
-        self.initialized = False
-        self._buff = deque(maxlen=200)
+        self.initialized: defaultdict[str, bool] = defaultdict(lambda: False)
+        self._buff: defaultdict[str, deque] = defaultdict(lambda: deque(maxlen=8000))
 
     def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
         if query is None:
@@ -559,8 +559,8 @@ class OrderBook(DataStore):
         return result
 
     def _onmessage(self, item: Item) -> None:
-        if not self.initialized:
-            self._buff.append(item)
+        if not self.initialized[item["s"]]:
+            self._buff[item["s"]].append(item)
         for s, bs in self._MAPSIDE.items():
             for row in item[bs]:
                 if float(row[1]) != 0.0:
@@ -569,15 +569,15 @@ class OrderBook(DataStore):
                     self._delete([{"s": item["s"], "S": s, "p": row[0]}])
 
     def _onresponse(self, symbol: str, item: Item) -> None:
-        self.initialized = True
-        self._delete(self.find({"s": symbol}))
+        self._delete(self._find_and_delete({"s": symbol}))
         for s, bs in (("BUY", "bids"), ("SELL", "asks")):
             for row in item[bs]:
                 self._insert([{"s": symbol, "S": s, "p": row[0], "q": row[1]}])
-        for msg in self._buff:
+        for msg in self._buff[symbol]:
             if msg["U"] <= item["lastUpdateId"] and msg["u"] >= item["lastUpdateId"]:
                 self._onmessage(msg)
-        self._buff.clear()
+        self._buff[symbol].clear()
+        self.initialized[symbol] = True
 
 
 class Account(DataStore):
@@ -667,7 +667,6 @@ class Order(DataStore):
         else:
             self._clear()
         for item in data:
-
             if "positionSide" in item:
                 # futures
                 self._insert(
