@@ -241,7 +241,7 @@ class Auth:
         headers: CIMultiDict = kwargs["headers"]
 
         session: aiohttp.ClientSession = kwargs["session"]
-        api_name = NameSelector.okx(args, kwargs)
+        api_name = DynamicNameSelector.okx(args, kwargs)
         key: str = session.__dict__["_apis"][api_name][0]
         secret: bytes = session.__dict__["_apis"][api_name][1]
         passphrase: str = session.__dict__["_apis"][api_name][2]
@@ -371,10 +371,9 @@ class Auth:
         headers: CIMultiDict = kwargs["headers"]
 
         session: aiohttp.ClientSession = kwargs["session"]
-        api_name = NameSelector.kucoin(args, kwargs)
-        key: str = session.__dict__["_apis"][api_name][0]
-        secret: bytes = session.__dict__["_apis"][api_name][1]
-        passphrase: str = session.__dict__["_apis"][api_name][2]
+        key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
+        passphrase: str = session.__dict__["_apis"][Hosts.items[url.host].name][2]
 
         now = int(time.time() * 1000)
         body = JsonPayload(data) if data else FormData(data)()
@@ -407,7 +406,7 @@ class Item:
     func: Any
 
 
-class NameSelector:
+class DynamicNameSelector:
     @staticmethod
     def okx(args: tuple[str, URL], kwargs: dict[str, Any]) -> str:
         headers: CIMultiDict = kwargs["headers"]
@@ -416,26 +415,6 @@ class NameSelector:
             if headers["x-simulated-trading"] == "1":
                 return "okx_demo"
         return "okx"
-
-    @staticmethod
-    def kucoin(args: tuple[str, URL], kwargs: dict[str, Any]) -> str:
-        url: URL = args[1]
-        session: aiohttp.ClientSession = kwargs["session"]
-
-        # KuCoin's API keys for Spot and Futures, which were previously independent,
-        # have been consolidated into a common API key.
-
-        # for common API key name
-        if "kucoin" in session.__dict__["_apis"]:
-            return "kucoin"
-        # Migration for previous API key name
-        else:
-            if url.host == "api.kucoin.com":
-                return "kucoinspot"
-            elif url.host == "api-futures.kucoin.com":
-                return "kucoinfuture"
-            else:
-                return "kucoin"
 
 
 class Hosts:
@@ -469,12 +448,12 @@ class Hosts:
         "vapi.phemex.com": Item("phemex", Auth.phemex),
         "testnet-api.phemex.com": Item("phemex_testnet", Auth.phemex),
         "coincheck.com": Item("coincheck", Auth.coincheck),
-        "www.okx.com": Item(NameSelector.okx, Auth.okx),
-        "aws.okx.com": Item(NameSelector.okx, Auth.okx),
+        "www.okx.com": Item(DynamicNameSelector.okx, Auth.okx),
+        "aws.okx.com": Item(DynamicNameSelector.okx, Auth.okx),
         "api.bitget.com": Item("bitget", Auth.bitget),
         "www.mexc.com": Item("mexc", Auth.mexc_v2),
         "contract.mexc.com": Item("mexc", Auth.mexc_v2),
         "api.mexc.com": Item("mexc", Auth.mexc_v3),
-        "api.kucoin.com": Item(NameSelector.kucoin, Auth.kucoin),
-        "api-futures.kucoin.com": Item(NameSelector.kucoin, Auth.kucoin),
+        "api.kucoin.com": Item("kucoin", Auth.kucoin),
+        "api-futures.kucoin.com": Item("kucoin", Auth.kucoin),
     }
