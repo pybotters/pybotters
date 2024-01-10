@@ -241,7 +241,7 @@ class Auth:
         headers: CIMultiDict = kwargs["headers"]
 
         session: aiohttp.ClientSession = kwargs["session"]
-        api_name = NameSelector.okx(args, kwargs)
+        api_name = DynamicNameSelector.okx(args, kwargs)
         key: str = session.__dict__["_apis"][api_name][0]
         secret: bytes = session.__dict__["_apis"][api_name][1]
         passphrase: str = session.__dict__["_apis"][api_name][2]
@@ -371,7 +371,7 @@ class Auth:
         headers: CIMultiDict = kwargs["headers"]
 
         session: aiohttp.ClientSession = kwargs["session"]
-        api_name = NameSelector.kucoin(args, kwargs)
+        api_name = DynamicNameSelector.kucoin(args, kwargs)
         key: str = session.__dict__["_apis"][api_name][0]
         secret: bytes = session.__dict__["_apis"][api_name][1]
         passphrase: str = session.__dict__["_apis"][api_name][2]
@@ -407,7 +407,7 @@ class Item:
     func: Any
 
 
-class NameSelector:
+class DynamicNameSelector:
     @staticmethod
     def okx(args: tuple[str, URL], kwargs: dict[str, Any]) -> str:
         headers: CIMultiDict = kwargs["headers"]
@@ -469,12 +469,12 @@ class Hosts:
         "vapi.phemex.com": Item("phemex", Auth.phemex),
         "testnet-api.phemex.com": Item("phemex_testnet", Auth.phemex),
         "coincheck.com": Item("coincheck", Auth.coincheck),
-        "www.okx.com": Item(NameSelector.okx, Auth.okx),
-        "aws.okx.com": Item(NameSelector.okx, Auth.okx),
+        "www.okx.com": Item(DynamicNameSelector.okx, Auth.okx),
+        "aws.okx.com": Item(DynamicNameSelector.okx, Auth.okx),
         "api.bitget.com": Item("bitget", Auth.bitget),
         "www.mexc.com": Item("mexc", Auth.mexc_v2),
         "contract.mexc.com": Item("mexc", Auth.mexc_v2),
         "api.mexc.com": Item("mexc", Auth.mexc_v3),
-        "api.kucoin.com": Item(NameSelector.kucoin, Auth.kucoin),
-        "api-futures.kucoin.com": Item(NameSelector.kucoin, Auth.kucoin),
+        "api.kucoin.com": Item(DynamicNameSelector.kucoin, Auth.kucoin),
+        "api-futures.kucoin.com": Item(DynamicNameSelector.kucoin, Auth.kucoin),
     }
