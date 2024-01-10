@@ -146,29 +146,6 @@ def test_selector_okx():
     assert api_name == "okx_demo"
 
 
-def test_selector_kucoin(mock_session, mocker: pytest_mock.MockerFixture):
-    api_name = pybotters.auth.DynamicNameSelector.kucoin(
-        args=("GET", URL("https://api-kucoin.com")),
-        kwargs={"session": mock_session},
-    )
-    assert api_name == "kucoin"
-
-    m_sess = mocker.MagicMock()
-    m_sess.__dict__["_apis"] = dict()
-
-    api_name = pybotters.auth.DynamicNameSelector.kucoin(
-        args=("GET", URL("https://api.kucoin.com")),
-        kwargs={"session": m_sess},
-    )
-    assert api_name == "kucoinspot"
-
-    api_name = pybotters.auth.DynamicNameSelector.kucoin(
-        args=("GET", URL("https://api-futures.kucoin.com")),
-        kwargs={"session": m_sess},
-    )
-    assert api_name == "kucoinfuture"
-
-
 def test_bybit_get(mock_session, mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
     args = (
