@@ -54,35 +54,35 @@ class Auth:
         key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
         secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
 
-        expires = str(int(time.time() * 1000))
-        if method == METH_GET:
-            if url.scheme == "https":
-                query = MultiDict(url.query)
-                query.extend({"timestamp": expires})
-                query_string = "&".join(f"{k}={v}" for k, v in query.items())
-                signature = hmac.new(
-                    secret, query_string.encode(), hashlib.sha256
-                ).hexdigest()
-                query.extend({"signature": signature})
-                url = url.with_query(query)
-                args = (
-                    method,
-                    url,
-                )
-        else:
-            data.update({"timestamp": expires})
-            # patch (issue #190, #192)
-            if url.path != "/api/v3/userDataStream":
-                body = FormData(data)()
-            else:
-                body = FormData()()
-            signature = hmac.new(secret, body._value, hashlib.sha256).hexdigest()
-            # patch (issue #190, #192)
-            if url.path != "/api/v3/userDataStream":
-                body._value += f"&signature={signature}".encode()
-            body._size = len(body._value)
-            kwargs.update({"data": body})
+        # Do not sign WebSocket upgrade requests
+        if headers.get("Upgrade") == "websocket":
+            args = (method, url)
+            return args
+
         headers.update({"X-MBX-APIKEY": key})
+
+        # NOTE: Security Type `USER_STREAM` patch (Issue #192), Only edit header
+        if url.name in {"userDataStream", "listen-key", "listenKey"}:
+            args = (method, url)
+            return args
+
+        expires = str(int(time.time() * 1000))
+        query = MultiDict(url.query)
+        body = FormData(data)()
+
+        query.extend({"timestamp": expires})
+        url = url.with_query(query)
+        query = MultiDict(url.query)
+
+        query_string = url.raw_query_string.encode()
+        signature = hmac.new(
+            secret, query_string + body._value, hashlib.sha256
+        ).hexdigest()
+
+        query.extend({"signature": signature})
+        url = url.with_query(query)
+        args = (method, url)
+        kwargs.update({"data": body})
 
         return args
 
@@ -423,22 +423,15 @@ class Hosts:
         "api.bytick.com": Item("bybit", Auth.bybit),
         "api-testnet.bybit.com": Item("bybit_testnet", Auth.bybit),
         "api.binance.com": Item("binance", Auth.binance),
+        "api-gcp.binance.com": Item("binance", Auth.binance),
         "api1.binance.com": Item("binance", Auth.binance),
         "api2.binance.com": Item("binance", Auth.binance),
         "api3.binance.com": Item("binance", Auth.binance),
-        "stream.binance.com": Item("binance", Auth.binance),
+        "api4.binance.com": Item("binance", Auth.binance),
+        "testnet.binance.vision": Item("binancespot_testnet", Auth.binance),
         "fapi.binance.com": Item("binance", Auth.binance),
-        "fstream.binance.com": Item("binance", Auth.binance),
-        "fstream-auth.binance.com": Item("binance", Auth.binance),
         "dapi.binance.com": Item("binance", Auth.binance),
-        "dstream.binance.com": Item("binance", Auth.binance),
-        "vapi.binance.com": Item("binance", Auth.binance),
-        "vstream.binance.com": Item("binance", Auth.binance),
-        "testnet.binancefuture.com": Item("binance_testnet", Auth.binance),
-        "stream.binancefuture.com": Item("binance_testnet", Auth.binance),
-        "dstream.binancefuture.com": Item("binance_testnet", Auth.binance),
-        "testnet.binanceops.com": Item("binance_testnet", Auth.binance),
-        "testnetws.binanceops.com": Item("binance_testnet", Auth.binance),
+        "testnet.binancefuture.com": Item("binancefuture_testnet", Auth.binance),
         "api.bitflyer.com": Item("bitflyer", Auth.bitflyer),
         "api.coin.z.com": Item("gmocoin", Auth.gmocoin),
         "api.bitbank.cc": Item("bitbank", Auth.bitbank),
