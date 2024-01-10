@@ -45,7 +45,11 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             "9qm1u2s4GoHt9ryIm1D2fHV8",
             b"7pDOQJ49zyyDjrNGAvB31RcnAada8nkxkl2IWKop6b0E3tXh",
         ),
-        "binance_testnet": (
+        "binancespot_testnet": (
+            "LyM2qCkPqVaMxWIcRIe08V4s",
+            b"34BkmXEjeq5qRIbvKjhODva3XsL2MWd1pAWSq6ZkHDxnaQjh",
+        ),
+        "binancefuture_testnet": (
             "EDYH5JVoHJlhroiQkDntBHn8",
             b"lMFc3hibQUEOzSeG6YEvx7lMRgNBUlF07PVEm9g9U6HEWtEZ",
         ),
@@ -238,33 +242,42 @@ def test_binance_post(mock_session, mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
     args = (
         "POST",
-        URL("https://dapi.binance.com/dapi/v1/order"),
+        URL("https://testnet.binance.vision/api/v3/order/test").with_query(
+            {
+                "symbol": "BTCUSDT",
+                "side": "SELL",
+            }
+        ),
     )
     kwargs = {
         "data": {
-            "symbol": "BTCUSD_PERP",
-            "side": "BUY",
             "type": "MARKET",
-            "quantity": 1,
+            "quantity": "0.001",
         },
         "headers": CIMultiDict(),
         "session": mock_session,
     }
-    expected_args = ("POST", URL("https://dapi.binance.com/dapi/v1/order"))
+    expected_args = (
+        "POST",
+        URL("https://testnet.binance.vision/api/v3/order/test").with_query(
+            {
+                "symbol": "BTCUSDT",
+                "side": "SELL",
+                "timestamp": "2085848896000",
+                "signature": (
+                    "4a538ce375d23684c909cfe01a2f63488080ef05d247156057067ee3c45358bc"
+                ),
+            }
+        ),
+    )
     expected_kwargs = {
         "data": aiohttp.formdata.FormData(
             {
-                "symbol": "BTCUSD_PERP",
-                "side": "BUY",
                 "type": "MARKET",
-                "quantity": 1,
-                "timestamp": "2085848896000",
-                "signature": (
-                    "ab855d04b87a8043830ca5dfabcded89012c69ed2ddeaaa1fc1dad54a82d1675"
-                ),
+                "quantity": "0.001",
             }
         )(),
-        "headers": CIMultiDict({"X-MBX-APIKEY": "9qm1u2s4GoHt9ryIm1D2fHV8"}),
+        "headers": CIMultiDict({"X-MBX-APIKEY": "LyM2qCkPqVaMxWIcRIe08V4s"}),
         "session": mock_session,
     }
     args = pybotters.auth.Auth.binance(args, kwargs)
@@ -273,14 +286,11 @@ def test_binance_post(mock_session, mocker: pytest_mock.MockerFixture):
     assert kwargs["headers"] == expected_kwargs["headers"]
 
 
-def test_binance_ws(mock_session, mocker: pytest_mock.MockerFixture):
+def test_binance_post_listenkey(mock_session, mocker: pytest_mock.MockerFixture):
     mocker.patch("time.time", return_value=2085848896.0)
     args = (
-        "GET",
-        URL(
-            "wss://dstream.binance.com/ws/pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6"
-            "a81va65sdf19v8a65a1"
-        ),
+        "POST",
+        URL("https://testnet.binance.vision/api/v3/userDataStream"),
     )
     kwargs = {
         "data": None,
@@ -288,15 +298,44 @@ def test_binance_ws(mock_session, mocker: pytest_mock.MockerFixture):
         "session": mock_session,
     }
     expected_args = (
+        "POST",
+        URL("https://testnet.binance.vision/api/v3/userDataStream"),
+    )
+    expected_kwargs = {
+        "data": None,
+        "headers": CIMultiDict({"X-MBX-APIKEY": "LyM2qCkPqVaMxWIcRIe08V4s"}),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.binance(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"] == expected_kwargs["data"]
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_binance_ws_nosign(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+    args = (
         "GET",
         URL(
-            "wss://dstream.binance.com/ws/pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6"
-            "a81va65sdf19v8a65a1"
+            "wss://testnet.binance.vision/ws/pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61"
+            "cv6a81va65sdf19v8a65a1"
+        ),
+    )
+    kwargs = {
+        "data": None,
+        "headers": CIMultiDict({"Upgrade": "websocket"}),
+        "session": mock_session,
+    }
+    expected_args = (
+        "GET",
+        URL(
+            "wss://testnet.binance.vision/ws/pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61"
+            "cv6a81va65sdf19v8a65a1"
         ),
     )
     expected_kwargs = {
         "data": None,
-        "headers": CIMultiDict({"X-MBX-APIKEY": "9qm1u2s4GoHt9ryIm1D2fHV8"}),
+        "headers": CIMultiDict({"Upgrade": "websocket"}),
         "session": mock_session,
     }
     args = pybotters.auth.Auth.binance(args, kwargs)
