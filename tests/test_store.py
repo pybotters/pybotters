@@ -275,32 +275,42 @@ def test__reversed__():
 
 def test_set():
     ds = pybotters.store.DataStore()
-    event = asyncio.Event()
-    ds._events[event] = []
-    data = [{"dummy1": "data1"}, {"dummy2": "data2"}, {"dummy3": "data3"}]
-    ds._set(data)
-    assert all(e.is_set() for e in ds._events)
-    assert ds._events[event] == data
+    events = [asyncio.Event(), asyncio.Event(), asyncio.Event()]
+    ds._events.extend(events)
+    ds._set()
+    assert all(e.is_set() for e in events)
+    assert not len(ds._events)
+
+
+@pytest.mark.asyncio
+async def test_wait():
+    class DataStoreHasDummySet(pybotters.store.DataStore):
+        async def _set(self) -> None:
+            return super()._set()
+
+    ds = DataStoreHasDummySet()
+    t_wait = asyncio.create_task(ds.wait())
+    t_set = asyncio.create_task(ds._set())
+    await asyncio.wait_for(t_wait, timeout=5.0)
+    assert t_set.done()
 
 
 @pytest.mark.asyncio
 async def test_wait_set():
-    data = [{"dummy": "data"}]
     ret = {}
 
     class DataStoreHasDummySet(pybotters.store.DataStore):
-        async def _set(self, data) -> None:
-            return super()._set(data)
+        async def _set(self) -> None:
+            return super()._set()
 
     async def wait_func(ds):
         ret["val"] = await ds.wait()
 
     ds0 = DataStoreHasDummySet()
     t_wait0 = asyncio.create_task(wait_func(ds0))
-    t_set0 = asyncio.create_task(ds0._set(data))
+    t_set0 = asyncio.create_task(ds0._set())
     await asyncio.wait_for(t_wait0, timeout=5.0)
     assert t_set0.done()
-    assert data == ret["val"]
 
 
 @pytest.mark.asyncio
@@ -320,7 +330,6 @@ async def test_wait_insert():
     t_set1 = asyncio.create_task(ds1._insert(data))
     await asyncio.wait_for(t_wait1, timeout=5.0)
     assert t_set1.done()
-    assert data == ret["val"]
 
 
 @pytest.mark.asyncio
@@ -340,7 +349,6 @@ async def test_wait_update():
     t_set2 = asyncio.create_task(ds2._update(data))
     await asyncio.wait_for(t_wait2, timeout=5.0)
     assert t_set2.done()
-    assert data == ret["val"]
 
 
 @pytest.mark.asyncio
@@ -360,4 +368,3 @@ async def test_wait_delete():
     t_set3 = asyncio.create_task(ds3._delete(data))
     await asyncio.wait_for(t_wait3, timeout=5.0)
     assert t_set3.done()
-    assert data == ret["val"]

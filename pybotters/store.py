@@ -24,7 +24,7 @@ class DataStore:
         self._data: dict[uuid.UUID, Item] = {}
         self._index: dict[int, uuid.UUID] = {}
         self._keys: tuple[str, ...] = tuple(keys if keys else self._KEYS)
-        self._events: dict[asyncio.Event, list[Item]] = {}
+        self._events: list[asyncio.Event] = []
         self._queues: list[asyncio.Queue] = []
         if data is None:
             data = []
@@ -69,8 +69,7 @@ class DataStore:
                 self._data[_id] = item
                 self._put("insert", None, item)
             self._sweep_without_key()
-        # !TODO! This behaviour might be undesirable.
-        self._set(data)
+        self._set()
 
     def _update(self, data: list[Item]) -> None:
         if self._keys:
@@ -96,8 +95,7 @@ class DataStore:
                 self._data[_id] = item
                 self._put("update", None, item)
             self._sweep_without_key()
-        # !TODO! This behaviour might be undesirable.
-        self._set(data)
+        self._set()
 
     def _delete(self, data: list[Item]) -> None:
         if self._keys:
@@ -112,8 +110,7 @@ class DataStore:
                         self._put("delete", item, self._data[self._index[keyhash]])
                         del self._data[self._index[keyhash]]
                         del self._index[keyhash]
-        # !TODO! This behaviour might be undesirable.
-        self._set(data)
+        self._set()
 
     def _remove(self, uuids: list[uuid.UUID]) -> None:
         if self._keys:
@@ -129,15 +126,14 @@ class DataStore:
                 if _id in self._data:
                     self._put("delete", None, self._data[_id])
                     del self._data[_id]
-        # !TODO! This behaviour might be undesirable.
-        self._set([])
+        self._set()
 
     def _clear(self) -> None:
         for item in self:
             self._put("delete", None, item)
         self._data.clear()
         self._index.clear()
-        self._set([])
+        self._set()
 
     def _sweep_with_key(self) -> None:
         if len(self._data) > self._MAXLEN:
@@ -219,20 +215,15 @@ class DataStore:
             self._clear()
             return ret
 
-    def _set(self, data: Optional[list[Item]] = None) -> None:
-        if data is None:
-            data = []
+    def _set(self) -> None:
         for event in self._events:
             event.set()
-            self._events[event].extend(data)
+        self._events.clear()
 
-    async def wait(self) -> list[Item]:
+    async def wait(self) -> None:
         event = asyncio.Event()
-        ret = []
-        self._events[event] = ret
+        self._events.append(event)
         await event.wait()
-        del self._events[event]
-        return ret
 
     def _put(self, operation: str, source: Optional[Item], item: Item) -> None:
         for queue in self._queues:
