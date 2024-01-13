@@ -15,7 +15,7 @@ from . import __version__
 from .auth import Auth
 from .request import ClientRequest
 from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
-from .ws import ClientWebSocketResponse, WebSocketRunner
+from .ws import ClientWebSocketResponse, WebSocketApp
 
 logger = logging.getLogger(__name__)
 
@@ -204,19 +204,21 @@ class Client:
     ) -> _RequestContextManager:
         return self._request(hdrs.METH_DELETE, url, data=data, **kwargs)
 
-    async def ws_connect(
+    def ws_connect(
         self,
         url: str,
         *,
         send_str: Optional[Union[str, list[str]]] = None,
         send_bytes: Optional[Union[bytes, list[bytes]]] = None,
-        send_json: Any = None,
-        hdlr_str: Optional[WsStrHandler] = None,
-        hdlr_bytes: Optional[WsBytesHandler] = None,
-        hdlr_json: Optional[WsJsonHandler] = None,
+        send_json: Optional[Union[dict, list[dict]]] = None,
+        hdlr_str: Optional[Union[WsStrHandler, list[WsStrHandler]]] = None,
+        hdlr_bytes: Optional[Union[WsBytesHandler, list[WsBytesHandler]]] = None,
+        hdlr_json: Optional[Union[WsJsonHandler, list[WsJsonHandler]]] = None,
+        backoff: tuple[float, float, float, float] = WebSocketApp.DEFAULT_BACKOFF,
         heartbeat: float = 10.0,
+        auth: Optional[Auth] = Auth,
         **kwargs: Any,
-    ) -> WebSocketRunner:
+    ) -> WebSocketApp:
         """
         :param url: WebSocket URL
         :param send_str: WebSocketで送信する文字列。文字列、または文字列のリスト形式(optional)
@@ -230,20 +232,20 @@ class Client:
         :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)
         :param ``**kwargs``: aiohttp.ClientSession.ws_connectに渡されるキーワード引数(optional)
         """
-        ws = WebSocketRunner(
-            url,
+        return WebSocketApp(
             self._session,
+            url,
             send_str=send_str,
             send_bytes=send_bytes,
             send_json=send_json,
             hdlr_str=hdlr_str,
             hdlr_bytes=hdlr_bytes,
             hdlr_json=hdlr_json,
+            backoff=backoff,
             heartbeat=heartbeat,
+            auth=auth,
             **kwargs,
         )
-        await ws.wait()
-        return ws
 
     @staticmethod
     def _load_apis(

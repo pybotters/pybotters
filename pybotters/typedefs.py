@@ -1,14 +1,9 @@
-from typing import Any, Callable, Coroutine, Dict, Optional
+from typing import Any, Callable, Dict
 
 from aiohttp.client_ws import ClientWebSocketResponse
 
-WsStrHandler = Callable[
-    [str, ClientWebSocketResponse], Optional[Coroutine[Any, Any, None]]
-]
-WsBytesHandler = Callable[
-    [bytes, ClientWebSocketResponse], Optional[Coroutine[Any, Any, None]]
-]
-WsJsonHandler = Callable[
-    [Any, ClientWebSocketResponse], Optional[Coroutine[Any, Any, None]]
-]
+WsStrHandler = Callable[[str, ClientWebSocketResponse], None]
+WsBytesHandler = Callable[[bytes, ClientWebSocketResponse], None]
+WsJsonHandler = Callable[[Any, ClientWebSocketResponse], None]
+
 Item = Dict[str, Any]

@@ -185,9 +185,7 @@ async def test_client_delete(mocker: pytest_mock.MockerFixture):
 
 @pytest.mark.asyncio
 async def test_client_ws_connect(mocker: pytest_mock.MockerFixture):
-    runner_mock = mocker.Mock()
-    runner_mock.wait = AsyncMock()
-    m = mocker.patch("pybotters.client.WebSocketRunner", return_value=runner_mock)
+    m = mocker.patch("pybotters.client.WebSocketApp", new_callable=AsyncMock)
     hdlr_str = mocker.Mock()
     hdlr_bytes = mocker.Mock()
     hdlr_json = mocker.Mock()
@@ -200,11 +198,13 @@ async def test_client_ws_connect(mocker: pytest_mock.MockerFixture):
             hdlr_str=hdlr_str,
             hdlr_bytes=hdlr_bytes,
             hdlr_json=hdlr_json,
+            backoff=(1.92, 60.0, 1.618, 5.0),
             heartbeat=42.0,
+            auth=None,
         )
     assert m.called
     assert m.call_args == [
-        ("ws://test.org", client._session),
+        (client._session, "ws://test.org"),
         {
             "send_str": '{"foo":"bar"}',
             "send_bytes": b'{"foo":"bar"}',
@@ -212,7 +212,9 @@ async def test_client_ws_connect(mocker: pytest_mock.MockerFixture):
             "hdlr_str": hdlr_str,
             "hdlr_bytes": hdlr_bytes,
             "hdlr_json": hdlr_json,
+            "backoff": (1.92, 60.0, 1.618, 5.0),
             "heartbeat": 42.0,
+            "auth": None,
         },
     ]
-    assert ret == runner_mock
+    assert ret == m.return_value
