@@ -33,9 +33,9 @@ pytest-asyncio = "^0.14.0"
 pytest-aiohttp = "^0.3.0"
 pytest-freezer = "^0.4.8"
 toml = "^0.10.2"
-black = "^22.1.0"
-flake8 = "^5.0.0"
-isort = "^5.10.0"
+black = "^23.10.1"
+flake8 = [ { version = "^6.1.0", python = "^3.8.1" }, { version = "<6.1.0", python = "<3.8.1" } ]
+isort = "^5.11.5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
