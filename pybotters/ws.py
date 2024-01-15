@@ -140,10 +140,10 @@ class WebSocketApp:
                     hdlr_json=hdlr_json,
                     **kwargs,
                 )
+            # From https://github.com/python-websockets/websockets/blob/12.0/src/websockets/legacy/client.py#L600-L624  # noqa: E501
+            # Licensed under the BSD-3-Clause
             except Exception as e:
                 logger.warning(f"{pretty_modulename(e)}: {e}")
-                # Reconnection backoff logic from `websockets`
-                # https://github.com/python-websockets/websockets/blob/10.0/src/websockets/legacy/client.py#L593
                 if backoff_delay == BACKOFF_MIN:
                     initial_delay = random.random() * BACKOFF_INITIAL
                     await asyncio.sleep(initial_delay)
@@ -153,6 +153,7 @@ class WebSocketApp:
                 backoff_delay = min(backoff_delay, BACKOFF_MAX)
             else:
                 backoff_delay = BACKOFF_MIN
+            # End https://github.com/python-websockets/websockets/blob/12.0/src/websockets/legacy/client.py#L600-L624  # noqa: E501
             finally:
                 self._current_ws = None
                 self._event.clear()
