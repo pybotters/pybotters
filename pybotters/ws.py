@@ -142,7 +142,7 @@ class WebSocketApp:
                 )
             except Exception as e:
                 logger.warning(f"{pretty_modulename(e)}: {e}")
-                # Automatic reconnect logic from `websockets`
+                # Reconnection backoff logic from `websockets`
                 # https://github.com/python-websockets/websockets/blob/10.0/src/websockets/legacy/client.py#L593
                 if backoff_delay == BACKOFF_MIN:
                     initial_delay = random.random() * BACKOFF_INITIAL

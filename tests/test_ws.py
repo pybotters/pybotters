@@ -1,16 +1,381 @@
 import asyncio
 import functools
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock, call
 
 import aiohttp
 import pytest
 import pytest_asyncio
 import pytest_mock
+from aiohttp import web
+from aiohttp.test_utils import TestServer
 from yarl import URL
 
+import pybotters
 import pybotters.auth
 import pybotters.ws
 from pybotters.ws import WebSocketApp
+
+
+@pytest_asyncio.fixture
+async def client_session():
+    async with aiohttp.ClientSession() as session:
+        yield session
+
+
+hdlr_str = functools.partial(lambda msg, ws: None)
+hdlr_bytes = functools.partial(lambda msg, ws: None)
+hdlr_json = functools.partial(lambda msg, ws: None)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    (
+        "test_input",
+        "expected",
+    ),
+    [
+        (
+            {
+                "send_str": "spam",
+                "send_bytes": b"egg",
+                "send_json": {"bacon": "tomato"},
+                "hdlr_str": hdlr_str,
+                "hdlr_bytes": hdlr_bytes,
+                "hdlr_json": hdlr_json,
+            },
+            {
+                "send_str": ["spam"],
+                "send_bytes": [b"egg"],
+                "send_json": [{"bacon": "tomato"}],
+                "hdlr_str": [hdlr_str],
+                "hdlr_bytes": [hdlr_bytes],
+                "hdlr_json": [hdlr_json],
+            },
+        ),
+        (
+            {
+                "send_str": ["spam"],
+                "send_bytes": [b"egg"],
+                "send_json": [{"bacon": "tomato"}],
+                "hdlr_str": [hdlr_str],
+                "hdlr_bytes": [hdlr_bytes],
+                "hdlr_json": [hdlr_json],
+            },
+            {
+                "send_str": ["spam"],
+                "send_bytes": [b"egg"],
+                "send_json": [{"bacon": "tomato"}],
+                "hdlr_str": [hdlr_str],
+                "hdlr_bytes": [hdlr_bytes],
+                "hdlr_json": [hdlr_json],
+            },
+        ),
+        (
+            {
+                "send_str": None,
+                "send_bytes": None,
+                "send_json": None,
+                "hdlr_str": None,
+                "hdlr_bytes": None,
+                "hdlr_json": None,
+            },
+            {
+                "send_str": [],
+                "send_bytes": [],
+                "send_json": [],
+                "hdlr_str": [],
+                "hdlr_bytes": [],
+                "hdlr_json": [],
+            },
+        ),
+        (
+            {
+                "heartbeat": 10.0,
+            },
+            {
+                "send_str": [],
+                "send_bytes": [],
+                "send_json": [],
+                "hdlr_str": [],
+                "hdlr_bytes": [],
+                "hdlr_json": [],
+                "heartbeat": 10.0,
+            },
+        ),
+    ],
+)
+async def test_websocketapp_init(
+    mocker: pytest_mock.MockerFixture,
+    client_session: aiohttp.ClientSession,
+    test_input,
+    expected,
+):
+    m_run_forever = mocker.patch.object(
+        WebSocketApp, WebSocketApp._run_forever.__name__
+    )
+
+    url = "wss://example.com"
+    backoff = (1.92, 60.0, 1.618, 5.0)
+
+    ws = WebSocketApp(
+        client_session,
+        url,
+        **test_input,
+        backoff=backoff,
+    )
+
+    assert ws._session == client_session
+    assert ws._url == url
+    assert isinstance(ws._task, asyncio.Task)
+    assert m_run_forever.called
+    assert list(m_run_forever.call_args) == [
+        tuple(),
+        dict(
+            **expected,
+            backoff=backoff,
+        ),
+    ]
+
+
+@pytest_asyncio.fixture
+async def websocketapp(
+    mocker: pytest_mock.MockerFixture, client_session: aiohttp.ClientSession
+):
+    m_run_forever = mocker.patch.object(
+        WebSocketApp, WebSocketApp._run_forever.__name__
+    )
+
+    ws = WebSocketApp(
+        client_session,
+        "wss://example.com",
+        backoff=WebSocketApp.DEFAULT_BACKOFF,
+    )
+
+    mocker.stop(m_run_forever)
+
+    return ws
+
+
+@pytest.mark.asyncio
+async def test_websocketapp_run_forever(
+    mocker: pytest_mock.MockerFixture, websocketapp: WebSocketApp
+):
+    websocketapp._event.set()
+    websocketapp._current_ws = MagicMock()
+
+    m_ws_connect = mocker.patch.object(WebSocketApp, WebSocketApp._ws_connect.__name__)
+    m_random = mocker.patch("random.random")
+    m_asyncio_sleep = mocker.patch("asyncio.sleep")
+
+    m_ws_connect.side_effect = [
+        aiohttp.WSServerHandshakeError(MagicMock(), tuple()),
+        aiohttp.WSServerHandshakeError(MagicMock(), tuple()),
+        aiohttp.WSServerHandshakeError(MagicMock(), tuple()),
+        None,
+        aiohttp.WSServerHandshakeError(MagicMock(), tuple()),
+        KeyboardInterrupt("BOOM"),
+    ]
+    m_random.return_value = 42.0
+
+    assert websocketapp._event.is_set()
+
+    with pytest.raises(KeyboardInterrupt, match="BOOM"):
+        await websocketapp._run_forever(
+            send_str=["spam"],
+            send_bytes=[b"egg"],
+            send_json=[{"bacon": "tomato"}],
+            hdlr_str=[hdlr_str],
+            hdlr_bytes=[hdlr_bytes],
+            hdlr_json=[hdlr_json],
+            backoff=(10.0, 30.0, 2.0, 1.0),
+            heartbeat=10.0,
+        )
+
+    assert list(m_ws_connect.call_args) == [
+        tuple(),
+        dict(
+            send_str=["spam"],
+            send_bytes=[b"egg"],
+            send_json=[{"bacon": "tomato"}],
+            hdlr_str=[hdlr_str],
+            hdlr_bytes=[hdlr_bytes],
+            hdlr_json=[hdlr_json],
+            heartbeat=10.0,
+        ),
+    ]
+    assert m_random.call_count == 2
+    assert m_asyncio_sleep.call_args_list == [
+        call(42.0),
+        call(20),
+        call(30),
+        call(42.0),
+    ]
+
+    assert websocketapp._current_ws is None
+    assert not websocketapp._event.is_set()
+
+
+@pytest.mark.asyncio
+async def test_ws_connect(
+    mocker: pytest_mock.MockerFixture, websocketapp: WebSocketApp
+):
+    m_ws_connect = mocker.patch("aiohttp.client.ClientSession.ws_connect")
+    m_wsresp: AsyncMock = m_ws_connect.return_value.__aenter__.return_value
+    m_wsresp.__aiter__.return_value = [
+        aiohttp.WSMessage(aiohttp.WSMsgType.TEXT, '{"spam":"egg"}', None),
+        aiohttp.WSMessage(aiohttp.WSMsgType.BINARY, b'{"bacon":"tomato"}', None),
+        aiohttp.WSMessage(aiohttp.WSMsgType.TEXT, "__TEXT__", None),
+        aiohttp.WSMessage(aiohttp.WSMsgType.BINARY, b"__BYTES__", None),
+    ]
+    hdlr_str = MagicMock()
+    hdlr_bytes = MagicMock()
+    hdlr_json = MagicMock()
+
+    assert not websocketapp._event.is_set()
+
+    await websocketapp._ws_connect(
+        send_str=["spam"],
+        send_bytes=[b"egg"],
+        send_json=[{"bacon": "tomato"}],
+        hdlr_str=[hdlr_str],
+        hdlr_bytes=[hdlr_bytes],
+        hdlr_json=[hdlr_json],
+        heartbeat=10.0,
+    )
+    await asyncio.create_task(asyncio.sleep(0))
+
+    assert list(m_ws_connect.call_args) == [
+        tuple([websocketapp._url]),
+        dict(heartbeat=10.0),
+    ]
+    assert websocketapp._event.is_set()
+
+    assert m_wsresp.send_str.call_args == call("spam")
+    assert m_wsresp.send_bytes.call_args == call(b"egg")
+    assert m_wsresp.send_json.call_args == call({"bacon": "tomato"})
+
+    assert hdlr_str.call_args_list == [
+        call('{"spam":"egg"}', m_wsresp),
+        call("__TEXT__", m_wsresp),
+    ]
+    assert hdlr_bytes.call_args_list == [
+        call(b'{"bacon":"tomato"}', m_wsresp),
+        call(b"__BYTES__", m_wsresp),
+    ]
+    assert hdlr_json.call_args_list == [
+        call({"spam": "egg"}, m_wsresp),
+        call({"bacon": "tomato"}, m_wsresp),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_websocketapp_wait(websocketapp: WebSocketApp):
+    websocketapp._task.cancel()
+    websocketapp._task = asyncio.create_task(AsyncMock()._run_forever())
+
+    assert not websocketapp._task.done()
+
+    await websocketapp.wait()
+
+    assert websocketapp._task.done()
+
+
+@pytest.mark.asyncio
+async def test_websocketapp_await(websocketapp: WebSocketApp):
+    websocketapp._task.cancel()
+    websocketapp._task = asyncio.create_task(AsyncMock()._run_forever())
+    websocketapp._task.add_done_callback(lambda f: websocketapp._event.set())
+
+    assert not websocketapp._event.is_set()
+
+    await websocketapp
+
+    assert websocketapp._event.is_set()
+
+
+@pytest.mark.asyncio
+async def test_websocketapp_url(websocketapp: WebSocketApp):
+    new_url = "wss://new-websocket-url.com"
+    assert websocketapp.url != new_url
+
+    websocketapp.url = new_url
+
+    assert websocketapp.url == new_url
+
+
+@pytest.mark.asyncio
+async def test_websocketapp_current_ws(websocketapp: WebSocketApp):
+    new_current_ws = MagicMock()
+    websocketapp._current_ws = new_current_ws
+
+    assert websocketapp.current_ws == new_current_ws
+
+
+@pytest_asyncio.fixture
+async def test_server():
+    call_count = 0
+
+    async def echo_json(request: web.Request):
+        nonlocal call_count
+        call_count += 1
+
+        if call_count in (2, 3, 4):
+            raise web.HTTPServiceUnavailable()
+
+        ws = web.WebSocketResponse()
+        await ws.prepare(request)
+
+        msg = await ws.receive_json()
+        await ws.send_json(msg)
+
+        await ws.close()
+        return ws
+
+    app = web.Application()
+    app.add_routes([web.get("/ws", echo_json)])
+
+    async with TestServer(app) as server:
+        yield server
+
+
+@pytest.mark.asyncio
+async def test_websocketapp_functional(
+    mocker: pytest_mock.MockerFixture, test_server: TestServer
+):
+    m_random = mocker.patch("random.random")
+    m_random.return_value = 42.0
+    m_asyncio_sleep = mocker.patch("asyncio.sleep")
+
+    wsq = pybotters.WebSocketQueue()
+    send_message = {"spam": "egg"}
+
+    async def message_ping_pong():
+        async with pybotters.Client() as client:
+            ws = await client.ws_connect(
+                f"ws://localhost:{test_server.port}/ws",
+                send_json=send_message,
+                hdlr_json=wsq.onmessage,
+                backoff=(10.0, 30.0, 2.0, 1.0),
+            )
+            await ws.wait()
+
+    wstask = asyncio.create_task(message_ping_pong())
+    received_messages = [
+        (await asyncio.wait_for(wsq.get(), timeout=5.0)),
+        (await asyncio.wait_for(wsq.get(), timeout=5.0)),
+    ]
+    wstask.cancel()
+    await asyncio.wait([wstask], timeout=5.0)
+
+    assert received_messages == [send_message, send_message]
+    assert wstask.cancelled()
+
+    assert m_random.call_count == 1
+    assert m_asyncio_sleep.call_args_list == [
+        call(42.0),
+        call(20),
+        call(30),
+    ]
 
 
 def test_heartbeathosts():
@@ -310,152 +675,3 @@ async def test_bitget_ws(mocker: pytest_mock.MockerFixture):
     ws.send_json.side_effect = dummy_send
 
     await pybotters.ws.Auth.bitget(ws)
-
-
-def test_websocketapp(mocker: pytest_mock.MockerFixture):
-    create_task = mocker.patch("asyncio.create_task")
-    ret_run_forever = mocker.Mock()
-    run_forever = mocker.patch.object(WebSocketApp, "_run_forever", ret_run_forever)
-    session = mocker.Mock()
-    send_str = mocker.Mock(spec=str)
-    send_bytes = mocker.Mock(spec=bytes)
-    send_json = mocker.Mock(spec=dict)
-    hdlr_str = mocker.Mock()
-    hdlr_bytes = mocker.Mock()
-    hdlr_json = mocker.Mock()
-    ws = WebSocketApp(
-        session,
-        "wss://example.com",
-        send_str=send_str,
-        send_bytes=send_bytes,
-        send_json=send_json,
-        hdlr_str=hdlr_str,
-        hdlr_bytes=hdlr_bytes,
-        hdlr_json=hdlr_json,
-        backoff=(1.92, 60.0, 1.618, 5.0),
-    )
-    assert isinstance(ws, WebSocketApp)
-    assert run_forever.called
-    assert run_forever.call_args == [
-        tuple(),
-        {
-            "send_str": [send_str],
-            "send_bytes": [send_bytes],
-            "send_json": [send_json],
-            "hdlr_str": [hdlr_str],
-            "hdlr_bytes": [hdlr_bytes],
-            "hdlr_json": [hdlr_json],
-            "backoff": (1.92, 60.0, 1.618, 5.0),
-        },
-    ]
-    assert create_task.called
-    assert create_task.call_args == [(ret_run_forever.return_value,)]
-    assert ws._url == "wss://example.com"
-    assert ws._session == session
-
-
-@pytest_asyncio.fixture
-async def client_session():
-    async with aiohttp.ClientSession() as session:
-        yield session
-
-
-hdlr_str = functools.partial(lambda msg, ws: None)
-hdlr_bytes = functools.partial(lambda msg, ws: None)
-hdlr_json = functools.partial(lambda msg, ws: None)
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    (
-        "test_input",
-        "expected",
-    ),
-    [
-        (
-            {
-                "send_str": "spam",
-                "send_bytes": b"egg",
-                "send_json": {"bacon": "tomato"},
-                "hdlr_str": hdlr_str,
-                "hdlr_bytes": hdlr_bytes,
-                "hdlr_json": hdlr_json,
-            },
-            {
-                "send_str": ["spam"],
-                "send_bytes": [b"egg"],
-                "send_json": [{"bacon": "tomato"}],
-                "hdlr_str": [hdlr_str],
-                "hdlr_bytes": [hdlr_bytes],
-                "hdlr_json": [hdlr_json],
-            },
-        ),
-        (
-            {
-                "send_str": ["spam"],
-                "send_bytes": [b"egg"],
-                "send_json": [{"bacon": "tomato"}],
-                "hdlr_str": [hdlr_str],
-                "hdlr_bytes": [hdlr_bytes],
-                "hdlr_json": [hdlr_json],
-            },
-            {
-                "send_str": ["spam"],
-                "send_bytes": [b"egg"],
-                "send_json": [{"bacon": "tomato"}],
-                "hdlr_str": [hdlr_str],
-                "hdlr_bytes": [hdlr_bytes],
-                "hdlr_json": [hdlr_json],
-            },
-        ),
-        (
-            {
-                "send_str": None,
-                "send_bytes": None,
-                "send_json": None,
-                "hdlr_str": None,
-                "hdlr_bytes": None,
-                "hdlr_json": None,
-            },
-            {
-                "send_str": [],
-                "send_bytes": [],
-                "send_json": [],
-                "hdlr_str": [],
-                "hdlr_bytes": [],
-                "hdlr_json": [],
-            },
-        ),
-    ],
-)
-async def test_websocketapp_init(
-    mocker: pytest_mock.MockerFixture,
-    client_session: aiohttp.ClientSession,
-    test_input,
-    expected,
-):
-    m_run_forever = mocker.patch.object(
-        WebSocketApp, WebSocketApp._run_forever.__name__
-    )
-
-    url = "wss://example.com"
-    backoff = (1.92, 60.0, 1.618, 5.0)
-
-    ws = WebSocketApp(
-        client_session,
-        url,
-        **test_input,
-        backoff=backoff,
-    )
-
-    assert ws._session == client_session
-    assert ws._url == url
-    assert isinstance(ws._task, asyncio.Task)
-    assert m_run_forever.called
-    assert list(m_run_forever.call_args) == [
-        tuple(),
-        dict(
-            **expected,
-            backoff=backoff,
-        ),
-    ]
