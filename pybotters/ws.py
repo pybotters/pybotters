@@ -7,6 +7,7 @@ import hashlib
 import hmac
 import inspect
 import logging
+import random
 import time
 import uuid
 from dataclasses import dataclass
@@ -15,9 +16,9 @@ from typing import Any, AsyncIterator, Generator, Optional, Union
 
 import aiohttp
 from aiohttp.http_websocket import json
-from aiohttp.typedefs import StrOrURL
 
 from .auth import Auth as _Auth
+from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
 
 logger = logging.getLogger(__name__)
 
@@ -30,135 +31,211 @@ def pretty_modulename(e: Exception) -> str:
     return modulename
 
 
-class WebSocketRunner:
+class WebSocketApp:
+    BACKOFF_MIN = 1.92
+    BACKOFF_MAX = 60.0
+    BACKOFF_FACTOR = 1.618
+    BACKOFF_INITIAL = 5.0
+    DEFAULT_BACKOFF = (BACKOFF_MIN, BACKOFF_MAX, BACKOFF_FACTOR, BACKOFF_INITIAL)
+
     def __init__(
         self,
-        url: StrOrURL,
         session: aiohttp.ClientSession,
+        url: str,
         *,
         send_str: Optional[Union[str, list[str]]] = None,
         send_bytes: Optional[Union[bytes, list[bytes]]] = None,
-        send_json: Any = None,
-        hdlr_str=None,
-        hdlr_bytes=None,
-        hdlr_json=None,
-        auth=_Auth,
+        send_json: Optional[Union[dict, list[dict]]] = None,
+        hdlr_str: Optional[Union[WsStrHandler, list[WsStrHandler]]] = None,
+        hdlr_bytes: Optional[Union[WsBytesHandler, list[WsBytesHandler]]] = None,
+        hdlr_json: Optional[Union[WsJsonHandler, list[WsJsonHandler]]] = None,
+        backoff: tuple[float, float, float, float] = DEFAULT_BACKOFF,
         **kwargs: Any,
     ) -> None:
-        self.connected = False
+        self._session = session
+        self._url = url
+
+        self._loop = session._loop
+        self._current_ws: Optional[aiohttp.ClientWebSocketResponse] = None
         self._event = asyncio.Event()
+
+        if send_str is None:
+            send_str = []
+        elif isinstance(send_str, str):
+            send_str = [send_str]
+
+        if send_bytes is None:
+            send_bytes = []
+        elif isinstance(send_bytes, bytes):
+            send_bytes = [send_bytes]
+
+        if send_json is None:
+            send_json = []
+        elif isinstance(send_json, dict):
+            send_json = [send_json]
+
+        if hdlr_str is None:
+            hdlr_str = []
+        elif callable(hdlr_str):
+            hdlr_str = [hdlr_str]
+
+        if hdlr_bytes is None:
+            hdlr_bytes = []
+        elif callable(hdlr_bytes):
+            hdlr_bytes = [hdlr_bytes]
+
+        if hdlr_json is None:
+            hdlr_json = []
+        elif callable(hdlr_json):
+            hdlr_json = [hdlr_json]
+
         self._task = asyncio.create_task(
             self._run_forever(
-                url,
-                session,
                 send_str=send_str,
                 send_bytes=send_bytes,
                 send_json=send_json,
                 hdlr_str=hdlr_str,
                 hdlr_bytes=hdlr_bytes,
                 hdlr_json=hdlr_json,
-                auth=auth,
+                backoff=backoff,
                 **kwargs,
             )
         )
-        self.ws: aiohttp.ClientWebSocketResponse | None = None
+
+    @property
+    def url(self) -> str:
+        return self._url
+
+    @url.setter
+    def url(self, url: str) -> None:
+        self._url = url
+
+    @property
+    def current_ws(self) -> ClientWebSocketResponse | None:
+        return self._current_ws
 
     async def _run_forever(
         self,
-        url: StrOrURL,
-        session: aiohttp.ClientSession,
         *,
-        send_str: Optional[Union[str, list[str]]] = None,
-        send_bytes: Optional[Union[bytes, list[bytes]]] = None,
-        send_json: Any = None,
-        hdlr_str=None,
-        hdlr_bytes=None,
-        hdlr_json=None,
-        auth=_Auth,
+        send_str: list[str],
+        send_bytes: list[bytes],
+        send_json: list[dict],
+        hdlr_str: list[WsStrHandler],
+        hdlr_bytes: list[WsBytesHandler],
+        hdlr_json: list[WsJsonHandler],
+        backoff: tuple[float, float, float, float],
         **kwargs: Any,
     ) -> None:
-        iscorofunc_str = asyncio.iscoroutinefunction(hdlr_str)
-        iscorofunc_bytes = asyncio.iscoroutinefunction(hdlr_bytes)
-        iscorofunc_json = asyncio.iscoroutinefunction(hdlr_json)
-        while not session.closed:
-            cooldown = asyncio.create_task(asyncio.sleep(60.0))
+        BACKOFF_MIN, BACKOFF_MAX, BACKOFF_FACTOR, BACKOFF_INITIAL = backoff
+
+        backoff_delay = BACKOFF_MIN
+        while not self._session.closed:
             try:
-                async with session.ws_connect(url, auth=auth, **kwargs) as ws:
-                    self.connected = True
-                    self.ws = ws
-                    self._event.set()
-                    if send_str is not None:
-                        if isinstance(send_str, list):
-                            await asyncio.gather(
-                                *[ws.send_str(item) for item in send_str]
-                            )
-                        else:
-                            await ws.send_str(send_str)
-                    if send_bytes is not None:
-                        if isinstance(send_bytes, list):
-                            await asyncio.gather(
-                                *[ws.send_bytes(item) for item in send_bytes]
-                            )
-                        else:
-                            await ws.send_bytes(send_bytes)
-                    if send_json is not None:
-                        if isinstance(send_json, list):
-                            await asyncio.gather(
-                                *[ws.send_json(item) for item in send_json]
-                            )
-                        else:
-                            await ws.send_json(send_json)
-                    async for msg in ws:
-                        if msg.type == aiohttp.WSMsgType.TEXT:
-                            if hdlr_str is not None:
-                                try:
-                                    if iscorofunc_str:
-                                        await hdlr_str(msg.data, ws)
-                                    else:
-                                        hdlr_str(msg.data, ws)
-                                except Exception as e:
-                                    logger.exception(f"{pretty_modulename(e)}: {e}")
-                            if hdlr_json is not None:
-                                try:
-                                    data = msg.json()
-                                except json.decoder.JSONDecodeError:
-                                    pass
-                                else:
-                                    try:
-                                        if iscorofunc_json:
-                                            await hdlr_json(data, ws)
-                                        else:
-                                            hdlr_json(data, ws)
-                                    except Exception as e:
-                                        logger.exception(f"{pretty_modulename(e)}: {e}")
-                        elif msg.type == aiohttp.WSMsgType.BINARY:
-                            if hdlr_bytes is not None:
-                                try:
-                                    if iscorofunc_bytes:
-                                        await hdlr_bytes(msg.data, ws)
-                                    else:
-                                        hdlr_bytes(msg.data, ws)
-                                except Exception as e:
-                                    logger.exception(f"{pretty_modulename(e)}: {e}")
-                        elif msg.type == aiohttp.WSMsgType.ERROR:
-                            break
-            except (
-                aiohttp.WSServerHandshakeError,
-                aiohttp.ClientOSError,
-                aiohttp.ServerDisconnectedError,
-                ConnectionResetError,
-            ) as e:
+                await self._ws_connect(
+                    send_str=send_str,
+                    send_bytes=send_bytes,
+                    send_json=send_json,
+                    hdlr_str=hdlr_str,
+                    hdlr_bytes=hdlr_bytes,
+                    hdlr_json=hdlr_json,
+                    **kwargs,
+                )
+            # From https://github.com/python-websockets/websockets/blob/12.0/src/websockets/legacy/client.py#L600-L624  # noqa: E501
+            # Licensed under the BSD-3-Clause
+            except Exception as e:
                 logger.warning(f"{pretty_modulename(e)}: {e}")
-            self.connected = False
-            self.ws = None
-            self._event.clear()
-            await cooldown
+                if backoff_delay == BACKOFF_MIN:
+                    initial_delay = random.random() * BACKOFF_INITIAL
+                    await asyncio.sleep(initial_delay)
+                else:
+                    await asyncio.sleep(int(backoff_delay))
+                backoff_delay = backoff_delay * BACKOFF_FACTOR
+                backoff_delay = min(backoff_delay, BACKOFF_MAX)
+            else:
+                backoff_delay = BACKOFF_MIN
+            # End https://github.com/python-websockets/websockets/blob/12.0/src/websockets/legacy/client.py#L600-L624  # noqa: E501
+            finally:
+                self._current_ws = None
+                self._event.clear()
+
+    async def _ws_connect(
+        self,
+        *,
+        send_str: list[str],
+        send_bytes: list[bytes],
+        send_json: list[dict],
+        hdlr_str: list[WsStrHandler],
+        hdlr_bytes: list[WsBytesHandler],
+        hdlr_json: list[WsJsonHandler],
+        **kwargs: Any,
+    ) -> None:
+        async with self._session.ws_connect(self._url, **kwargs) as ws:
+            self._current_ws = ws
+            self._event.set()
+
+            await self._ws_send(ws, send_str, send_bytes, send_json)
+
+            await self._ws_receive(ws, hdlr_str, hdlr_bytes, hdlr_json)
+
+    async def _ws_send(
+        self,
+        ws: ClientWebSocketResponse,
+        send_str: list[str],
+        send_bytes: list[bytes],
+        send_json: list[dict],
+    ) -> None:
+        await asyncio.gather(
+            *(ws.send_str(x) for x in send_str),
+            *(ws.send_bytes(x) for x in send_bytes),
+            *(ws.send_json(x) for x in send_json),
+        )
+
+    async def _ws_receive(
+        self,
+        ws: ClientWebSocketResponse,
+        hdlr_str: list[WsStrHandler],
+        hdlr_bytes: list[WsBytesHandler],
+        hdlr_json: list[WsJsonHandler],
+    ) -> None:
+        async for msg in ws:
+            self._loop.call_soon(
+                self._onmessage, msg, ws, hdlr_str, hdlr_bytes, hdlr_json
+            )
+
+    def _onmessage(
+        self,
+        msg: aiohttp.WSMessage,
+        ws: ClientWebSocketResponse,
+        hdlr_str: list[WsStrHandler],
+        hdlr_bytes: list[WsBytesHandler],
+        hdlr_json: list[WsJsonHandler],
+    ) -> None:
+        if msg.type == aiohttp.WSMsgType.TEXT:
+            for hdlr in hdlr_str:
+                self._loop.call_soon(hdlr, msg.data, ws)
+
+        if msg.type == aiohttp.WSMsgType.BINARY:
+            for hdlr in hdlr_bytes:
+                self._loop.call_soon(hdlr, msg.data, ws)
+
+        if hdlr_json:
+            try:
+                data = msg.json()
+            except json.JSONDecodeError as e:
+                logger.warning(f"{pretty_modulename(e)}: {e} {e.doc}")
+            else:
+                for hdlr in hdlr_json:
+                    self._loop.call_soon(hdlr, data, ws)
 
     async def wait(self) -> None:
-        await self._event.wait()
+        await self._task
 
-    def __await__(self) -> Generator[Any, None, None]:
-        return self._task.__await__()
+    async def _wait_handshake(self) -> "WebSocketApp":
+        await self._event.wait()
+        return self
+
+    def __await__(self) -> Generator[Any, None, "WebSocketApp"]:
+        return self._wait_handshake().__await__()
 
 
 class WebSocketQueue(asyncio.Queue):
