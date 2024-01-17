@@ -36,4 +36,6 @@ jobs:
         poetry run flake8
     - name: Test with pytest
       run: |
-        poetry run pytest --cov-report term --cov pybotters tests/
+        poetry run pytest --cov-report term --cov-report term --cov-report=xml --cov pybotters tests/
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
