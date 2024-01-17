@@ -277,11 +277,7 @@ class Client:
             return {}
 
     @staticmethod
-    def _encode_apis(
-        apis: Optional[dict[str, list[str]]]
-    ) -> dict[str, tuple[str | bytes, ...]]:
-        if apis is None:
-            apis = {}
+    def _encode_apis(apis: dict[str, list[str]]) -> dict[str, tuple[str | bytes, ...]]:
         encoded = {}
         for name in apis:
             if len(apis[name]) >= 2:
