@@ -7,6 +7,8 @@ on: [push, pull_request]
 
 permissions:
   contents: read
+  checks: write
+  pull-requests: write
 
 jobs:
   pytest:
@@ -36,4 +38,10 @@ jobs:
         poetry run flake8
     - name: Test with pytest
       run: |
-        poetry run pytest --cov-report term --cov pybotters tests/
+        poetry run pytest --junitxml=test-results/${{ matrix.python-version }}.xml --cov-report term --cov pybotters tests/
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: |
+          test-results/*.xml
