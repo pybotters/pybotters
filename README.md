@@ -7,6 +7,7 @@
 
 [![pytest](https://github.com/MtkN1/pybotters/actions/workflows/pytest.yml/badge.svg)](https://github.com/MtkN1/pybotters/actions/workflows/pytest.yml)
 [![publish](https://github.com/MtkN1/pybotters/actions/workflows/publish.yml/badge.svg)](https://github.com/MtkN1/pybotters/actions/workflows/publish.yml)
+[![codecov](https://codecov.io/gh/MtkN1/pybotters/graph/badge.svg?token=ARR29R726W)](https://codecov.io/gh/MtkN1/pybotters)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Documentation Status](https://readthedocs.org/projects/pybotters/badge/?version=latest)](https://pybotters.readthedocs.io/ja/latest/?badge=latest)
 

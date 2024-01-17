@@ -1,13 +1,16 @@
 import json
-from unittest.mock import AsyncMock, mock_open
+from unittest.mock import AsyncMock, MagicMock, mock_open
 
 import aiohttp
 import pytest
+import pytest_asyncio
 import pytest_mock
 
 import pybotters
+import pybotters.auth
 
 
+@pytest.mark.asyncio
 async def test_client():
     apis = {
         "name1": ["key1", "secret1"],
@@ -32,6 +35,7 @@ async def test_client():
     assert client._session.headers["User-Agent"].split("/")[1] == pybotters.__version__
 
 
+@pytest.mark.asyncio
 async def test_client_warn(mocker: pytest_mock.MockerFixture):
     apis = {"name1", "key1", "secret1"}
     base_url = "http://example.com"
@@ -86,22 +90,108 @@ def test_client_load_apis_invalid(mocker: pytest_mock.MockerFixture):
     assert pybotters.Client._load_apis(["foo", "bar"]) == {}
 
 
-@pytest.mark.asyncio
-async def test_client_request_get(mocker: pytest_mock.MockerFixture):
-    patched = mocker.patch("aiohttp.client.ClientSession._request")
+@pytest_asyncio.fixture
+async def pybotters_client():
     async with pybotters.Client() as client:
-        ret = client.request("GET", "http://example.com", params={"foo": "bar"})
-    assert patched.called
-    assert isinstance(ret, aiohttp.client._RequestContextManager)
+        yield client
 
 
-@pytest.mark.asyncio
-async def test_client_request_post(mocker: pytest_mock.MockerFixture):
-    patched = mocker.patch("aiohttp.client.ClientSession._request")
-    async with pybotters.Client() as client:
-        ret = client.request("POST", "http://example.com", data={"foo": "bar"})
+def test_client_request_get(
+    mocker: pytest_mock.MockerFixture, pybotters_client: pybotters.Client
+):
+    patched = mocker.patch("aiohttp.ClientSession._request", new_callable=MagicMock)
+
+    pybotters_client.request("GET", "http://example.com", params={"foo": "bar"})
+
     assert patched.called
-    assert isinstance(ret, aiohttp.client._RequestContextManager)
+    assert patched.call_args.args == ("GET", "http://example.com")
+    assert patched.call_args.kwargs == dict(
+        params={"foo": "bar"},
+        data=None,
+        auth=pybotters.auth.Auth,
+    )
+
+
+def test_client_request_post(
+    mocker: pytest_mock.MockerFixture, pybotters_client: pybotters.Client
+):
+    patched = mocker.patch("aiohttp.ClientSession._request", new_callable=MagicMock)
+
+    pybotters_client.request("POST", "http://example.com", data={"foo": "bar"})
+
+    assert patched.called
+    assert patched.call_args.args == ("POST", "http://example.com")
+    assert patched.call_args.kwargs == dict(
+        params=None,
+        data={"foo": "bar"},
+        auth=pybotters.auth.Auth,
+    )
+
+
+def test_client_get(
+    mocker: pytest_mock.MockerFixture, pybotters_client: pybotters.Client
+):
+    patched = mocker.patch("aiohttp.ClientSession._request", new_callable=MagicMock)
+
+    pybotters_client.get("http://example.com", params={"foo": "bar"})
+
+    assert patched.called
+    assert patched.call_args.args == ("GET", "http://example.com")
+    assert patched.call_args.kwargs == dict(
+        params={"foo": "bar"},
+        data=None,
+        auth=pybotters.auth.Auth,
+    )
+
+
+def test_client_post(
+    mocker: pytest_mock.MockerFixture, pybotters_client: pybotters.Client
+):
+    patched = mocker.patch("aiohttp.ClientSession._request", new_callable=MagicMock)
+
+    pybotters_client.post("http://example.com", data={"foo": "bar"})
+
+    assert patched.called
+    assert patched.call_args.args == ("POST", "http://example.com")
+    assert patched.call_args.kwargs == dict(
+        params=None,
+        data={"foo": "bar"},
+        auth=pybotters.auth.Auth,
+    )
+
+
+def test_client_put(
+    mocker: pytest_mock.MockerFixture, pybotters_client: pybotters.Client
+):
+    patched = mocker.patch("aiohttp.ClientSession._request", new_callable=MagicMock)
+
+    pybotters_client.put("http://example.com", data={"foo": "bar"})
+
+    assert patched.called
+    assert patched.call_args.args == ("PUT", "http://example.com")
+    assert patched.call_args.kwargs == dict(
+        params=None,
+        data={"foo": "bar"},
+        auth=pybotters.auth.Auth,
+    )
+
+
+def test_client_delete(
+    mocker: pytest_mock.MockerFixture, pybotters_client: pybotters.Client
+):
+    patched = mocker.patch("aiohttp.ClientSession._request", new_callable=MagicMock)
+
+    pybotters_client.delete(
+        "http://example.com", params={"foo": "bar"}, data={"baz": "qux"}
+    )
+
+    assert patched.called
+    assert patched.call_args.args == ("DELETE", "http://example.com")
+    assert patched.call_args.kwargs == dict(
+        params={"foo": "bar"},
+        data={"baz": "qux"},
+        auth=pybotters.auth.Auth,
+    )
 
 
 @pytest.mark.asyncio
@@ -145,42 +235,6 @@ async def test_client_fetch_error(mocker: pytest_mock.MockerFixture):
     assert isinstance(r.data, pybotters.NotJSONContent)
     assert not r.data
     assert m_req.called
-
-
-@pytest.mark.asyncio
-async def test_client_get(mocker: pytest_mock.MockerFixture):
-    patched = mocker.patch("aiohttp.client.ClientSession._request")
-    async with pybotters.Client() as client:
-        ret = client.get("http://example.com", params={"foo": "bar"})
-    assert patched.called
-    assert isinstance(ret, aiohttp.client._RequestContextManager)
-
-
-@pytest.mark.asyncio
-async def test_client_post(mocker: pytest_mock.MockerFixture):
-    patched = mocker.patch("aiohttp.client.ClientSession._request")
-    async with pybotters.Client() as client:
-        ret = client.post("http://example.com", data={"foo": "bar"})
-    assert patched.called
-    assert isinstance(ret, aiohttp.client._RequestContextManager)
-
-
-@pytest.mark.asyncio
-async def test_client_put(mocker: pytest_mock.MockerFixture):
-    patched = mocker.patch("aiohttp.client.ClientSession._request")
-    async with pybotters.Client() as client:
-        ret = client.put("http://example.com", data={"foo": "bar"})
-    assert patched.called
-    assert isinstance(ret, aiohttp.client._RequestContextManager)
-
-
-@pytest.mark.asyncio
-async def test_client_delete(mocker: pytest_mock.MockerFixture):
-    patched = mocker.patch("aiohttp.client.ClientSession._request")
-    async with pybotters.Client() as client:
-        ret = client.delete("http://example.com", data={"foo": "bar"})
-    assert patched.called
-    assert isinstance(ret, aiohttp.client._RequestContextManager)
 
 
 @pytest.mark.asyncio

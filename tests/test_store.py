@@ -7,29 +7,57 @@ import pytest_mock
 import pybotters.store
 
 
-def test_interface():
-    store = pybotters.store.DataStoreManager()
-    store.create("example")
-    assert isinstance(store._stores, dict)
-    assert isinstance(store._events, list)
-    assert isinstance(store._iscorofunc, bool)
-    assert "example" in store
-    assert isinstance(store["example"], pybotters.store.DataStore)
+def test_dsm_construct():
+    dsm = pybotters.store.DataStoreManager()
+    dsm.create("example")
+    assert isinstance(dsm._stores, dict)
+    assert isinstance(dsm._events, list)
+    assert isinstance(dsm._iscorofunc, bool)
+    assert "example" in dsm
+    assert isinstance(dsm["example"], pybotters.store.DataStore)
+    assert isinstance(
+        dsm.get("example", pybotters.store.DataStore), pybotters.store.DataStore
+    )
 
-    store = pybotters.store.DataStoreManager()
-    store.create("example")
+
+def test_dsm_subcls_construct():
+    called = False
+
+    class SubDataStoreManager(pybotters.store.DataStoreManager):
+        def _init(self):
+            nonlocal called
+            called = True
+
+    SubDataStoreManager()
+
+    assert called
 
 
 @pytest.mark.asyncio
-async def test_interface_onmessage(mocker: pytest_mock.MockerFixture):
-    store = pybotters.store.DataStoreManager()
-    assert not store._iscorofunc
-    store._events.append(asyncio.Event())
-    store.onmessage({"foo": "bar"}, mocker.MagicMock())
-    assert not len(store._events)
+async def test_dsm_construct_onmessage(mocker: pytest_mock.MockerFixture):
+    dsm = pybotters.store.DataStoreManager()
+    assert not dsm._iscorofunc
+    dsm._events.append(asyncio.Event())
+    dsm.onmessage({"foo": "bar"}, mocker.MagicMock())
+    assert not len(dsm._events)
 
 
-def test_ds():
+@pytest.mark.asyncio
+async def test_dsm_wait():
+    dsm = pybotters.store.DataStoreManager()
+    loop = asyncio.get_running_loop()
+
+    def set_events():
+        for event in dsm._events:
+            event.set()
+
+    wait_task = loop.create_task(dsm.wait())
+    loop.call_soon(set_events)
+
+    await asyncio.wait_for(wait_task, timeout=5.0)
+
+
+def test_ds_construct():
     ds1 = pybotters.store.DataStore()
     assert len(ds1._data) == 0
     assert len(ds1._index) == 0
@@ -64,12 +92,25 @@ def test_ds():
     assert len(ds5._keys) == 2
 
 
-def test_hash():
+def test_ds_subcls_construct():
+    called = False
+
+    class SubDataStore(pybotters.store.DataStore):
+        def _init(self):
+            nonlocal called
+            called = True
+
+    SubDataStore()
+
+    assert called
+
+
+def test_ds_hash():
     hashed = pybotters.store.DataStore._hash({"foo": "bar"})
     assert isinstance(hashed, int)
 
 
-def test_sweep_with_key():
+def test_ds_sweep_with_key():
     data = [{"foo": f"bar{i}"} for i in range(1000)]
     ds = pybotters.store.DataStore(keys=["foo"], data=data)
     ds._MAXLEN = len(data) - 100
@@ -78,7 +119,7 @@ def test_sweep_with_key():
     assert len(ds._index) == 900
 
 
-def test_sweep_without_key():
+def test_ds_sweep_without_key():
     data = [{"foo": f"bar{i}"} for i in range(1000)]
     ds = pybotters.store.DataStore(data=data)
     ds._MAXLEN = len(data) - 100
@@ -87,7 +128,7 @@ def test_sweep_without_key():
     assert len(ds._index) == 0
 
 
-def test_insert():
+def test_ds_insert():
     data = [{"foo": f"bar{i}"} for i in range(1000)]
 
     ds1 = pybotters.store.DataStore(keys=["foo"])
@@ -111,8 +152,12 @@ def test_insert():
     assert len(ds3._data) == 0
     assert len(ds3._index) == 0
 
+    ds4 = pybotters.store.DataStore(keys=["foo"], data=[{"foo": "bar1", "old": "baz"}])
+    ds4._insert([{"foo": "bar1", "new": "foobar"}])
+    assert ds4.get({"foo": "bar1"}) == {"foo": "bar1", "new": "foobar"}
 
-def test_update():
+
+def test_ds_update():
     data = [{"foo": f"bar{i}"} for i in range(1000)]
     newdata = [{"foo": f"bar{i}"} for i in range(1000, 2000)]
 
@@ -143,7 +188,7 @@ def test_update():
     assert len(ds4._index) == 0
 
 
-def test_delete():
+def test_ds_delete():
     data = [{"foo": f"bar{i}"} for i in range(1000)]
     nodata = [{"foo": f"bar{i}"} for i in range(1000, 2000)]
     invalid = [{"invalid": f"data{i}"} for i in range(1000, 2000)]
@@ -164,7 +209,25 @@ def test_delete():
     assert len(ds3._index) == 1000
 
 
-def test_pop():
+def test_ds_remove():
+    data = [{"id": i} for i in range(1000)]
+
+    ds1 = pybotters.store.DataStore(keys=["id"], data=data)
+    assert len(ds1._data) == 1000
+    assert len(ds1._index) == 1000
+    ds1._remove(list(ds1._find_with_uuid({"id": 1})))
+    assert len(ds1._data) == 999
+    assert len(ds1._index) == 999
+
+    ds2 = pybotters.store.DataStore(data=data)
+    assert len(ds2._data) == 1000
+    assert len(ds2._index) == 0
+    ds2._remove(list(ds2._find_with_uuid({"id": 1})))
+    assert len(ds2._data) == 999
+    assert len(ds2._index) == 0
+
+
+def test_ds_pop():
     data = [{"foo": f"bar{i}"} for i in range(1000)]
 
     ds1 = pybotters.store.DataStore(keys=["foo"], data=data)
@@ -175,8 +238,11 @@ def test_pop():
     ds2 = pybotters.store.DataStore(data=data)
     assert ds2._pop({"foo": "bar500"}) is None
 
+    ds3 = pybotters.store.DataStore(keys=["foobar"], data=data)
+    assert ds3._pop({"foo": "bar500"}) is None
 
-def test_find_and_delete():
+
+def test_ds_find_and_delete():
     data = [{"foo": f"bar{i}", "mod": i % 2} for i in range(1000)]
     query = {"mod": 1}
     invalid = {"mod": -1}
@@ -211,7 +277,7 @@ def test_find_and_delete():
     assert len(ds3._index) == 1000
 
 
-def test_clear():
+def test_ds_clear():
     data = [{"foo": f"bar{i}"} for i in range(1000)]
     ds = pybotters.store.DataStore(keys=["foo"], data=data)
     ds._clear()
@@ -219,7 +285,7 @@ def test_clear():
     assert len(ds._index) == 0
 
 
-def test_get():
+def test_ds_get():
     data = [{"foo": f"bar{i}"} for i in range(1000)]
 
     ds1 = pybotters.store.DataStore(keys=["foo"], data=data)
@@ -229,8 +295,11 @@ def test_get():
     ds2 = pybotters.store.DataStore(data=data)
     assert ds2.get({"foo": "bar500"}) is None
 
+    ds3 = pybotters.store.DataStore(keys=["foobar"], data=data)
+    assert ds3.get({"foo": "bar500"}) is None
 
-def test_find():
+
+def test_ds_find():
     data = [{"foo": f"bar{i}", "mod": i % 2} for i in range(1000)]
     query = {"mod": 1}
     invalid = {"mod": -1}
@@ -241,13 +310,27 @@ def test_find():
     assert len(ds.find(invalid)) == 0
 
 
-def test__len__():
+def test_ds_find_with_uuid():
+    ds = pybotters.store.DataStore(data=[{"id": 1}, {"id": 2}])
+
+    result = ds._find_with_uuid()
+    assert len(result.keys()) == 2
+    assert all(isinstance(x, uuid.UUID) for x in result.keys())
+    assert list(result.values()) == [{"id": 1}, {"id": 2}]
+
+    result = ds._find_with_uuid({"id": 1})
+    assert len(result.keys()) == 1
+    assert all(isinstance(x, uuid.UUID) for x in result.keys())
+    assert list(result.values()) == [{"id": 1}]
+
+
+def test_ds__len__():
     data = [{"foo": f"bar{i}"} for i in range(1000)]
     ds = pybotters.store.DataStore(keys=["foo"], data=data)
     assert len(ds) == 1000
 
 
-def test__iter__():
+def test_ds__iter__():
     data = [{"foo": f"bar{i}"} for i in range(5)]
     ds = pybotters.store.DataStore(keys=["foo"], data=data)
     data_iter = iter(ds)
@@ -260,7 +343,7 @@ def test__iter__():
         next(data_iter)
 
 
-def test__reversed__():
+def test_ds__reversed__():
     data = [{"foo": f"bar{i}"} for i in range(5)]
     ds = pybotters.store.DataStore(keys=["foo"], data=data)
     data_iter = reversed(ds)
@@ -273,7 +356,7 @@ def test__reversed__():
         next(data_iter)
 
 
-def test_set():
+def test_ds_set():
     ds = pybotters.store.DataStore()
     events = [asyncio.Event(), asyncio.Event(), asyncio.Event()]
     ds._events.extend(events)
@@ -283,88 +366,81 @@ def test_set():
 
 
 @pytest.mark.asyncio
-async def test_wait():
-    class DataStoreHasDummySet(pybotters.store.DataStore):
-        async def _set(self) -> None:
-            return super()._set()
+async def test_ds_wait():
+    ds = pybotters.store.DataStore()
+    loop = asyncio.get_running_loop()
 
-    ds = DataStoreHasDummySet()
-    t_wait = asyncio.create_task(ds.wait())
-    t_set = asyncio.create_task(ds._set())
-    await asyncio.wait_for(t_wait, timeout=5.0)
-    assert t_set.done()
+    wait_task = loop.create_task(ds.wait())
+    loop.call_soon(ds._set)
+    await asyncio.wait_for(wait_task, timeout=5.0)
 
 
 @pytest.mark.asyncio
-async def test_wait_set():
-    ret = {}
+async def test_ds_wait_functional():
+    ds = pybotters.store.DataStore(keys=["id"])
+    loop = asyncio.get_running_loop()
 
-    class DataStoreHasDummySet(pybotters.store.DataStore):
-        async def _set(self) -> None:
-            return super()._set()
+    wait_task = loop.create_task(ds.wait())
+    loop.call_soon(
+        ds._insert, [{"id": 1, "val": 1}, {"id": 2, "val": 2}, {"id": 3, "val": 3}]
+    )
+    await asyncio.wait_for(wait_task, timeout=5.0)
 
-    async def wait_func(ds):
-        ret["val"] = await ds.wait()
+    wait_task = loop.create_task(ds.wait())
+    loop.call_soon(ds._update, [{"id": 1, "val": None}])
+    await asyncio.wait_for(wait_task, timeout=5.0)
 
-    ds0 = DataStoreHasDummySet()
-    t_wait0 = asyncio.create_task(wait_func(ds0))
-    t_set0 = asyncio.create_task(ds0._set())
-    await asyncio.wait_for(t_wait0, timeout=5.0)
-    assert t_set0.done()
+    wait_task = loop.create_task(ds.wait())
+    loop.call_soon(ds._delete, [{"id": 1}])
+    await asyncio.wait_for(wait_task, timeout=5.0)
 
+    wait_task = loop.create_task(ds.wait())
+    loop.call_soon(ds._remove, list(ds._find_with_uuid({"id": 2})))
+    await asyncio.wait_for(wait_task, timeout=5.0)
 
-@pytest.mark.asyncio
-async def test_wait_insert():
-    data = [{"dummy": "data"}]
-    ret = {}
-
-    class DataStoreHasDummyInsert(pybotters.store.DataStore):
-        async def _insert(self, data) -> None:
-            return super()._insert(data)
-
-    async def wait_func(ds):
-        ret["val"] = await ds.wait()
-
-    ds1 = DataStoreHasDummyInsert()
-    t_wait1 = asyncio.create_task(wait_func(ds1))
-    t_set1 = asyncio.create_task(ds1._insert(data))
-    await asyncio.wait_for(t_wait1, timeout=5.0)
-    assert t_set1.done()
+    wait_task = loop.create_task(ds.wait())
+    loop.call_soon(ds._clear)
+    await asyncio.wait_for(wait_task, timeout=5.0)
 
 
-@pytest.mark.asyncio
-async def test_wait_update():
-    data = [{"dummy": "data"}]
-    ret = {}
+def test_ds_put():
+    ds = pybotters.store.DataStore()
+    queue = asyncio.Queue()
+    ds._queues.append(queue)
 
-    class DataStoreHasDummyUpdate(pybotters.store.DataStore):
-        async def _update(self, data) -> None:
-            return super()._update(data)
+    operation = "update"
+    source = {"id": 123, "data": "updata"}
+    item = {"id": 123, "data": "updata", "extra": "extra"}
 
-    async def wait_func(ds):
-        ret["val"] = await ds.wait()
+    ds._put(operation, source, item)
+    result = queue.get_nowait()
 
-    ds2 = DataStoreHasDummyUpdate()
-    t_wait2 = asyncio.create_task(wait_func(ds2))
-    t_set2 = asyncio.create_task(ds2._update(data))
-    await asyncio.wait_for(t_wait2, timeout=5.0)
-    assert t_set2.done()
+    assert result == pybotters.store.StoreChange(ds, operation, source, item)
+
+
+def test_ds_watch():
+    ds = pybotters.store.DataStore()
+
+    assert isinstance(ds.watch(), pybotters.store.StoreStream)
 
 
 @pytest.mark.asyncio
-async def test_wait_delete():
-    data = [{"dummy": "data"}]
-    ret = {}
+async def test_store_stream():
+    ds = pybotters.store.DataStore(
+        keys=["id"], data=[{"id": 1, "data": "foo", "extra": "extra"}]
+    )
 
-    class DataStoreHasDummyDelete(pybotters.store.DataStore):
-        async def _delete(self, data) -> None:
-            return super()._delete(data)
+    with ds.watch() as stream:
+        assert isinstance(stream, pybotters.store.StoreStream)
+        ds._update([{"id": 1, "data": "bar"}])
 
-    async def wait_func(ds):
-        ret["val"] = await ds.wait()
+        async def _inner():
+            async for change in stream:
+                assert change.operation == "update"
+                assert change.source == {"id": 1, "data": "bar"}
+                assert change.data == {"id": 1, "data": "bar", "extra": "extra"}
+                assert isinstance(change.store, pybotters.store.DataStore)
 
-    ds3 = DataStoreHasDummyDelete()
-    t_wait3 = asyncio.create_task(wait_func(ds3))
-    t_set3 = asyncio.create_task(ds3._delete(data))
-    await asyncio.wait_for(t_wait3, timeout=5.0)
-    assert t_set3.done()
+                break
+
+        await asyncio.wait_for(_inner(), timeout=5.0)
