@@ -1,6 +1,8 @@
 import asyncio
 import functools
-from unittest.mock import AsyncMock, MagicMock, call
+import json
+import logging
+from unittest.mock import ANY, AsyncMock, MagicMock, PropertyMock, call
 
 import aiohttp
 import pytest
@@ -386,48 +388,42 @@ def test_heartbeathosts():
         assert callable(func)
 
 
-def test_wsresponse_without_heartbeat(mocker: pytest_mock.MockerFixture):
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("test_input", "expected"),
+    [
+        (URL("ws://example.com"), True),
+        (URL("ws://not-example.com"), False),
+    ],
+)
+async def test_wsresponse_heartbeat(
+    mocker: pytest_mock.MockerFixture, test_input, expected
+):
+    m_heartbeat = AsyncMock()
     items = {
-        "example.com": lambda ws: ...,
+        "example.com": m_heartbeat,
     }
-    m_create_task = mocker.patch("asyncio.create_task")
     mocker.patch.object(pybotters.ws.HeartbeatHosts, "items", items)
-    m_response = MagicMock()
-    m_response.url = URL("ws://not-example.com")
-    m_response.__dict__["_auth"] = None
-    pybotters.ws.ClientWebSocketResponse(
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        m_response,
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-    )
-    assert not m_create_task.called
+    m_resp = MagicMock()
+    m_resp.url = test_input
+    m_resp.__dict__["_auth"] = None
 
-
-def test_wsresponse_with_heartbeat(mocker: pytest_mock.MockerFixture):
-    items = {
-        "example.com": lambda ws: ...,
-    }
-    m_create_task = mocker.patch("asyncio.create_task")
-    mocker.patch.object(pybotters.ws.HeartbeatHosts, "items", items)
-    m_response = MagicMock()
-    m_response.url = URL("ws://example.com")
-    m_response.__dict__["_auth"] = None
-    pybotters.ws.ClientWebSocketResponse(
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        m_response,
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
+    wsresp = pybotters.ws.ClientWebSocketResponse(
+        reader=AsyncMock(),
+        writer=AsyncMock(),
+        protocol=None,
+        response=m_resp,
+        timeout=10.0,
+        autoclose=True,
+        autoping=True,
+        loop=asyncio.get_running_loop(),
     )
-    assert m_create_task.called
+
+    assert m_heartbeat.called is expected
+    if expected:
+        assert m_heartbeat.call_args == call(wsresp)
+        await asyncio.wait_for(wsresp.__dict__["_pingtask"], timeout=5.0)
+        assert wsresp.__dict__["_pingtask"].done()
 
 
 def test_authhosts():
@@ -440,54 +436,263 @@ def test_authhosts():
         assert callable(item.func)
 
 
-def test_wsresponse_without_auth(mocker: pytest_mock.MockerFixture):
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    (
+        "test_input",
+        "expected",
+    ),
+    [
+        # called auth task
+        (
+            {
+                "auth": pybotters.auth.Auth,
+                "url": URL("ws://example.com"),
+                "apis": {"example": ["KEY", b"SECRET"]},
+            },
+            {"called": True},
+        ),
+        # not called auth task, api name dose not exist in apis
+        (
+            {
+                "auth": pybotters.auth.Auth,
+                "url": URL("ws://example.com"),
+                "apis": {"not-example": ["KEY", b"SECRET"]},
+            },
+            {"called": False},
+        ),
+        # not called auth task, url dose not exist in hosts
+        (
+            {
+                "auth": pybotters.auth.Auth,
+                "url": URL("ws://not-example.com"),
+                "apis": {"example": ["KEY", b"SECRET"]},
+            },
+            {"called": False},
+        ),
+        # not called auth task, auth is None
+        (
+            {
+                "auth": None,
+                "url": URL("ws://example.com"),
+                "apis": {"example": ["KEY", b"SECRET"]},
+            },
+            {"called": False},
+        ),
+    ],
+)
+async def test_wsresponse_auth(mocker: pytest_mock.MockerFixture, test_input, expected):
+    m_auth = AsyncMock()
     items = {
-        "example.com": pybotters.ws.Item("example", lambda ws: ...),
+        "example.com": pybotters.ws.Item("example", m_auth),
     }
-    m_create_task = mocker.patch("asyncio.create_task")
     mocker.patch.object(pybotters.ws.AuthHosts, "items", items)
-    m_response = MagicMock()
-    m_response.url = URL("ws://example.com")
-    m_response.__dict__["_auth"] = None
-    m_session = MagicMock()
-    m_session.__dict__["_apis"] = {}
-    m_response._session = m_session
-    pybotters.ws.ClientWebSocketResponse(
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        m_response,
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
+    m_resp = MagicMock()
+    m_resp.__dict__["_auth"] = test_input["auth"]
+    m_resp.url = test_input["url"]
+    m_resp._session.__dict__["_apis"] = test_input["apis"]
+
+    wsresp = pybotters.ws.ClientWebSocketResponse(
+        reader=AsyncMock(),
+        writer=AsyncMock(),
+        protocol=None,
+        response=m_resp,
+        timeout=10.0,
+        autoclose=True,
+        autoping=True,
+        loop=asyncio.get_running_loop(),
     )
-    assert not m_create_task.called
+
+    assert m_auth.called is expected["called"]
+    if expected["called"]:
+        assert m_auth.call_args == call(wsresp)
+        await asyncio.wait_for(wsresp.__dict__["_authtask"], timeout=5.0)
+        assert wsresp.__dict__["_authtask"].done()
 
 
-def test_wsresponse_with_auth(mocker: pytest_mock.MockerFixture):
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    (
+        "test_input",
+        "expected",
+    ),
+    [
+        (URL("ws://example.com"), True),
+        (URL("ws://not-example.com"), False),
+    ],
+)
+async def test_wsresponse_send_str(
+    mocker: pytest_mock.MockerFixture, test_input, expected
+):
+    m_ratelimit = AsyncMock()
     items = {
-        "example.com": pybotters.ws.Item("example", lambda ws: ...),
+        "example.com": m_ratelimit,
     }
-    m_create_task = mocker.patch("asyncio.create_task")
-    mocker.patch.object(pybotters.ws.AuthHosts, "items", items)
-    m_response = MagicMock()
-    m_response.url = URL("ws://example.com")
-    m_response.__dict__["_auth"] = pybotters.auth.Auth
-    m_session = MagicMock()
-    m_session.__dict__["_apis"] = {"example": ("key", "secret".encode())}
-    m_response._session = m_session
-    pybotters.ws.ClientWebSocketResponse(
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        m_response,
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
+    mocker.patch.object(pybotters.ws.RequestLimitHosts, "items", items)
+    m_resp = MagicMock()
+    m_resp.__dict__["_auth"] = None
+    m_resp.url = test_input
+
+    wsresp = pybotters.ws.ClientWebSocketResponse(
+        reader=AsyncMock(),
+        writer=AsyncMock(),
+        protocol=None,
+        response=m_resp,
+        timeout=10.0,
+        autoclose=True,
+        autoping=True,
+        loop=asyncio.get_running_loop(),
     )
-    assert m_create_task.called
+    await asyncio.wait_for(wsresp.send_str("foo"), timeout=5.0)
+
+    assert m_ratelimit.called is expected
+    if expected:
+        assert m_ratelimit.call_args == call(wsresp, ANY)
+        # Avoid the "coroutine was never awaited" warning
+        await m_ratelimit.call_args.args[1]
+
+
+@pytest.mark.asyncio
+async def test_wsresponse_send_json_itself(mocker: pytest_mock.MockerFixture):
+    m_auth = AsyncMock()
+    items = {
+        "example.com": pybotters.ws.Item("example", m_auth),
+    }
+    mocker.patch.object(pybotters.ws.AuthHosts, "items", items)
+    m_resp = MagicMock()
+    m_resp.__dict__["_auth"] = pybotters.auth.Auth
+    m_resp.url = URL("ws://example.com")
+    m_resp._session.__dict__["_apis"] = {"example": ["KEY", b"SECRET"]}
+
+    wsresp = pybotters.ws.ClientWebSocketResponse(
+        reader=AsyncMock(),
+        writer=AsyncMock(),
+        protocol=None,
+        response=m_resp,
+        timeout=10.0,
+        autoclose=True,
+        autoping=True,
+        loop=asyncio.get_running_loop(),
+    )
+    await asyncio.wait_for(wsresp.send_json({"foo": "bar"}, _itself=False), timeout=5.0)
+
+    assert m_auth.called
+    assert m_auth.call_args == call(wsresp)
+    assert wsresp.__dict__["_authtask"].done()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    (
+        "test_input",
+        "expected",
+    ),
+    [
+        (
+            # called, send_json(data)
+            {
+                "argument": call({"foo": "bar"}, auth=pybotters.auth.Auth),
+                "url": URL("ws://example.com"),
+                "apis": {"example": ["KEY", b"SECRET"]},
+            },
+            {
+                "called": True,
+                "data": {"foo": "bar"},
+            },
+        ),
+        (
+            # called, send_json(data=data)
+            {
+                "argument": call(data={"foo": "bar"}, auth=pybotters.auth.Auth),
+                "url": URL("ws://example.com"),
+                "apis": {"example": ["KEY", b"SECRET"]},
+            },
+            {
+                "called": True,
+                "data": {"foo": "bar"},
+            },
+        ),
+        (
+            # not called, data is None
+            {
+                "argument": call(None, auth=pybotters.auth.Auth),
+                "url": URL("ws://example.com"),
+                "apis": {"example": ["KEY", b"SECRET"]},
+            },
+            {
+                "called": False,
+                "data": None,
+            },
+        ),
+        (
+            # not called, api name dose not exist in apis
+            {
+                "argument": call({"foo": "bar"}, auth=pybotters.auth.Auth),
+                "url": URL("ws://example.com"),
+                "apis": {"not-example": ["KEY", b"SECRET"]},
+            },
+            {
+                "called": False,
+                "data": None,
+            },
+        ),
+        (
+            # not called, url dose not exist in hosts
+            {
+                "argument": call({"foo": "bar"}, auth=pybotters.auth.Auth),
+                "url": URL("ws://not-example.com"),
+                "apis": {"example": ["KEY", b"SECRET"]},
+            },
+            {
+                "called": False,
+                "data": None,
+            },
+        ),
+        (
+            # not called, auth argument is None
+            {
+                "argument": call({"foo": "bar"}, auth=None),
+                "url": URL("ws://example.com"),
+                "apis": {"example": ["KEY", b"SECRET"]},
+            },
+            {
+                "called": False,
+                "data": None,
+            },
+        ),
+    ],
+)
+async def test_wsresponse_send_json_msgsign(
+    mocker: pytest_mock.MockerFixture, test_input, expected
+):
+    m_msgsign = MagicMock()
+    items = {
+        "example.com": pybotters.ws.Item("example", m_msgsign),
+    }
+    mocker.patch.object(pybotters.ws.MessageSignHosts, "items", items)
+    m_resp = MagicMock()
+    m_resp.__dict__["_auth"] = None
+    m_resp.url = test_input["url"]
+    m_resp._session.__dict__["_apis"] = test_input["apis"]
+
+    wsresp = pybotters.ws.ClientWebSocketResponse(
+        reader=AsyncMock(),
+        writer=AsyncMock(),
+        protocol=None,
+        response=m_resp,
+        timeout=10.0,
+        autoclose=True,
+        autoping=True,
+        loop=asyncio.get_running_loop(),
+    )
+    await asyncio.wait_for(
+        wsresp.send_json(*test_input["argument"].args, **test_input["argument"].kwargs),
+        timeout=5.0,
+    )
+
+    assert m_msgsign.called is expected["called"]
+    if expected["called"]:
+        assert m_msgsign.call_args == call(wsresp, expected["data"])
 
 
 @pytest.mark.asyncio
@@ -515,77 +720,387 @@ async def test_websocketqueue():
 
 
 @pytest.mark.asyncio
-async def test_bybit_ws(mocker: pytest_mock.MockerFixture):
+@pytest.mark.parametrize(
+    ("test_input",),
+    [
+        (pybotters.ws.Heartbeat.bybit,),
+        (pybotters.ws.Heartbeat.bitbank,),
+        (pybotters.ws.Heartbeat.phemex,),
+        (pybotters.ws.Heartbeat.okx,),
+        (pybotters.ws.Heartbeat.bitget,),
+        (pybotters.ws.Heartbeat.mexc,),
+        (pybotters.ws.Heartbeat.kucoin,),
+    ],
+)
+async def test_heartbeat_text(mocker: pytest_mock.MockerFixture, test_input):
+    m_wsresp = AsyncMock()
+    type(m_wsresp).closed = PropertyMock(side_effect=[False, True])
+    m_asyncio_sleep = mocker.patch("asyncio.sleep")
+
+    await asyncio.wait_for(test_input(m_wsresp), timeout=5.0)
+
+    assert m_wsresp.send_str.called
+    assert m_asyncio_sleep.called
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("test_input",),
+    [
+        (pybotters.ws.Heartbeat.binance,),
+    ],
+)
+async def test_heartbeat_frame(mocker: pytest_mock.MockerFixture, test_input):
+    m_wsresp = AsyncMock()
+    type(m_wsresp).closed = PropertyMock(side_effect=[False, True])
+    m_asyncio_sleep = mocker.patch("asyncio.sleep")
+
+    await asyncio.wait_for(test_input(m_wsresp), timeout=5.0)
+
+    assert m_wsresp.pong.called
+    assert m_asyncio_sleep.called
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    (
+        "test_input",
+        "expected",
+    ),
+    [
+        # signed - mainnet
+        (
+            {
+                "url": URL("wss://stream.bybit.com/v5/private"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "success": True,
+                                "ret_msg": "",
+                                "op": "auth",
+                                "conn_id": "cejreaspqfh3sjdnldmg-p",
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "call_args": call(
+                    {
+                        "op": "auth",
+                        "args": [
+                            "77SQfUG7X33JhYZ3Jswpx5To",
+                            2085848901000,
+                            "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",  # noqa: E501
+                        ],
+                    },
+                    _itself=True,
+                ),
+                "records": [],
+            },
+        ),
+        # signed - testnet
+        (
+            {
+                "url": URL("wss://stream.bybit.com/v5/private"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "success": True,
+                                "ret_msg": "",
+                                "op": "auth",
+                                "conn_id": "cejreaspqfh3sjdnldmg-p",
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "call_args": call(
+                    {
+                        "op": "auth",
+                        "args": [
+                            "77SQfUG7X33JhYZ3Jswpx5To",
+                            2085848901000,
+                            "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",  # noqa: E501
+                        ],
+                    },
+                    _itself=True,
+                ),
+                "records": [],
+            },
+        ),
+        # invalid signature
+        (
+            {
+                "url": URL("wss://stream.bybit.com/v5/private"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "success": False,
+                                "ret_msg": "Params Error",
+                                "op": "auth",
+                                "conn_id": "cejreaspqfh3sjdnldmg-p",
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "call_args": call(
+                    {
+                        "op": "auth",
+                        "args": [
+                            "77SQfUG7X33JhYZ3Jswpx5To",
+                            2085848901000,
+                            "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",  # noqa: E501
+                        ],
+                    },
+                    _itself=True,
+                ),
+                "records": [("pybotters.ws", logging.WARNING, ANY)],
+            },
+        ),
+        # not signed
+        (
+            {
+                "url": URL("wss://stream.bybit.com/v5/public/spot"),
+                "messages": [],
+            },
+            {"call_args": None, "records": []},
+        ),
+    ],
+)
+async def test_auth_bybit_ws(
+    mocker: pytest_mock.MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+    test_input,
+    expected,
+):
     mocker.patch("time.time", return_value=2085848896.0)
 
-    async def dummy_send(msg, **kwargs):
-        expected = {
-            "op": "auth",
-            "args": [
-                "77SQfUG7X33JhYZ3Jswpx5To",
-                2085848901000,
-                "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",
-            ],
-        }
-        assert msg == expected
-
-    ws = MagicMock()
-    ws._response.url.host = "stream.bybit.com"
-    ws._response.url.path = "/v5/private"
-    ws._response._session.__dict__["_apis"] = {
+    m_wsresp = AsyncMock()
+    m_wsresp._response.url = test_input["url"]
+    m_wsresp._response._session.__dict__["_apis"] = {
         "bybit": (
             "77SQfUG7X33JhYZ3Jswpx5To",
             b"PrYiNnCnP76YzpTLvRtV9O1RBa5ecOXqrOTyXuTADCEXYoEX",
         ),
+        "bybit_testnet": (
+            "77SQfUG7X33JhYZ3Jswpx5To",
+            b"PrYiNnCnP76YzpTLvRtV9O1RBa5ecOXqrOTyXuTADCEXYoEX",
+        ),
     }
-    ws.send_json.side_effect = dummy_send
-    await pybotters.ws.Auth.bybit(ws)
+    m_wsresp.__aiter__.return_value = test_input["messages"]
+
+    await asyncio.wait_for(pybotters.ws.Auth.bybit(m_wsresp), timeout=5.0)
+
+    assert m_wsresp.send_json.call_args == expected["call_args"]
+    assert caplog.record_tuples == expected["records"]
 
 
 @pytest.mark.asyncio
-async def test_bitflyer_ws(mocker: pytest_mock.MockerFixture):
+@pytest.mark.parametrize(
+    (
+        "test_input",
+        "expected",
+    ),
+    [
+        # signed
+        (
+            {
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps({"jsonrpc": "2.0", "id": "auth", "result": True}),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [],
+            },
+        ),
+        # invalid signature
+        (
+            {
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": "auth",
+                                "error": {
+                                    "code": -32602,
+                                    "message": "Invalid signature",
+                                },
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [("pybotters.ws", logging.WARNING, ANY)],
+            },
+        ),
+    ],
+)
+async def test_auth_bitflyer_ws(
+    mocker: pytest_mock.MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+    test_input,
+    expected,
+):
     mocker.patch("time.time", return_value=2085848896.0)
     mocker.patch(
         "pybotters.ws.token_hex", return_value="d73b41172d6deca2285e8e58533db082"
     )
 
-    async def dummy_send(msg, **kwargs):
-        expected = {
+    m_wsresp = AsyncMock()
+    m_wsresp._response.url = URL("wss://ws.lightstream.bitflyer.com/json-rpc")
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "bitflyer": (
+            "Pcm1rbtSRqKxTvirZDDOct1k",
+            b"AKHZlv3PoAXZ0KXIKIVKOmS4ji3rV7ZIVIJRstwyplaw0FQ4",
+        ),
+    }
+    m_wsresp.__aiter__.return_value = test_input["messages"]
+
+    await asyncio.wait_for(pybotters.ws.Auth.bitflyer(m_wsresp), timeout=5.0)
+
+    assert m_wsresp.send_json.call_args == call(
+        {
             "method": "auth",
             "params": {
                 "api_key": "Pcm1rbtSRqKxTvirZDDOct1k",
                 "timestamp": 2085848896000,
                 "nonce": "d73b41172d6deca2285e8e58533db082",
                 "signature": (
-                    "f47526dec80c4773815fb1121058c2e3bcc531d1224b683e8babf76e52b0ba9c"
+                    "f47526dec80c4773815fb1121058c2e3bcc531d1224b683e8babf76e52b0ba9c"  # noqa: E501
                 ),
             },
             "id": "auth",
-        }
-        assert msg == expected
-
-    async def dummy_generator():
-        yield
-
-    ws = MagicMock()
-    ws._response.url.host = "ws.lightstream.bitflyer.com"
-    ws._response._session.__dict__["_apis"] = {
-        "bitflyer": (
-            "Pcm1rbtSRqKxTvirZDDOct1k",
-            b"AKHZlv3PoAXZ0KXIKIVKOmS4ji3rV7ZIVIJRstwyplaw0FQ4",
-        ),
-    }
-    ws.send_json.side_effect = dummy_send
-    # ws.__aiter__.side_effect = dummy_generator
-    await pybotters.ws.Auth.bitflyer(ws)
+        },
+        _itself=True,
+    )
+    assert caplog.record_tuples == expected["records"]
 
 
 @pytest.mark.asyncio
-async def test_phemex_ws(mocker: pytest_mock.MockerFixture):
+@pytest.mark.parametrize(
+    (
+        "test_input",
+        "expected",
+    ),
+    [
+        # signed - mainnet
+        (
+            {
+                "url": URL("wss://ws.phemex.com/ws"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "error": None,
+                                "id": 123,
+                                "result": {"status": "success"},
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [],
+            },
+        ),
+        # signed - testnet
+        (
+            {
+                "url": URL("wss://testnet-api.phemex.com/ws"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "error": None,
+                                "id": 123,
+                                "result": {"status": "success"},
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [],
+            },
+        ),
+        # invalid signature
+        (
+            {
+                "url": URL("wss://ws.phemex.com/ws"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "error": {
+                                    "code": 6012,
+                                    "message": "invalid login token",
+                                },
+                                "id": 123,
+                                "result": None,
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [("pybotters.ws", logging.WARNING, ANY)],
+            },
+        ),
+    ],
+)
+async def test_auth_phemex_ws(
+    mocker: pytest_mock.MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+    test_input,
+    expected,
+):
     mocker.patch("time.time", return_value=2085848896.0)
 
-    async def dummy_send(msg, **kwargs):
-        expected = {
+    m_wsresp = AsyncMock()
+    m_wsresp._response.url = test_input["url"]
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "phemex": (
+            "9kYxQXZ6PrR8h17lsVdDcpnJ",
+            b"ZBAUiPBTQOjYgTihYnZMw2HFkTooufRnNY5iuahBPMspRYQJ",
+        ),
+        "phemex_testnet": (
+            "9kYxQXZ6PrR8h17lsVdDcpnJ",
+            b"ZBAUiPBTQOjYgTihYnZMw2HFkTooufRnNY5iuahBPMspRYQJ",
+        ),
+    }
+    m_wsresp.__aiter__.return_value = test_input["messages"]
+
+    await asyncio.wait_for(pybotters.ws.Auth.phemex(m_wsresp), timeout=5.0)
+
+    assert m_wsresp.send_json.call_args == call(
+        {
             "method": "user.auth",
             "params": [
                 "API",
@@ -594,31 +1109,128 @@ async def test_phemex_ws(mocker: pytest_mock.MockerFixture):
                 2085848956,
             ],
             "id": 123,
-        }
-        assert msg == expected
-
-    async def dummy_generator():
-        yield
-
-    ws = MagicMock()
-    ws._response.url.host = "phemex.com"
-    ws._response._session.__dict__["_apis"] = {
-        "phemex": (
-            "9kYxQXZ6PrR8h17lsVdDcpnJ",
-            b"ZBAUiPBTQOjYgTihYnZMw2HFkTooufRnNY5iuahBPMspRYQJ",
-        ),
-    }
-    ws.send_json.side_effect = dummy_send
-    # ws.__aiter__.side_effect = dummy_generator
-    await pybotters.ws.Auth.phemex(ws)
+        },
+        _itself=True,
+    )
+    assert caplog.record_tuples == expected["records"]
 
 
 @pytest.mark.asyncio
-async def test_okx_ws(mocker: pytest_mock.MockerFixture):
+@pytest.mark.parametrize(
+    (
+        "test_input",
+        "expected",
+    ),
+    [
+        # signed - live trading
+        (
+            {
+                "url": URL("wss://ws.okx.com:8443/ws/v5/private"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        "pong",
+                        None,
+                    ),
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "event": "login",
+                                "code": "0",
+                                "msg": "",
+                                "connId": "a4d3ae55",
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [],
+            },
+        ),
+        # signed - demo trading
+        (
+            {
+                "url": URL("wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        "pong",
+                        None,
+                    ),
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "event": "login",
+                                "code": "0",
+                                "msg": "",
+                                "connId": "a4d3ae55",
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [],
+            },
+        ),
+        # invalid signature
+        (
+            {
+                "url": URL("wss://ws.okx.com:8443/ws/v5/private"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "event": "error",
+                                "code": "60009",
+                                "msg": "Login failed.",
+                                "connId": "a4d3ae55",
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [("pybotters.ws", logging.WARNING, ANY)],
+            },
+        ),
+    ],
+)
+async def test_auth_okx_ws(
+    mocker: pytest_mock.MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+    test_input,
+    expected,
+):
     mocker.patch("time.time", return_value=2085848896.0)
 
-    async def dummy_send(msg, **kwargs):
-        expected = {
+    m_wsresp = AsyncMock()
+    m_wsresp._response.url = test_input["url"]
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "okx": (
+            "gYmX9fr0kqqxptUlDKESxetg",
+            b"YUJHBdFNrbz7atmV3f261ZhdRffTo4S9KZKC7C7qdqcHbRR4",
+            "MyPassphrase123",
+        ),
+        "okx_demo": (
+            "gYmX9fr0kqqxptUlDKESxetg",
+            b"YUJHBdFNrbz7atmV3f261ZhdRffTo4S9KZKC7C7qdqcHbRR4",
+            "MyPassphrase123",
+        ),
+    }
+    m_wsresp.__aiter__.return_value = test_input["messages"]
+
+    await asyncio.wait_for(pybotters.ws.Auth.okx(m_wsresp), timeout=5.0)
+
+    assert m_wsresp.send_json.call_args == call(
+        {
             "op": "login",
             "args": [
                 {
@@ -628,29 +1240,79 @@ async def test_okx_ws(mocker: pytest_mock.MockerFixture):
                     "sign": "6QVd7Mgd70We2/oDJr0+KnqxXZ+Gf1zIIl3qJk/Pqx8=",
                 }
             ],
-        }
-        assert msg == expected
-
-    ws = MagicMock()
-    ws._response.url.host = "ws.okx.com"
-    ws._response.url.path = "/ws/v5/private"
-    ws._response._session.__dict__["_apis"] = {
-        "okx": (
-            "gYmX9fr0kqqxptUlDKESxetg",
-            b"YUJHBdFNrbz7atmV3f261ZhdRffTo4S9KZKC7C7qdqcHbRR4",
-            "MyPassphrase123",
-        ),
-    }
-    ws.send_json.side_effect = dummy_send
-    await pybotters.ws.Auth.okx(ws)
+        },
+        _itself=True,
+    )
+    assert caplog.record_tuples == expected["records"]
 
 
 @pytest.mark.asyncio
-async def test_bitget_ws(mocker: pytest_mock.MockerFixture):
+@pytest.mark.parametrize(
+    (
+        "test_input",
+        "expected",
+    ),
+    [
+        # signed
+        (
+            {
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        "pong",
+                        None,
+                    ),
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps({"event": "login", "code": "0", "msg": ""}),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [],
+            },
+        ),
+        # invalid signature
+        (
+            {
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps({"event": "error", "code": "30005", "msg": "error"}),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [("pybotters.ws", logging.WARNING, ANY)],
+            },
+        ),
+    ],
+)
+async def test_auth_bitget_ws(
+    mocker: pytest_mock.MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+    test_input,
+    expected,
+):
     mocker.patch("time.time", return_value=2085848896.0)
 
-    async def dummy_send(msg, **kwargs):
-        expected = {
+    m_wsresp = AsyncMock()
+    m_wsresp._response.url = URL("wss://ws.bitget.com/mix/v1/stream")
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "bitget": (
+            "jbcfbye8AJzXxXwMKluXM12t",
+            b"mVd40qhnarPtxk3aqg0FCyY1qlTgBOKOXEcmMYfkerGUKmvr",
+            "MyPassphrase123",
+        ),
+    }
+    m_wsresp.__aiter__.return_value = test_input["messages"]
+
+    await asyncio.wait_for(pybotters.ws.Auth.bitget(m_wsresp), timeout=5.0)
+
+    assert m_wsresp.send_json.call_args == call(
+        {
             "op": "login",
             "args": [
                 {
@@ -660,18 +1322,192 @@ async def test_bitget_ws(mocker: pytest_mock.MockerFixture):
                     "sign": "RmRhCixsMce8H7j2uyvR6sk11tCRbYenohbd87nchH8=",
                 }
             ],
-        }
-        assert msg == expected
+        },
+        _itself=True,
+    )
+    assert caplog.record_tuples == expected["records"]
 
-    ws = MagicMock()
-    ws._response.url.host = "ws.bitget.com"
-    ws._response._session.__dict__["_apis"] = {
-        "bitget": (
-            "jbcfbye8AJzXxXwMKluXM12t",
-            b"mVd40qhnarPtxk3aqg0FCyY1qlTgBOKOXEcmMYfkerGUKmvr",
-            "MyPassphrase123",
+
+@pytest.mark.asyncio
+async def test_auth_mexc_ws(mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+
+    m_wsresp = AsyncMock()
+    m_wsresp._response.url = URL("wss://contract.mexc.com/ws")
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "mexc": (
+            "0uVJRVNmR2ZHiCXtf6yEwrwy",
+            b"39aw3fMqFhHsuhbkQ0wa8JzuUgodvbTVl9tZblpSKFnB9Qh3",
         ),
     }
-    ws.send_json.side_effect = dummy_send
 
-    await pybotters.ws.Auth.bitget(ws)
+    await pybotters.ws.Auth.mexc(m_wsresp)
+
+    assert m_wsresp.send_json.call_args == call(
+        {
+            "method": "login",
+            "param": {
+                "apiKey": "0uVJRVNmR2ZHiCXtf6yEwrwy",
+                "reqTime": "2085848896",
+                "signature": "cd92edf98d52d973e96ffdce6f845c930f9900c5e4aa47ca4ef81d80533ab882",  # noqa: E501
+            },
+        },
+        _itself=True,
+    )
+
+
+@pytest.mark.asyncio
+async def test_ratelimit_gmocoin(mocker: pytest_mock.MockerFixture):
+    m_sleep = mocker.patch("asyncio.sleep")
+
+    m_resp = AsyncMock()
+    m_resp.json.side_effect = [
+        {
+            "status": 0,
+            "data": {"status": "OPEN"},
+            "responsetime": "2024-01-18T02:28:40.000Z",
+        },
+        {
+            "status": 0,
+            "data": {"status": "OPEN"},
+            "responsetime": "2024-01-18T02:28:40.800Z",
+        },
+        {
+            "status": 0,
+            "data": {"status": "OPEN"},
+            "responsetime": "2024-01-18T02:28:41.600Z",
+        },
+        AssertionError(),
+    ]
+    m_wsresp = AsyncMock()
+    m_wsresp._response._session.get.return_value = m_resp
+    m_send_str = AsyncMock().send_str()
+
+    await asyncio.wait_for(
+        pybotters.ws.RequestLimit.gmocoin(m_wsresp, m_send_str), timeout=5.0
+    )
+
+    assert m_wsresp._response._session.get.call_count == 3
+    assert m_resp.json.call_count == 3
+    assert m_sleep.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_ratelimit_binance(mocker: pytest_mock.MockerFixture):
+    m_sleep = mocker.patch("asyncio.sleep")
+
+    m_resp = AsyncMock()
+    m_resp.json.side_effect = [
+        {"serverTime": 1705545344000},
+        {"serverTime": 1705545344200},
+        {"serverTime": 1705545344400},
+        AssertionError(),
+    ]
+    m_wsresp = AsyncMock()
+    m_wsresp._response._session.get.return_value = m_resp
+    m_send_str = AsyncMock().send_str()
+
+    await asyncio.wait_for(
+        pybotters.ws.RequestLimit.binance(m_wsresp, m_send_str), timeout=5.0
+    )
+
+    assert m_wsresp._response._session.get.call_count == 3
+    assert m_resp.json.call_count == 3
+    assert m_sleep.call_count == 2
+
+
+@pytest.mark.parametrize(
+    ("test_input", "expected"),
+    [
+        # session.logon, testnet
+        (
+            {
+                "url": URL("wss://testnet.binance.vision/ws-api/v3"),
+                "data": {
+                    "method": "session.logon",
+                },
+            },
+            {
+                "data": {
+                    "method": "session.logon",
+                    "params": {
+                        "apiKey": "9qm1u2s4GoHt9ryIm1D2fHV8",
+                        "signature": "b8e612f5ae4bfe8ca85fd6e6f0305dc17bed58b05ae26e33f73b4690b9daa490",  # noqa: E501
+                        "timestamp": 2085848896000,
+                    },
+                }
+            },
+        ),
+        # session.logon, mainnet,
+        (
+            {
+                "url": URL("wss://ws-api.binance.com:443/ws-api/v3"),
+                "data": {
+                    "method": "session.logon",
+                },
+            },
+            {
+                "data": {
+                    "method": "session.logon",
+                    "params": {
+                        "apiKey": "9qm1u2s4GoHt9ryIm1D2fHV8",
+                        "signature": "b8e612f5ae4bfe8ca85fd6e6f0305dc17bed58b05ae26e33f73b4690b9daa490",  # noqa: E501
+                        "timestamp": 2085848896000,
+                    },
+                }
+            },
+        ),
+        # order.place
+        (
+            {
+                "url": URL("wss://ws-api.binance.com:443/ws-api/v3"),
+                "data": {
+                    "method": "order.place",
+                    "params": {
+                        "symbol": "BTCUSDT",
+                        "side": "SELL",
+                        "type": "LIMIT",
+                        "timeInForce": "GTC",
+                        "price": "23416.10000000",
+                        "quantity": "0.00847000",
+                    },
+                },
+            },
+            {
+                "data": {
+                    "method": "order.place",
+                    "params": {
+                        "symbol": "BTCUSDT",
+                        "side": "SELL",
+                        "type": "LIMIT",
+                        "timeInForce": "GTC",
+                        "price": "23416.10000000",
+                        "quantity": "0.00847000",
+                        "apiKey": "9qm1u2s4GoHt9ryIm1D2fHV8",
+                        "signature": "c119b5309bb35cf7a72d34812dbcd3895f4ce9bdda06001b7bb3a50a43fc74d6",  # noqa: E501
+                        "timestamp": 2085848896000,
+                    },
+                },
+            },
+        ),
+    ],
+)
+def test_msgsign_binance(mocker: pytest_mock.MockerFixture, test_input, expected):
+    mocker.patch("time.time", return_value=2085848896.0)
+
+    m_wsresp = AsyncMock()
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "binance": (
+            "9qm1u2s4GoHt9ryIm1D2fHV8",
+            b"7pDOQJ49zyyDjrNGAvB31RcnAada8nkxkl2IWKop6b0E3tXh",
+        ),
+        "binancespot_testnet": (
+            "9qm1u2s4GoHt9ryIm1D2fHV8",
+            b"7pDOQJ49zyyDjrNGAvB31RcnAada8nkxkl2IWKop6b0E3tXh",
+        ),
+    }
+    m_wsresp._response.url = test_input["url"]
+
+    pybotters.ws.MessageSign.binance(m_wsresp, test_input["data"])
+
+    assert test_input["data"] == expected["data"]

@@ -222,7 +222,8 @@ class WebSocketApp:
             try:
                 data = msg.json()
             except json.JSONDecodeError as e:
-                logger.warning(f"{pretty_modulename(e)}: {e} {e.doc}")
+                if msg.data not in {"ping", "pong"}:
+                    logger.warning(f"{pretty_modulename(e)}: {e} {e.doc}")
             else:
                 for hdlr in hdlr_json:
                     self._loop.call_soon(hdlr, data, ws)
@@ -302,9 +303,7 @@ class Heartbeat:
 class Auth:
     @staticmethod
     async def bybit(ws: aiohttp.ClientWebSocketResponse):
-        if ("public" in ws._response.url.path) or (
-            ws._response.url.path.startswith("/spot/quote")  # for spot v1 only
-        ):
+        if "public" in ws._response.url.parts:
             return
 
         key: str = ws._response._session.__dict__["_apis"][
@@ -325,19 +324,10 @@ class Auth:
             _itself=True,
         )
         async for msg in ws:
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                data = msg.json()
-                if "success" in data:  # for almost all
-                    if data["success"]:
-                        break
-                    else:
-                        logger.warning(data)
-                else:  # for spot v1 only
-                    if "auth" in data:
-                        break
-                    elif "code" in data:
-                        logger.warning(data)
-            elif msg.type == aiohttp.WSMsgType.ERROR:
+            data = msg.json()
+            if data.get("op") == "auth":
+                if not data.get("success"):
+                    logger.warning(data)
                 break
 
     @staticmethod
@@ -368,14 +358,10 @@ class Auth:
             _itself=True,
         )
         async for msg in ws:
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                data = msg.json()
+            data = msg.json()
+            if data.get("id") == "auth":
                 if "error" in data:
                     logger.warning(data)
-                if "id" in data:
-                    if data["id"] == "auth":
-                        break
-            elif msg.type == aiohttp.WSMsgType.ERROR:
                 break
 
     @staticmethod
@@ -398,21 +384,14 @@ class Auth:
         }
         await ws.send_json(msg, _itself=True)
         async for msg in ws:
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                data = msg.json()
-                if "error" in data:
-                    if data["error"] is not None:
-                        logger.warning(data)
-                if data["result"] == {"status": "success"}:
-                    break
-            elif msg.type == aiohttp.WSMsgType.ERROR:
+            data = msg.json()
+            if data.get("id") == 123:
+                if data.get("error"):
+                    logger.warning(data)
                 break
 
     @staticmethod
     async def okx(ws: aiohttp.ClientWebSocketResponse):
-        if ws._response.url.path.endswith("public"):
-            return
-
         key: str = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][0]
@@ -441,17 +420,17 @@ class Auth:
         }
         await ws.send_json(msg, _itself=True)
         async for msg in ws:
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                try:
-                    data = msg.json()
-                    if data["event"] == "error":
-                        logger.warning(data)
-                    if data["event"] == "login":
-                        break
-                except json.JSONDecodeError:
-                    pass
-            elif msg.type == aiohttp.WSMsgType.ERROR:
-                break
+            try:
+                data = msg.json()
+            except json.JSONDecodeError:
+                pass
+            else:
+                event = data.get("event")
+                if event == "error":
+                    logger.warning(data)
+                    break
+                elif event == "login":
+                    break
 
     @staticmethod
     async def bitget(ws: aiohttp.ClientWebSocketResponse):
@@ -484,20 +463,17 @@ class Auth:
         }
         await ws.send_json(msg, _itself=True)
         async for msg in ws:
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                try:
-                    data = msg.json()
-                except json.JSONDecodeError:
-                    pass
-                else:
-                    if "event" in data:
-                        if data["event"] == "login":
-                            break
-                        elif data["event"] == "error":
-                            logger.warning(data)
-                            break
-            elif msg.type == aiohttp.WSMsgType.ERROR:
-                break
+            try:
+                data = msg.json()
+            except json.JSONDecodeError:
+                pass
+            else:
+                event = data.get("event")
+                if event == "error":
+                    logger.warning(data)
+                    break
+                elif event == "login":
+                    break
 
     @staticmethod
     async def mexc(ws: aiohttp.ClientWebSocketResponse):
@@ -522,11 +498,6 @@ class Auth:
             },
         }
         await ws.send_json(msg, _itself=True)
-
-    @staticmethod
-    async def kucoin(ws: aiohttp.ClientWebSocketResponse):
-        # Endpointの取得時点で行われるのでここでは不要
-        pass
 
 
 @dataclass
@@ -559,7 +530,8 @@ class HeartbeatHosts:
         "wspap.okx.com": Heartbeat.okx,
         "ws.bitget.com": Heartbeat.bitget,
         "contract.mexc.com": Heartbeat.mexc,
-        "ws-api.kucoin.com": Heartbeat.kucoin,
+        "ws-api-spot.kucoin.com": Heartbeat.kucoin,
+        "ws-api-futures.kucoin.com": Heartbeat.kucoin,
     }
 
 
@@ -570,7 +542,7 @@ class AuthHosts:
         "stream-testnet.bybit.com": Item("bybit_testnet", Auth.bybit),
         "ws.lightstream.bitflyer.com": Item("bitflyer", Auth.bitflyer),
         "phemex.com": Item("phemex", Auth.phemex),
-        "api.phemex.com": Item("phemex", Auth.phemex),
+        "ws.phemex.com": Item("phemex", Auth.phemex),
         "vapi.phemex.com": Item("phemex", Auth.phemex),
         "testnet.phemex.com": Item("phemex_testnet", Auth.phemex),
         "testnet-api.phemex.com": Item("phemex_testnet", Auth.phemex),
@@ -690,29 +662,21 @@ class MessageSign:
             MessageSignHosts.items[ws._response.url.host].name
         ][1]
 
-        if not ws._response.url.path.startswith("/ws-api"):
-            return
+        if "params" not in data:
+            data["params"] = {}
 
-        params = data.get("params")
-
-        if not isinstance(params, dict):
-            return
-
-        timestamp = int(time.time() * 1000)
-
+        params = data["params"]
         params["apiKey"] = key
-        params["timestamp"] = timestamp
-
+        params["timestamp"] = int(time.time() * 1000)
         payload = "&".join(
             [f"{param}={value}" for param, value in sorted(params.items())]
         )
         signature = hmac.new(secret, payload.encode(), hashlib.sha256).hexdigest()
-
         params["signature"] = signature
 
 
 class MessageSignHosts:
     items = {
         "ws-api.binance.com": Item("binance", MessageSign.binance),
-        "testnet.binance.vision": Item("binance_testnet", MessageSign.binance),
+        "testnet.binance.vision": Item("binancespot_testnet", MessageSign.binance),
     }
