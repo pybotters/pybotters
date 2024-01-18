@@ -1380,6 +1380,7 @@ async def test_ratelimit_gmocoin(mocker: pytest_mock.MockerFixture):
         AssertionError(),
     ]
     m_wsresp = AsyncMock()
+    m_wsresp._lock = AsyncMock()
     m_wsresp._response._session.get.return_value = m_resp
     m_send_str = AsyncMock().send_str()
 
@@ -1404,6 +1405,7 @@ async def test_ratelimit_binance(mocker: pytest_mock.MockerFixture):
         AssertionError(),
     ]
     m_wsresp = AsyncMock()
+    m_wsresp._lock = AsyncMock()
     m_wsresp._response._session.get.return_value = m_resp
     m_send_str = AsyncMock().send_str()
 
