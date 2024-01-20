@@ -44,10 +44,10 @@ WebSocket handlers for :meth:`pybotters.Client.ws_connect`
    pybotters.WebSocketQueue
 
 
-Exchange specific WebSocket handlers
+Exchange-specific WebSocket handlers
 ------------------------------------
 
-Exchange specific WebSocket handlers for :meth:`pybotters.Client.ws_connect`
+Exchange-specific WebSocket handlers for :meth:`pybotters.Client.ws_connect`
 
 .. autosummary::
    :toctree: generated
@@ -79,16 +79,3 @@ Abstract WebSocket handler for :meth:`pybotters.Client.ws_connect`
    pybotters.DataStore
    pybotters.StoreChange
    pybotters.StoreStream
-
-
-Hosts
------
-
-.. autosummary::
-   :toctree: generated
-
-   pybotters.auth.Hosts
-   pybotters.ws.AuthHosts
-   pybotters.ws.HeartbeatHosts
-   pybotters.ws.RequestLimitHosts
-   pybotters.ws.MessageSignHosts
