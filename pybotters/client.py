@@ -157,6 +157,17 @@ class Client:
         data: Any = None,
         **kwargs: Any,
     ) -> FetchResult:
+        """
+        Fetch API
+
+        :param method: GET, POST, PUT, DELETE などのHTTPメソッド
+        :param url: リクエストURL
+        :param params: URLのクエリ文字列(optional)
+        :param data: リクエストボディ(optional)
+        :param headers: リクエストヘッダー(optional)
+        :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)
+        :param ``kwargs``: aiohttp.Client.requestに渡されるキーワード引数(optional)
+        """
         async with self.request(
             method, url, params=params, data=data, **kwargs
         ) as resp:
@@ -175,6 +186,16 @@ class Client:
         params: Optional[Mapping[str, str]] = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
+        """
+        GET リクエスト
+
+        :param method: GET, POST, PUT, DELETE などのHTTPメソッド
+        :param url: リクエストURL
+        :param params: URLのクエリ文字列(optional)
+        :param headers: リクエストヘッダー(optional)
+        :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)
+        :param ``kwargs``: aiohttp.Client.requestに渡されるキーワード引数(optional)
+        """
         return self._request(hdrs.METH_GET, url, params=params, **kwargs)
 
     def post(
@@ -184,6 +205,17 @@ class Client:
         data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
+        """
+        POST リクエスト
+
+        :param method: GET, POST, PUT, DELETE などのHTTPメソッド
+        :param url: リクエストURL
+        :param params: URLのクエリ文字列(optional)
+        :param data: リクエストボディ(optional)
+        :param headers: リクエストヘッダー(optional)
+        :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)
+        :param ``kwargs``: aiohttp.Client.requestに渡されるキーワード引数(optional)
+        """
         return self._request(hdrs.METH_POST, url, data=data, **kwargs)
 
     def put(
@@ -193,6 +225,17 @@ class Client:
         data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
+        """
+        PUT リクエスト
+
+        :param method: GET, POST, PUT, DELETE などのHTTPメソッド
+        :param url: リクエストURL
+        :param params: URLのクエリ文字列(optional)
+        :param data: リクエストボディ(optional)
+        :param headers: リクエストヘッダー(optional)
+        :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)
+        :param ``kwargs``: aiohttp.Client.requestに渡されるキーワード引数(optional)
+        """
         return self._request(hdrs.METH_PUT, url, data=data, **kwargs)
 
     def delete(
@@ -202,6 +245,17 @@ class Client:
         data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
+        """
+        DELETE リクエスト
+
+        :param method: GET, POST, PUT, DELETE などのHTTPメソッド
+        :param url: リクエストURL
+        :param params: URLのクエリ文字列(optional)
+        :param data: リクエストボディ(optional)
+        :param headers: リクエストヘッダー(optional)
+        :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)
+        :param ``kwargs``: aiohttp.Client.requestに渡されるキーワード引数(optional)
+        """
         return self._request(hdrs.METH_DELETE, url, data=data, **kwargs)
 
     def ws_connect(
@@ -214,7 +268,7 @@ class Client:
         hdlr_str: Optional[Union[WsStrHandler, list[WsStrHandler]]] = None,
         hdlr_bytes: Optional[Union[WsBytesHandler, list[WsBytesHandler]]] = None,
         hdlr_json: Optional[Union[WsJsonHandler, list[WsJsonHandler]]] = None,
-        backoff: tuple[float, float, float, float] = WebSocketApp.DEFAULT_BACKOFF,
+        backoff: tuple[float, float, float, float] = WebSocketApp._DEFAULT_BACKOFF,
         heartbeat: float = 10.0,
         auth: Optional[Auth] = Auth,
         **kwargs: Any,
@@ -288,6 +342,15 @@ class Client:
 
 @dataclass
 class FetchResult:
+    """
+    Fetch API result
+
+    Attributes:
+        response: aiohttp のレスポンスクラス
+        text: レスポンステキストデータ
+        data: レスポンス JSON データ
+    """
+
     response: aiohttp.ClientResponse
     text: str
     data: Any | NotJSONContent
@@ -295,6 +358,13 @@ class FetchResult:
 
 @dataclass
 class NotJSONContent:
+    """
+    JSON デコードに失敗した場合のデータクラス
+
+    Attributes:
+        error: 例外 `JSONDecodeError`
+    """
+
     error: json.JSONDecodeError
 
     def __bool__(self) -> Literal[False]:

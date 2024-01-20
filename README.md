@@ -64,7 +64,7 @@ Python 3.8+
 
 ## 🔧 Installation
 
-From [PyPI](pybotters) (stable version):
+From [PyPI](https://pypi.org/project/pybotters/) (stable version):
 
 ```sh
 pip install pybotters

@@ -1,5 +1,5 @@
-Example
-=======
+Examples
+========
 
 このページでは ``pybotters`` を利用したbotの実装例を紹介します。
 

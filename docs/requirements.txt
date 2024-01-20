@@ -1,3 +1,5 @@
 Sphinx
 furo
-sphinx_copybutton
+sphinx-copybutton
+sphinx-new-tab-link
+pybotters

@@ -32,11 +32,11 @@ def pretty_modulename(e: Exception) -> str:
 
 
 class WebSocketApp:
-    BACKOFF_MIN = 1.92
-    BACKOFF_MAX = 60.0
-    BACKOFF_FACTOR = 1.618
-    BACKOFF_INITIAL = 5.0
-    DEFAULT_BACKOFF = (BACKOFF_MIN, BACKOFF_MAX, BACKOFF_FACTOR, BACKOFF_INITIAL)
+    _BACKOFF_MIN = 1.92
+    _BACKOFF_MAX = 60.0
+    _BACKOFF_FACTOR = 1.618
+    _BACKOFF_INITIAL = 5.0
+    _DEFAULT_BACKOFF = (_BACKOFF_MIN, _BACKOFF_MAX, _BACKOFF_FACTOR, _BACKOFF_INITIAL)
 
     def __init__(
         self,
@@ -49,7 +49,7 @@ class WebSocketApp:
         hdlr_str: Optional[Union[WsStrHandler, list[WsStrHandler]]] = None,
         hdlr_bytes: Optional[Union[WsBytesHandler, list[WsBytesHandler]]] = None,
         hdlr_json: Optional[Union[WsJsonHandler, list[WsJsonHandler]]] = None,
-        backoff: tuple[float, float, float, float] = DEFAULT_BACKOFF,
+        backoff: tuple[float, float, float, float] = _DEFAULT_BACKOFF,
         **kwargs: Any,
     ) -> None:
         self._session = session
@@ -104,6 +104,9 @@ class WebSocketApp:
 
     @property
     def url(self) -> str:
+        """
+        WebSocket の接続 URL です。 接続中に値を変更した場合は、再接続時に設定 URL に接続されます。
+        """
         return self._url
 
     @url.setter

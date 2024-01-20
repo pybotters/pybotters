@@ -86,6 +86,9 @@ class bitFlyerDataStore(DataStoreManager):
 
     @property
     def ticker(self) -> "Ticker":
+        """
+        Ticker ストア
+        """
         return self.get("ticker", Ticker)
 
     @property
@@ -154,6 +157,10 @@ class Board(DataStore):
 
 
 class Ticker(DataStore):
+    """
+    Ticker 情報
+    """
+
     _KEYS = ["product_code"]
 
     def _onmessage(self, message: Item) -> None:

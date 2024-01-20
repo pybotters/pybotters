@@ -11,6 +11,10 @@ from .ws import ClientWebSocketResponse
 
 
 class DataStore:
+    """
+    DataStore クラス
+    """
+
     _KEYS = []
     _MAXLEN = 9999
 
@@ -153,6 +157,9 @@ class DataStore:
                 del self._data[k]
 
     def get(self, item: Item) -> Optional[Item]:
+        """
+        Item を取得します
+        """
         if self._keys:
             try:
                 keyitem = {k: item[k] for k in self._keys}
@@ -178,6 +185,9 @@ class DataStore:
                     return ret
 
     def find(self, query: Optional[Item] = None) -> list[Item]:
+        """
+        Item のリストを取得します
+        """
         if query:
             return [
                 item
@@ -221,6 +231,9 @@ class DataStore:
         self._events.clear()
 
     async def wait(self) -> None:
+        """
+        DataStore にデータが受信されるまで待機します
+        """
         event = asyncio.Event()
         self._events.append(event)
         await event.wait()
@@ -232,6 +245,9 @@ class DataStore:
             )
 
     def watch(self) -> "StoreStream":
+        """
+        DataStore の更新データをストリームします
+        """
         return StoreStream(self)
 
 
@@ -240,6 +256,10 @@ TDataStore = TypeVar("TDataStore", bound=DataStore)
 
 @dataclass
 class StoreChange:
+    """
+    変更データクラス
+    """
+
     store: DataStore
     operation: str
     source: Optional[Item]
@@ -247,6 +267,10 @@ class StoreChange:
 
 
 class StoreStream:
+    """
+    変更ストリーム
+    """
+
     def __init__(self, store: "DataStore") -> None:
         self._queue = asyncio.Queue()
         store._queues.append(self._queue)

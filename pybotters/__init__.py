@@ -19,7 +19,8 @@ from .models.gmocoin import GMOCoinDataStore
 from .models.kucoin import KuCoinDataStore
 from .models.okx import OKXDataStore
 from .models.phemex import PhemexDataStore
-from .ws import WebSocketQueue
+from .store import DataStore, DataStoreManager, StoreChange, StoreStream
+from .ws import WebSocketApp, WebSocketQueue
 
 __all__: tuple[str, ...] = (
     # client
@@ -27,7 +28,13 @@ __all__: tuple[str, ...] = (
     "FetchResult",
     "NotJSONContent",
     # ws
+    "WebSocketApp",
     "WebSocketQueue",
+    # store
+    "DataStore",
+    "DataStoreManager",
+    "StoreChange",
+    "StoreStream",
     # models
     "BinanceCOINMDataStore",
     "BinanceSpotDataStore",
