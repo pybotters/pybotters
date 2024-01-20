@@ -6,14 +6,14 @@ from typing import Any, Awaitable, Optional
 
 import aiohttp
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class OKXDataStore(DataStoreManager):
+class OKXDataStore(DataStoreCollection):
     """
     OKXのデータストアマネージャー
     """

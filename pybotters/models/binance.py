@@ -8,14 +8,14 @@ from typing import Any, Awaitable, Optional, Union
 import aiohttp
 
 from ..auth import Auth
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class BinanceDataStoreBase(DataStoreManager):
+class BinanceDataStoreBase(DataStoreCollection):
     _ORDERBOOK_INIT_ENDPOINT = None
     _ORDER_INIT_ENDPOINT = None
     _LISTENKEY_INIT_ENDPOINT = None

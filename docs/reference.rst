@@ -75,7 +75,7 @@ Abstract WebSocket handler for :meth:`pybotters.Client.ws_connect`
 .. autosummary::
    :toctree: generated
 
-   pybotters.DataStoreManager
+   pybotters.DataStoreCollection
    pybotters.DataStore
    pybotters.StoreChange
    pybotters.StoreStream

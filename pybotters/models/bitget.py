@@ -6,14 +6,14 @@ from typing import Awaitable, Optional
 
 import aiohttp
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class BitgetDataStore(DataStoreManager):
+class BitgetDataStore(DataStoreCollection):
     """
     Bitgetのデータストアマネージャー
     https://bitgetlimited.github.io/apidoc/en/mix/#websocketapi

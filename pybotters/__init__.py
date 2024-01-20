@@ -19,7 +19,7 @@ from .models.gmocoin import GMOCoinDataStore
 from .models.kucoin import KuCoinDataStore
 from .models.okx import OKXDataStore
 from .models.phemex import PhemexDataStore
-from .store import DataStore, DataStoreManager, StoreChange, StoreStream
+from .store import DataStore, DataStoreCollection, StoreChange, StoreStream
 from .ws import WebSocketApp, WebSocketQueue
 
 __all__: tuple[str, ...] = (
@@ -32,7 +32,7 @@ __all__: tuple[str, ...] = (
     "WebSocketQueue",
     # store
     "DataStore",
-    "DataStoreManager",
+    "DataStoreCollection",
     "StoreChange",
     "StoreStream",
     # models

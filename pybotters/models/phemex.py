@@ -6,14 +6,14 @@ from typing import Awaitable, Optional
 
 import aiohttp
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class PhemexDataStore(DataStoreManager):
+class PhemexDataStore(DataStoreCollection):
     """
     Phemexのデータストアマネージャー
     https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md

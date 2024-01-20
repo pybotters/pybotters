@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 from typing import Optional
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 
-class bitbankDataStore(DataStoreManager):
+class bitbankDataStore(DataStoreCollection):
     def _init(self) -> None:
         self.create("transactions", datastore_class=Transactions)
         self.create("depth", datastore_class=Depth)

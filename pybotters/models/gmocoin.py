@@ -6,7 +6,7 @@ from typing import Awaitable, Literal, Optional
 
 import aiohttp
 
-from pybotters.store import DataStore, DataStoreManager
+from pybotters.store import DataStore, DataStoreCollection
 from pybotters.typedefs import Item
 
 from ..auth import Auth
@@ -123,7 +123,7 @@ class PositionSummaryStore(DataStore):
         self._update([mes])
 
 
-class GMOCoinDataStore(DataStoreManager):
+class GMOCoinDataStore(DataStoreCollection):
     """
     GMOコインのデータストアマネージャー
     """

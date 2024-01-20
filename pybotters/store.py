@@ -295,7 +295,7 @@ class StoreStream:
         return await self.get()
 
 
-class DataStoreManager:
+class DataStoreCollection:
     """
     データストアマネージャーの抽象クラスです。 データストアの作成・参照・ハンドリングなどの役割を持ちます。 それぞれの取引所のクラスが継承します。
     """

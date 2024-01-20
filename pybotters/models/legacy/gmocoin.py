@@ -9,7 +9,7 @@ from typing import Any, Awaitable, Optional, TypedDict, cast
 
 import aiohttp
 
-from pybotters.store import DataStore, DataStoreManager
+from pybotters.store import DataStore, DataStoreCollection
 from pybotters.typedefs import Item
 
 from ...auth import Auth
@@ -567,7 +567,7 @@ class MessageHelper:
         )
 
 
-class GMOCoinDataStore(DataStoreManager):
+class GMOCoinDataStore(DataStoreCollection):
     """
     GMOコインのデータストアマネージャー
     """

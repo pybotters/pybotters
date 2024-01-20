@@ -5,12 +5,12 @@ from typing import Any, Awaitable, Optional
 
 import aiohttp
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 
-class CoincheckDataStore(DataStoreManager):
+class CoincheckDataStore(DataStoreCollection):
     def _init(self) -> None:
         self.create("trades", datastore_class=Trades)
         self.create("orderbook", datastore_class=Orderbook)

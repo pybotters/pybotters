@@ -10,14 +10,14 @@ from typing import Awaitable
 
 import aiohttp
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class bitFlyerDataStore(DataStoreManager):
+class bitFlyerDataStore(DataStoreCollection):
     def _init(self) -> None:
         self.create("board", datastore_class=Board)
         self.create("ticker", datastore_class=Ticker)

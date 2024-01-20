@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+import asyncio
 import copy
 import logging
 import time
+import uuid
 from typing import Any, Awaitable, Optional
 
 import aiohttp
-import asyncio
-import uuid
 
-from ..store import DataStore, DataStoreManager, Item
+from ..store import DataStore, DataStoreCollection, Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def _symbol_from_msg(msg):
     return msg["topic"].split(":")[-1]
 
 
-class KuCoinDataStore(DataStoreManager):
+class KuCoinDataStore(DataStoreCollection):
     """
     Kucoinのデータストアマネージャー
     """

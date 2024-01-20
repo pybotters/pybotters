@@ -7,14 +7,14 @@ from typing import Awaitable, Optional
 import aiohttp
 from yarl import URL
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class BybitDataStore(DataStoreManager):
+class BybitDataStore(DataStoreCollection):
     def _init(self) -> None:
         self.create("orderbook", datastore_class=OrderBook)
         self.create("publicTrade", datastore_class=Trade)

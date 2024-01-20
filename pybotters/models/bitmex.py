@@ -1,12 +1,13 @@
 import logging
-from ..store import DataStore, DataStoreManager
+
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class BitMEXDataStore(DataStoreManager):
+class BitMEXDataStore(DataStoreCollection):
     """
     BitMEXのデータストアマネージャー
     """
