@@ -44,6 +44,8 @@ WebSocket handlers for :meth:`pybotters.Client.ws_connect`
    pybotters.WebSocketQueue
 
 
+.. _exchange-specific-websocket-handlers:
+
 Exchange-specific WebSocket handlers
 ------------------------------------
 

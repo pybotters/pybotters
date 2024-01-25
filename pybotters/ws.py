@@ -115,6 +115,11 @@ class WebSocketApp:
 
     @property
     def current_ws(self) -> ClientWebSocketResponse | None:
+        """
+        現在の WebSocket コネクションです。
+        現在のコネクションが存在する場合は ClientWebSocketResponse を返します。
+        コネクションが存在しない場合は None を返します。
+        """
         return self._current_ws
 
     async def _run_forever(

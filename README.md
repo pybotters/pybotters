@@ -18,11 +18,13 @@
 
 # pybotters
 
+![pybotters logo](docs/logo_150.png)
+
 An advanced API client for python botters. This project is in Japanese.
 
 ## 📌 Description
 
-`pybotters` は [仮想通貨 botter](https://note.com/hht/n/n61e6ecefd059) 向けの Python ライブラリです。
+`pybotters` は [仮想通貨 botter](https://medium.com/perpdex/botter-the-crypto-bot-trader-in-japan-2f5f2a65856f) 向けの Python ライブラリです。
 
 このライブラリは **HTTP / WebSocket API クライアント** です。 複数の取引所の認証処理に対応しており、簡単に Private API を利用できるため、素早くトレード bot を構築することができます。また、 WebSocket の接続機能とデータハンドラーにより、リアルタイムでの情報取得が可能です。これにより、高頻度トレード bot の構築に役立ちます。
 

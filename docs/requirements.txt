@@ -2,4 +2,5 @@ Sphinx
 furo
 sphinx-copybutton
 sphinx-new-tab-link
+sphinx-autobuild
 pybotters

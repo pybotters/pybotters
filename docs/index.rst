@@ -3,8 +3,8 @@
     You can adapt this file completely to your liking, but it should at least
     contain the root `toctree` directive.
 
-pybotters Docs
-==============
+pybotters
+=========
 
 .. toctree::
     :maxdepth: 2
@@ -16,7 +16,6 @@ pybotters Docs
     examples
     reference
     contributing
-
 
 **pybotters** は仮想通貨取引所向けの **非同期 HTTP / WebSocket API クライアント** です。
 
@@ -42,8 +41,8 @@ From `GitHub <https://github.com/MtkN1/pybotters>`_ (開発バージョン):
     $ pip install git+https://github.com/MtkN1/pybotters.git
 
 
-Usage
------
+Quickstart
+----------
 
 `bitFlyer <https://lightning.bitflyer.com/trade>`_ の Private HTTP API と WebSocket API を利用する例です。
 
@@ -91,6 +90,7 @@ Usage
                 send_json={
                     "method": "subscribe",
                     "params": {"channel": "lightning_ticker_BTC_JPY"},
+                    "id": 1,
                 },
                 hdlr_json=wsqueue.onmessage,
             )
