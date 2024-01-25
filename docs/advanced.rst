@@ -342,11 +342,11 @@ How to implement original DataStore
         * 引数: ``msg: Any``
             * ※ :meth:`.DataStoreCollection._onmessage` から渡す引数仕様に変更可能です
         * 処理: :meth:`.DataStore._insert` :meth:`.DataStore._update` :meth:`.DataStore._delete` などの CURD メソッドを用いて、WebSocket メッセージを解釈して内部のデータを更新します
-    3. :meth:`_onresponse` メソッド
+    4. :meth:`_onresponse` メソッド
         * 引数: ``msg: Any``
             * ※ :meth:`.DataStoreCollection.initialize` から渡す引数仕様に変更可能です
         * 処理: :meth:`.DataStore._insert` :meth:`.DataStore._update` :meth:`.DataStore._delete` などの CURD メソッドを用いて、レスポンスを解釈して内部のデータを更新します
-    4. :meth:`sorted` メソッド (※板情報系のみ)
+    5. :meth:`sorted` メソッド (※板情報系のみ)
         * 引数: ``query: dict[str, Any]``
         * 処理: 板情報を ``"売り", "買い"`` で分類した辞書を返します (:ref:`bitFlyerDataStore での例 <order-book>`) 。 この辞書の形式は可能な限り、取引所から取得できる元の JSON 形式のようにして返します
 

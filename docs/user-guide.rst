@@ -6,7 +6,11 @@ Client class
 
 :class:`pybotters.Client` は HTTP リクエストを行う為のメインクラスです。
 
-インスタンスを生成するには非同期コンテキストマネージャー ``async with`` ブロックを利用します。
+:class:`.Client` の利用を開始するにはいくつかのステップが必要です。
+
+1. :mod:`asyncio` と :mod:`pybotters` を ``import`` する
+2. 非同期関数を *async def* で定義する
+3. 定義した非同期関数の中から *async with* ブロックで :class:`.Client` インスタンスを初期化する
 
 .. code:: python
 
@@ -22,14 +26,17 @@ Client class
 
     asyncio.run(main())
 
-:class:`.Client` インスタンスのメソッドから以降に説明する HTTP リクエストと WebSocket 接続を利用することができます。
+準備は整いましたか？
+:class:`.Client` インスタンスのメソッドから、以降に説明する HTTP リクエストと WebSocket 接続の機能を利用することができます。
 
 .. note::
 
-    このユーザーガイドでは、仮想通貨取引所 bitFlyer の API を例に説明を行います。
-    bitFlyer の HTTP / WebSocket API の情報については公式ドキュメントをご確認ください。
+    このユーザーガイドの以降で説明する HTTP / WebSocket API には、仮想通貨取引所 bitFlyer の API を例として利用します。
+    ただし bitFlyer API の詳しい内容は説明を行いません。
+    公式ドキュメントをご確認ください。
 
     https://lightning.bitflyer.com/docs
+
 
 HTTP API
 -------------
@@ -52,7 +59,7 @@ Fetch API
             )
             print(result.data)
 
-:ref:`Fetch API <fetch-api>` は従来の :ref:`HTTP メソッド API <http-method-api>` と比較して、シンプルなインターフェースです。
+:ref:`Fetch API <fetch-api>` は従来の :ref:`HTTP メソッド API <http-method-api>` と比較して、シンプルなリクエスト／レスポンスのフローを提供します。
 
 一度の ``await`` 式で HTTP レスポンスデータの JSON デコードまで行います。
 返り値は :class:`.FetchResult` となっており、デコードされた JSON データは :attr:`.FetchResult.data` 属性から参照できます。
@@ -277,7 +284,7 @@ DataStore
         * :meth:`.Client.ws_connect` のハンドラ引数 ``hdlr_json`` などに渡すコールバックです
 * データの初期化
     * *async* :meth:`.DataStoreCollection.initialize`
-        * HTTP レスポンスを解釈してデータを DataStore を初期化します (例: :ref:`positions`)
+        * HTTP レスポンスを解釈して DataStore を初期化します (例: :ref:`positions`)
 
 .. note::
     仮想通貨取引所の WebSocket API ではリアルタイムで配信されるマーケットやアカウントのデータを取得できます。
