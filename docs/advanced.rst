@@ -1,6 +1,8 @@
 Advanced Usage
 ==============
 
+.. _implicit-loading-of-apis:
+
 Implicit loading of ``apis``
 ----------------------------
 
@@ -353,6 +355,8 @@ How to implement original DataStore
 .. code:: python
 
     class SomeDataStore(DataStoreCollection):
+        """ Some Exchange データストア"""
+
         def _init(self):
             self.create("trade")
             self.create("orderbook")

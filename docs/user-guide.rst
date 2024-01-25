@@ -124,15 +124,13 @@ WebSocket API
 * 再接続
     さらに :meth:`.Client.ws_connect` メソッドで作成した WebSocket 接続は **自動再接続** の機能を備えています。 これにより切断を意識することなく継続的にデータの取得が可能です。
 
-:meth:`.Client.ws_connect` の戻り値は :class:`.WebSocketApp` です。
-
-このクラスを利用して WebSocket のコネクションを操作するなどができます。
-また上記の例では :meth:`.WebSocketApp.wait` で :class:`.WebSocketApp` の終了を待つことでプログラムの終了を避けています。
+戻り値は :class:`.WebSocketApp` です。 このクラスを利用して WebSocket のコネクションを操作できます。
+上記の例では :meth:`.WebSocketApp.wait` メソッドで WebSocket の終了を待つことでプログラムの終了を防いでいます。
 
 .. note::
 
-    :class:`.WebSocketApp` は自動再接続の機構があるので、:meth:`.WebSocketApp.wait` は **実質的に無限待機です** 。
-    トレード bot ではなくデータ収集スクリプトなどのユースケースではハンドラに全ての処理を任せる場合があります。
+    :class:`.WebSocketApp` はに自動再接続の機構があります。 その為 :meth:`.WebSocketApp.wait` の待機は **実質的に無限待機です** 。
+    トレード bot ではなく、データ収集スクリプトなどのユースケースではハンドラに全ての処理を任せる場合があります。
     そうした時に :meth:`.WebSocketApp.wait` はプログラムの終了を防ぐのに役に立ちます。
 
 
@@ -156,14 +154,13 @@ Base URL
 殆どの取引所では HTTP API 用のベース URL と WebSocket 用のベース URL が異なる為です。
 
 
-.. _implicit-loading-of-apis:
-
 Authentication
 --------------
 
 仮想通貨取引所の Private API を利用するには、API キー・シークレットによるユーザー認証が必要です。
 
 pybotters では :class:`.Client` クラスの引数 ``apis`` に API 情報を渡すことで、認証処理が自動的に行われます。
+
 以下のコードでは自動認証を利用して bitFlyer の Private API で資産残高の取得 (``/v1/me/getbalance``) のリクエストを作成します。
 
 .. code:: python
@@ -176,7 +173,7 @@ pybotters では :class:`.Client` クラスの引数 ``apis`` に API 情報を�
             result = await client.fetch("GET", "https://api.bitflyer.com/v1/me/getbalance")
             print(result.data)
 
-まるで Public API かのように Private API をリクエストできました！
+まるで Public API かのように Private API をリクエストを作成できます！
 
 もちろん、WebSocket API でも自動的に認証処理が行われます。
 以下のコードでは bitFlyer の Private WebSocket API で注文イベント (``child_order_events``) を購読します。
@@ -569,6 +566,6 @@ pybotters は `aiohttp <https://pypi.org/project/aiohttp/>`_ を基盤として�
 ただし **重要な幾つかの違いも存在します** 。
 
 * pybotters は HTTP リクエストの自動認証機能により、自動的に HTTP ヘッダーなどを編集します。
-* pybotters では POST リクエストなどのデータは ``data`` に渡します。 aiohttp では ``json`` 引数を許可しますが pybotters では許可されません。 これは認証機能による都合です。
+* pybotters では POST リクエストなどのデータは引数 ``data`` に渡します。 aiohttp では ``json`` 引数を許可しますが pybotters では許可されません。 これは認証機能による都合です。
 * :meth:`pybotters.Client.fetch` は pybotters 独自の API です。 aiohttp には存在しません。
 * :meth:`pybotters.Client.ws_connect` は aiohttp にも存在しますが、 pybotters では全く異なる独自の API になっています。 これは再接続機能や認証機能を搭載する為です。

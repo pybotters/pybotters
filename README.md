@@ -24,24 +24,25 @@ An advanced API client for python botters. This project is in Japanese.
 
 ## 📌 Description
 
-`pybotters` は [仮想通貨 botter](https://medium.com/perpdex/botter-the-crypto-bot-trader-in-japan-2f5f2a65856f) 向けの Python ライブラリです。
+`pybotters` is a Python library for [仮想通貨 botter (crypto bot traders)](https://medium.com/perpdex/botter-the-crypto-bot-trader-in-japan-2f5f2a65856f).
 
-このライブラリは **HTTP / WebSocket API クライアント** です。 複数の取引所の認証処理に対応しており、簡単に Private API を利用できるため、素早くトレード bot を構築することができます。また、 WebSocket の接続機能とデータハンドラーにより、リアルタイムでの情報取得が可能です。これにより、高頻度トレード bot の構築に役立ちます。
+This library is an **HTTP and WebSocket API client**.
+It has the following features, making it useful for developing a trading bot.
 
 ## 🚀 Features
 
 - ✨ HTTP / WebSocket Client
-    - HTTP / WebSocket の自動認証
-    - WebSocket の自動再接続、自動ハートビート
-    - [`aiohttp`](https://docs.aiohttp.org/) ライブラリを基盤とした非同期 I/O
+    - **Automatic authentication** for private APIs.
+    - WebSocket **automatic reconnection** and **automatic heartbeat**.
+    - A client based on [`aiohttp`](https://docs.aiohttp.org/).
 - ✨ DataStore
-    - WebSocket メッセージのデータハンドラー
-    - オーダーブックなどの差分データの結合処理
-    - 軽量データモデルによる高速なデータ処理と参照
+    - WebSocket message data handler.
+    - **Processing of differential data** such as order book updates
+    - **High-speed data processing** and querying
 - ✨ Other Experiences
-    - 型ヒントのサポート
-    - `asyncio` を基盤とした非同期プログラミング
-    - Discord コミュニティによるサポート
+    - Support for type hints.
+    - Asynchronous programming using `asyncio`.
+    - Discord community.
 
 ## 🏦 Exchanges
 
@@ -127,9 +128,9 @@ asyncio.run(main())
 
 #### New interface
 
-pybotters v1.0+ **New interface - `fetch` API**
+New interface from version 1.0: **Fetch API**.
 
-More simple request/response:
+More simple request/response.
 
 ```py
 import asyncio
@@ -250,7 +251,7 @@ except KeyboardInterrupt:
 
 ## 📖 Documentation
 
-🔗 https://pybotters.readthedocs.io/ja/stable/
+🔗 https://pybotters.readthedocs.io/ja/stable/ (Japanese)
 
 ## 🗽 License
 
