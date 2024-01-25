@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Awaitable, Optional
+from typing import Awaitable
 
 import aiohttp
 from yarl import URL
@@ -128,15 +128,20 @@ class BybitDataStore(DataStoreManager):
 class OrderBook(DataStore):
     _KEYS = ["symbol", "side", "price"]
 
-    def sorted(self, query: Optional[Item] = None) -> dict[str, list[Item]]:
-        if query is None:
-            query = {}
-        result = {"asks": [], "bids": []}
+    def sorted(self, symbol: str, limit: int | None = None) -> dict[str, list[Item]]:
+        result = {"a": [], "b": []}
+
         for item in self:
-            if all(k in item and query[k] == item[k] for k in query):
+            if item["symbol"] == symbol:
                 result[item["side"]].append(item)
-        result["asks"].sort(key=lambda x: x["price"])
-        result["bids"].sort(key=lambda x: x["price"], reverse=True)
+
+        result["a"].sort(key=lambda x: float(x["price"]))
+        result["b"].sort(key=lambda x: float(x["price"]), reverse=True)
+
+        if limit:
+            result["a"] = result["a"][:limit]
+            result["b"] = result["b"][:limit]
+
         return result
 
     def _onmessage(self, msg: Item, topic_ext: list[str]) -> None:
@@ -146,11 +151,11 @@ class OrderBook(DataStore):
         if is_snapshot:
             operation["delete"].extend(self.find({"symbol": msg["data"]["s"]}))
 
-        for side_k, side_v in (("a", "asks"), ("b", "bids")):
-            for item in msg["data"][side_k]:
+        for side in ("a", "b"):
+            for item in msg["data"][side]:
                 dsitem = {
                     "symbol": msg["data"]["s"],
-                    "side": side_v,
+                    "side": side,
                     "price": item[0],
                     "size": item[1],
                 }
