@@ -66,16 +66,17 @@ class Orderbook(DataStore):
     def _init(self):
         self.last_update_at: Optional[str] = None
 
-    def sorted(self, query: Optional[Item] = None) -> dict[str, list[list[str]]]:
-        if query is None:
-            query = {}
-        result = {"asks": [], "bids": []}
-        for item in self:
-            if all(k in item and query[k] == item[k] for k in query):
-                result[item["side"]].append([item["rate"], item["amount"]])
-        result["asks"].sort(key=lambda x: float(x[0]))
-        result["bids"].sort(key=lambda x: float(x[0]), reverse=True)
-        return result
+    def sorted(
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="side",
+            item_asc_key="asks",
+            item_desc_key="bids",
+            sort_key="rate",
+            query=query,
+            limit=limit,
+        )
 
     def _onresponse(self, pair: Optional[str], data: dict[list[str]]) -> None:
         if pair is None:

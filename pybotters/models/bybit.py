@@ -126,42 +126,38 @@ class BybitDataStore(DataStoreManager):
 
 
 class OrderBook(DataStore):
-    _KEYS = ["symbol", "side", "price"]
+    _KEYS = ["s", "S", "p"]
 
-    def sorted(self, symbol: str, limit: int | None = None) -> dict[str, list[Item]]:
-        result = {"a": [], "b": []}
-
-        for item in self:
-            if item["symbol"] == symbol:
-                result[item["side"]].append(item)
-
-        result["a"].sort(key=lambda x: float(x["price"]))
-        result["b"].sort(key=lambda x: float(x["price"]), reverse=True)
-
-        if limit:
-            result["a"] = result["a"][:limit]
-            result["b"] = result["b"][:limit]
-
-        return result
+    def sorted(
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="S",
+            item_asc_key="a",
+            item_desc_key="b",
+            sort_key="p",
+            query=query,
+            limit=limit,
+        )
 
     def _onmessage(self, msg: Item, topic_ext: list[str]) -> None:
         operation = {"delete": [], "update": [], "insert": []}
 
         is_snapshot = msg["type"] == "snapshot"
         if is_snapshot:
-            operation["delete"].extend(self.find({"symbol": msg["data"]["s"]}))
+            operation["delete"].extend(self.find({"s": msg["data"]["s"]}))
 
         for side in ("a", "b"):
             for item in msg["data"][side]:
                 dsitem = {
-                    "symbol": msg["data"]["s"],
-                    "side": side,
-                    "price": item[0],
-                    "size": item[1],
+                    "s": msg["data"]["s"],
+                    "S": side,
+                    "p": item[0],
+                    "v": item[1],
                 }
                 if is_snapshot:
                     operation["insert"].append(dsitem)
-                elif dsitem["size"] == "0":
+                elif dsitem["v"] == "0":
                     operation["delete"].append(dsitem)
                 else:
                     operation["update"].append(dsitem)

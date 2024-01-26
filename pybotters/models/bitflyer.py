@@ -123,28 +123,29 @@ class Board(DataStore):
     def _init(self) -> None:
         self.mid_price: dict[str, float] = {}
 
-    def sorted(self, query: Item = None) -> dict[str, list[Item]]:
-        if query is None:
-            query = {}
-        result = {"SELL": [], "BUY": []}
-        for item in self:
-            if all(k in item and query[k] == item[k] for k in query):
-                result[item["side"]].append(item)
-        result["SELL"].sort(key=lambda x: x["price"])
-        result["BUY"].sort(key=lambda x: x["price"], reverse=True)
-        return result
+    def sorted(
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="side",
+            item_asc_key="asks",
+            item_desc_key="bids",
+            sort_key="price",
+            query=query,
+            limit=limit,
+        )
 
     def _onmessage(self, product_code: str, message: Item) -> None:
         self.mid_price[product_code] = message["mid_price"]
-        for key, side in (("bids", "BUY"), ("asks", "SELL")):
-            for item in message[key]:
+        for side in ("asks", "bids"):
+            for item in message[side]:
                 if item["size"]:
                     self._insert([{"product_code": product_code, "side": side, **item}])
                 else:
                     self._delete([{"product_code": product_code, "side": side, **item}])
         board = self.sorted({"product_code": product_code})
         targets = []
-        for side, ope in (("BUY", operator.le), ("SELL", operator.gt)):
+        for side, ope in (("bids", operator.le), ("asks", operator.gt)):
             for item in board[side]:
                 if ope(item["price"], message["mid_price"]):
                     break
