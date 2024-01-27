@@ -1,0 +1,2 @@
+/home/kntm2r/site-packages/pybotters
+rich

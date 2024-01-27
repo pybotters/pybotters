@@ -541,38 +541,40 @@ class Liquidation(DataStore):
 
 class OrderBook(DataStore):
     _KEYS = ["s", "S", "p"]
-    _MAPSIDE = {"BUY": "b", "SELL": "a"}
 
     def _init(self) -> None:
         self.initialized: defaultdict[str, bool] = defaultdict(lambda: False)
         self._buff: defaultdict[str, deque] = defaultdict(lambda: deque(maxlen=8000))
 
-    def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
-        if query is None:
-            query = {}
-        result = {self._MAPSIDE[k]: [] for k in self._MAPSIDE}
-        for item in self:
-            if all(k in item and query[k] == item[k] for k in query):
-                result[self._MAPSIDE[item["S"]]].append([item["p"], item["q"]])
-        result["b"].sort(key=lambda x: float(x[0]), reverse=True)
-        result["a"].sort(key=lambda x: float(x[0]))
-        return result
+    def sorted(
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="S",
+            item_asc_key="a",
+            item_desc_key="b",
+            sort_key="p",
+            query=query,
+            limit=limit,
+        )
 
     def _onmessage(self, item: Item) -> None:
         if not self.initialized[item["s"]]:
             self._buff[item["s"]].append(item)
-        for s, bs in self._MAPSIDE.items():
-            for row in item[bs]:
+        for side in ("a", "b"):
+            for row in item[side]:
                 if float(row[1]) != 0.0:
-                    self._update([{"s": item["s"], "S": s, "p": row[0], "q": row[1]}])
+                    self._update(
+                        [{"s": item["s"], "S": side, "p": row[0], "q": row[1]}]
+                    )
                 else:
-                    self._delete([{"s": item["s"], "S": s, "p": row[0]}])
+                    self._delete([{"s": item["s"], "S": side, "p": row[0]}])
 
     def _onresponse(self, symbol: str, item: Item) -> None:
         self._delete(self._find_and_delete({"s": symbol}))
-        for s, bs in (("BUY", "bids"), ("SELL", "asks")):
-            for row in item[bs]:
-                self._insert([{"s": symbol, "S": s, "p": row[0], "q": row[1]}])
+        for side_ws, side_http in (("a", "asks"), ("b", "bids")):
+            for row in item[side_http]:
+                self._insert([{"s": symbol, "S": side_ws, "p": row[0], "q": row[1]}])
         for msg in self._buff[symbol]:
             if msg["U"] <= item["lastUpdateId"] and msg["u"] >= item["lastUpdateId"]:
                 self._onmessage(msg)

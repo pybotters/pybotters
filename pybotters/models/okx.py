@@ -234,16 +234,17 @@ class Books(DataStore):
         self.checksum: dict[str, int] = {}
         self.ts: Optional[str] = None
 
-    def sorted(self, query: Optional[Item] = None) -> dict[str, list[list[str]]]:
-        if query is None:
-            query = {}
-        result = {"asks": [], "bids": []}
-        for item in self:
-            if all(k in item and query[k] == item[k] for k in query):
-                result[item["side"]].append([item[k] for k in self._LIST_KEYS])
-        result["asks"].sort(key=lambda x: float(x[0]))
-        result["bids"].sort(key=lambda x: float(x[0]), reverse=True)
-        return result
+    def sorted(
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="side",
+            item_asc_key="asks",
+            item_desc_key="bids",
+            sort_key="px",
+            query=query,
+            limit=limit,
+        )
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
         inst_id = msg["arg"]["instId"]

@@ -120,7 +120,7 @@ class Trade(DataStore):
                         "symbol": symbol,
                         "timestamp": item[0],
                         "side": item[1],
-                        "price": item[2],
+                        "priceEp": item[2],
                         "qty": item[3],
                     }
                     for item in trades
@@ -129,36 +129,37 @@ class Trade(DataStore):
 
 
 class OrderBook(DataStore):
-    _KEYS = ["symbol", "side", "price"]
+    _KEYS = ["symbol", "side", "priceEp"]
 
     def _init(self) -> None:
         self.timestamp: Optional[int] = None
 
-    def sorted(self, query: Item = None) -> dict[str, list[Item]]:
-        if query is None:
-            query = {}
-        result = {"SELL": [], "BUY": []}
-        for item in self:
-            if all(k in item and query[k] == item[k] for k in query):
-                result[item["side"]].append(item)
-        result["SELL"].sort(key=lambda x: x["price"])
-        result["BUY"].sort(key=lambda x: x["price"], reverse=True)
-        return result
+    def sorted(
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="side",
+            item_asc_key="asks",
+            item_desc_key="bids",
+            sort_key="priceEp",
+            query=query,
+            limit=limit,
+        )
 
     def _onmessage(self, message: Item) -> None:
         symbol = message["symbol"]
         for book in (message.get("book"), message.get("orderbook_p")):
             if book is None:
                 continue
-            for key, side in (("bids", "BUY"), ("asks", "SELL")):
-                for item in book[key]:
-                    if item[1] != 0:
+            for side in ("asks", "bids"):
+                for item in book[side]:
+                    if float(item[1]) != 0.0:
                         self._insert(
                             [
                                 {
                                     "symbol": symbol,
                                     "side": side,
-                                    "price": item[0],
+                                    "priceEp": item[0],
                                     "qty": item[1],
                                 }
                             ]
@@ -169,7 +170,7 @@ class OrderBook(DataStore):
                                 {
                                     "symbol": symbol,
                                     "side": side,
-                                    "price": item[0],
+                                    "priceEp": item[0],
                                 }
                             ]
                         )

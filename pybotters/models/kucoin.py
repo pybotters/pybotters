@@ -5,7 +5,7 @@ import copy
 import logging
 import time
 import uuid
-from typing import Any, Awaitable, Optional
+from typing import Any, Awaitable
 
 import aiohttp
 
@@ -338,40 +338,36 @@ class TopKOrderBook(DataStore):
     - https://docs.kucoin.com/futures/message-channel-for-the-50-best-ask-bid-full-data-of-level-2 # noqa: E501
     """
 
-    _KEYS = ["symbol", "k", "side"]
+    _KEYS = ["symbol", "side", "price"]
 
     def __init__(self, *args, **kwargs):
         super(TopKOrderBook, self).__init__(*args, **kwargs)
 
-    def sorted(self, query: Optional[Item] = None) -> dict[str, list[float]]:
-        if query is None:
-            query = {}
-
-        items = self.find(query)
-
-        sides = ["ask", "bid"]
-        result = {k: [] for k in sides}
-        for s in sides:
-            result[s] = sorted(
-                filter(lambda x: x["side"] == s, items), key=lambda x: x["k"]
-            )
-        return result
+    def sorted(
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="side",
+            item_asc_key="asks",
+            item_desc_key="bids",
+            sort_key="price",
+            query=query,
+            limit=limit,
+        )
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
         symbol = _symbol_from_msg(msg)
 
-        self._delete([])
+        self._find_and_delete({"symbol": symbol})
         data = []
         for side in ("asks", "bids"):
-            items = msg["data"][side]
-            for k, i in enumerate(items, start=1):
+            for item in msg["data"][side]:
                 data.append(
                     {
                         "symbol": symbol,
-                        "k": k,
-                        "side": side[:-1],
-                        "price": float(i[0]),
-                        "size": float(i[1]),
+                        "side": side,
+                        "price": item[0],
+                        "size": item[1],
                         "timestamp": msg["data"]["timestamp"],
                     }
                 )
@@ -427,19 +423,19 @@ class Kline(DataStore):
         return {
             "symbol": symbol,
             "interval": interval,
-            "received_at": int(data["time"]),
+            "received_at": data["time"],
             **ohlcva,
         }
 
     def _to_ohlcva(self, candles):
         return {
-            "timestamp": int(candles[0]),
-            "open": float(candles[1]),
-            "close": float(candles[2]),
-            "high": float(candles[3]),
-            "low": float(candles[4]),
-            "volume": float(candles[5]),
-            "amount": float(candles[6]),
+            "timestamp": candles[0],
+            "open": candles[1],
+            "close": candles[2],
+            "high": candles[3],
+            "low": candles[4],
+            "volume": candles[5],
+            "amount": candles[6],
         }
 
 
