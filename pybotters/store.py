@@ -215,6 +215,33 @@ class DataStore:
             self._clear()
             return ret
 
+    def _sorted(
+        self,
+        item_key: str,
+        item_asc_key: str,
+        item_desc_key: str,
+        sort_key: str,
+        query: Item | None = None,
+        limit: int | None = None,
+    ) -> dict[str, list[float]]:
+        if query is None:
+            query = {}
+
+        result = {item_asc_key: [], item_desc_key: []}
+
+        for item in self:
+            if all(k in item and query[k] == item[k] for k in query):
+                result[item[item_key]].append(item)
+
+        result[item_asc_key].sort(key=lambda x: float(x[sort_key]))
+        result[item_desc_key].sort(key=lambda x: float(x[sort_key]), reverse=True)
+
+        if limit:
+            result[item_asc_key] = result[item_asc_key][:limit]
+            result[item_desc_key] = result[item_desc_key][:limit]
+
+        return result
+
     def _set(self) -> None:
         for event in self._events:
             event.set()

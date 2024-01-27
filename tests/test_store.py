@@ -324,6 +324,91 @@ def test_ds_find_with_uuid():
     assert list(result.values()) == [{"id": 1}]
 
 
+@pytest.mark.parametrize(
+    "test_input,query,limit,expected",
+    [
+        (
+            [
+                {"name": "foo", "id": "2", "sort_type": "desc"},
+                {"name": "foo", "id": "5", "sort_type": "asc"},
+                {"name": "foo", "id": "6", "sort_type": "asc"},
+                {"name": "foo", "id": "1", "sort_type": "desc"},
+                {"name": "foo", "id": "4", "sort_type": "asc"},
+                {"name": "foo", "id": "3", "sort_type": "desc"},
+            ],
+            None,
+            None,
+            {
+                "asc": [
+                    {"name": "foo", "id": "4", "sort_type": "asc"},
+                    {"name": "foo", "id": "5", "sort_type": "asc"},
+                    {"name": "foo", "id": "6", "sort_type": "asc"},
+                ],
+                "desc": [
+                    {"name": "foo", "id": "3", "sort_type": "desc"},
+                    {"name": "foo", "id": "2", "sort_type": "desc"},
+                    {"name": "foo", "id": "1", "sort_type": "desc"},
+                ],
+            },
+        ),
+        (
+            [
+                {"name": "foo", "id": "2", "sort_type": "desc"},
+                {"name": "foo", "id": "5", "sort_type": "asc"},
+                {"name": "bar", "id": "6", "sort_type": "asc"},
+                {"name": "bar", "id": "1", "sort_type": "desc"},
+                {"name": "foo", "id": "4", "sort_type": "asc"},
+                {"name": "foo", "id": "3", "sort_type": "desc"},
+            ],
+            {"name": "foo"},
+            None,
+            {
+                "asc": [
+                    {"name": "foo", "id": "4", "sort_type": "asc"},
+                    {"name": "foo", "id": "5", "sort_type": "asc"},
+                ],
+                "desc": [
+                    {"name": "foo", "id": "3", "sort_type": "desc"},
+                    {"name": "foo", "id": "2", "sort_type": "desc"},
+                ],
+            },
+        ),
+        (
+            [
+                {"name": "foo", "id": "2", "sort_type": "desc"},
+                {"name": "foo", "id": "5", "sort_type": "asc"},
+                {"name": "foo", "id": "6", "sort_type": "asc"},
+                {"name": "foo", "id": "1", "sort_type": "desc"},
+                {"name": "foo", "id": "4", "sort_type": "asc"},
+                {"name": "foo", "id": "3", "sort_type": "desc"},
+            ],
+            None,
+            1,
+            {
+                "asc": [
+                    {"name": "foo", "id": "4", "sort_type": "asc"},
+                ],
+                "desc": [
+                    {"name": "foo", "id": "3", "sort_type": "desc"},
+                ],
+            },
+        ),
+    ],
+)
+def test_ds_sorted(test_input, query, limit, expected):
+    ds = pybotters.store.DataStore(keys=["name", "id", "sort_type"], data=test_input)
+    actual = ds._sorted(
+        item_key="sort_type",
+        item_asc_key="asc",
+        item_desc_key="desc",
+        sort_key="id",
+        query=query,
+        limit=limit,
+    )
+
+    assert actual == expected
+
+
 def test_ds__len__():
     data = [{"foo": f"bar{i}"} for i in range(1000)]
     ds = pybotters.store.DataStore(keys=["foo"], data=data)

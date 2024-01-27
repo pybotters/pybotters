@@ -107,9 +107,9 @@ class Trade(DataStore):
             [
                 {
                     "instId": instId,
-                    "ts": int(item[0]),
-                    "price": float(item[1]),
-                    "size": float(item[2]),
+                    "ts": item[0],
+                    "px": item[1],
+                    "sz": item[2],
                     "side": item[3],
                 }
                 for item in message.get("data", [])
@@ -118,36 +118,37 @@ class Trade(DataStore):
 
 
 class OrderBook(DataStore):
-    _KEYS = ["instId", "side", "price"]
+    _KEYS = ["instId", "side", "px"]
 
     def _init(self) -> None:
         self.timestamp: Optional[int] = None
 
-    def sorted(self, query: Item = None) -> dict[str, list[Item]]:
-        if query is None:
-            query = {}
-        result = {"SELL": [], "BUY": []}
-        for item in self:
-            if all(k in item and query[k] == item[k] for k in query):
-                result[item["side"]].append(item)
-        result["SELL"].sort(key=lambda x: x["price"])
-        result["BUY"].sort(key=lambda x: x["price"], reverse=True)
-        return result
+    def sorted(
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="side",
+            item_asc_key="asks",
+            item_desc_key="bids",
+            sort_key="px",
+            query=query,
+            limit=limit,
+        )
 
     def _onmessage(self, message: Item) -> None:
         instId = message["arg"]["instId"]
         books = message["data"]
-        for key, side in (("bids", "BUY"), ("asks", "SELL")):
+        for side in ("asks", "bids"):
             for book in books:
-                for item in book[key]:
+                for item in book[side]:
                     if item[1] != "0":
                         self._insert(
                             [
                                 {
                                     "instId": instId,
                                     "side": side,
-                                    "price": float(item[0]),
-                                    "size": float(item[1]),
+                                    "px": item[0],
+                                    "sz": item[1],
                                 }
                             ]
                         )
@@ -157,8 +158,8 @@ class OrderBook(DataStore):
                                 {
                                     "instId": instId,
                                     "side": side,
-                                    "price": float(item[0]),
-                                    "size": float(item[1]),
+                                    "px": item[0],
+                                    "sz": item[1],
                                 }
                             ]
                         )
@@ -183,11 +184,11 @@ class CandleSticks(DataStore):
                     "instId": instId,
                     "interval": channel[-2:],
                     "ts": item[0],
-                    "o": float(item[1]),
-                    "h": float(item[2]),
-                    "l": float(item[3]),
-                    "c": float(item[4]),
-                    "baseVol": float(item[5]),
+                    "o": item[1],
+                    "h": item[2],
+                    "l": item[3],
+                    "c": item[4],
+                    "baseVol": item[5],
                 }
                 for item in message.get("data", [])
             ]

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from typing import Optional
 
 from ..store import DataStore, DataStoreManager
 from ..typedefs import Item
@@ -51,36 +50,36 @@ class Transactions(DataStore):
 
 class Depth(DataStore):
     _KEYS = ["pair", "side", "price"]
-    _BDSIDE = {"sell": "asks", "buy": "bids"}
 
     def _init(self) -> None:
-        self.timestamp: Optional[int] = None
+        self.timestamp: int | None = None
 
-    def sorted(self, query: Optional[Item] = None) -> dict[str, list[list[str]]]:
-        if query is None:
-            query = {}
-        result = {"asks": [], "bids": []}
-        for item in self:
-            if all(k in item and query[k] == item[k] for k in query):
-                result[self._BDSIDE[item["side"]]].append([item["price"], item["size"]])
-        result["asks"].sort(key=lambda x: float(x[0]))
-        result["bids"].sort(key=lambda x: float(x[0]), reverse=True)
-        return result
+    def sorted(
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="side",
+            item_asc_key="asks",
+            item_desc_key="bids",
+            sort_key="price",
+            query=query,
+            limit=limit,
+        )
 
     def _onmessage(self, room_name: str, data: list[Item]) -> None:
         if "whole" in room_name:
             pair = room_name.replace("depth_whole_", "")
             result = self.find({"pair": pair})
             self._delete(result)
-            tuples = (("bids", "buy"), ("asks", "sell"))
+            tuples = (("bids", "bids"), ("asks", "asks"))
             self.timestamp = data["timestamp"]
         else:
             pair = room_name.replace("depth_diff_", "")
-            tuples = (("b", "buy"), ("a", "sell"))
+            tuples = (("b", "bids"), ("a", "asks"))
             self.timestamp = data["t"]
 
-        for boardside, side in tuples:
-            for item in data[boardside]:
+        for side_item, side in tuples:
+            for item in data[side_item]:
                 if item[1] != "0":
                     self._update(
                         [
@@ -88,7 +87,7 @@ class Depth(DataStore):
                                 "pair": pair,
                                 "side": side,
                                 "price": item[0],
-                                "size": item[1],
+                                "amount": item[1],
                             }
                         ]
                     )

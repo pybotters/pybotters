@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Awaitable, Optional
+from typing import Awaitable
 
 import aiohttp
 from yarl import URL
@@ -126,37 +126,38 @@ class BybitDataStore(DataStoreManager):
 
 
 class OrderBook(DataStore):
-    _KEYS = ["symbol", "side", "price"]
+    _KEYS = ["s", "S", "p"]
 
-    def sorted(self, query: Optional[Item] = None) -> dict[str, list[Item]]:
-        if query is None:
-            query = {}
-        result = {"asks": [], "bids": []}
-        for item in self:
-            if all(k in item and query[k] == item[k] for k in query):
-                result[item["side"]].append(item)
-        result["asks"].sort(key=lambda x: x["price"])
-        result["bids"].sort(key=lambda x: x["price"], reverse=True)
-        return result
+    def sorted(
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="S",
+            item_asc_key="a",
+            item_desc_key="b",
+            sort_key="p",
+            query=query,
+            limit=limit,
+        )
 
     def _onmessage(self, msg: Item, topic_ext: list[str]) -> None:
         operation = {"delete": [], "update": [], "insert": []}
 
         is_snapshot = msg["type"] == "snapshot"
         if is_snapshot:
-            operation["delete"].extend(self.find({"symbol": msg["data"]["s"]}))
+            operation["delete"].extend(self.find({"s": msg["data"]["s"]}))
 
-        for side_k, side_v in (("a", "asks"), ("b", "bids")):
-            for item in msg["data"][side_k]:
+        for side in ("a", "b"):
+            for item in msg["data"][side]:
                 dsitem = {
-                    "symbol": msg["data"]["s"],
-                    "side": side_v,
-                    "price": item[0],
-                    "size": item[1],
+                    "s": msg["data"]["s"],
+                    "S": side,
+                    "p": item[0],
+                    "v": item[1],
                 }
                 if is_snapshot:
                     operation["insert"].append(dsitem)
-                elif dsitem["size"] == "0":
+                elif dsitem["v"] == "0":
                     operation["delete"].append(dsitem)
                 else:
                     operation["update"].append(dsitem)

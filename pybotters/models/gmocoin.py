@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Awaitable, Literal, Optional
+from typing import Awaitable, Optional
 
 import aiohttp
 
@@ -29,20 +29,16 @@ class OrderBookStore(DataStore):
         self.timestamp: Optional[str] = None
 
     def sorted(
-        self, query: Optional[Item] = None
-    ) -> dict[Literal["asks", "bids"], list[Item]]:
-        if query is None:
-            query = {}
-        result: dict[Literal["asks", "bids"], list[Item]] = {
-            "asks": [],
-            "bids": [],
-        }
-        for item in self:
-            if all(k in item and query[k] == item[k] for k in query):
-                result[item["side"]].append(item)
-        result["asks"].sort(key=lambda x: float(x["price"]))
-        result["bids"].sort(key=lambda x: float(x["price"]), reverse=True)
-        return result
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="side",
+            item_asc_key="asks",
+            item_desc_key="bids",
+            sort_key="price",
+            query=query,
+            limit=limit,
+        )
 
     def _onmessage(self, mes: Item) -> None:
         data = []
