@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 class BinanceDataStoreBase(DataStoreCollection):
+    """Binance の DataStoreCollection ベースクラス"""
+
     _ORDERBOOK_INIT_ENDPOINT = None
     _ORDER_INIT_ENDPOINT = None
     _LISTENKEY_INIT_ENDPOINT = None
@@ -31,33 +33,34 @@ class BinanceDataStoreBase(DataStoreCollection):
         self.listenkey: str | None = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
-        """
+        """Initialize DataStore from HTTP response data.
+
         対応エンドポイント
 
         共通
 
-        - GET /api/v3/depth, /fapi/v1/depth, /dapi/v1/depth (DataStore: orderbook)
+        - GET /api/v3/depth, /fapi/v1/depth, /dapi/v1/depth (:attr:`.BinanceDataStoreBase.orderbook`)
 
             - Binance APIドキュメントに従ってWebSocket接続後にinitializeすること。
             - orderbook データストアの initialized がTrueになる。
 
-        - GET /api/v3/openOrders, /fapi/v1/openOrders, /dapi/v1/openOrders (DataStore: order)
-        - POST /api/v3/userDataStream, /fapi/v1/listenKey, /dapi/v1/listenKey (Property: listenkey)
+        - GET /api/v3/openOrders, /fapi/v1/openOrders, /dapi/v1/openOrders (:attr:`.BinanceDataStoreBase.order`)
+        - POST /api/v3/userDataStream, /fapi/v1/listenKey, /dapi/v1/listenKey (:attr:`.BinanceDataStoreBase.listenkey`)
             - プロパティ listenkey にlistenKeyが格納され30分ごとに PUT リクエストがスケジュールされる。
-        - GET /api/v3/klines, /fapi/v1/klines, /dapi/v3/klines, /dapi/v1/indexPriceKlines, /dapi/v1/markPriceKlines (DataStore: kline)
+        - GET /api/v3/klines, /fapi/v1/klines, /dapi/v3/klines, /dapi/v1/indexPriceKlines, /dapi/v1/markPriceKlines (:attr:`.BinanceDataStoreBase.kline`)
 
         現物
 
-        - GET /api/v3/account (DataStore: account)
-        - GET /api/v3/openOrderList (DataStore: ocoorder)
+        - GET /api/v3/account (DataStore: account)(:attr:`.BinanceSpotDataStore.account`)
+        - GET /api/v3/openOrderList (DataStore: ocoorder)(:attr:`.BinanceSpotDataStore.ocoorder`)
 
         先物
 
-        - GET /fapi/v2/balance, /dapi/v1/balance (DataStore: balance)
-        - GET /fapi/v2/positionRisk, /dapi/v1/positionRisk (DataStore: position)
+        - GET /fapi/v2/balance, /dapi/v1/balance (:attr:`.BinanceCOINMDataStore.balance`)
+        - GET /fapi/v2/positionRisk, /dapi/v1/positionRisk (:attr:`.BinanceCOINMDataStore.position`)
 
         USDⓈ-M
-        - GET /fapi/v1/indexInfo (DataStore: compositeindex)
+        - GET /fapi/v1/indexInfo (:attr:`.BinanceUSDSMDataStore.compositeindex`)
 
 
         """  # noqa
@@ -183,33 +186,38 @@ class BinanceDataStoreBase(DataStoreCollection):
 
     @property
     def trade(self) -> "Trade":
+        """trade/aggTrade stream."""
         return self._get("trade", Trade)
 
     @property
     def kline(self) -> "Kline":
+        """kline stream."""
         return self._get("kline", Kline)
 
     @property
     def ticker(self) -> "Ticker":
+        """24hrMiniTicker/24hrTicker stream."""
         return self._get("ticker", Ticker)
 
     @property
     def bookticker(self) -> "BookTicker":
+        """bookTicker stream."""
         return self._get("bookticker", BookTicker)
 
     @property
     def orderbook(self) -> "OrderBook":
+        """depth stream."""
         return self._get("orderbook", OrderBook)
 
     @property
     def order(self) -> "Order":
-        """
-        アクティブオーダーのみ(約定・キャンセル済みは削除される)
-        """
+        """order stream."""
         return self._get("order", Order)
 
 
 class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
+    """Binance 先物の DataStoreCollection ベースクラス"""
+
     _BALANCE_INIT_ENDPOINT = None
     _POSITION_INIT_ENDPOINT = None
 
@@ -264,26 +272,33 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
     @property
     def markprice(self) -> "MarkPrice":
+        """markPriceUpdate stream."""
         return self._get("markprice", MarkPrice)
 
     @property
     def continuouskline(self) -> "ContinuousKline":
+        """continuous_kline stream."""
         return self._get("continuouskline", ContinuousKline)
 
     @property
     def liquidation(self) -> "Liquidation":
+        """forceOrder stream."""
         return self._get("liquidation", Liquidation)
 
     @property
     def balance(self) -> "Balance":
+        """User Data Streams."""
         return self._get("balance", Balance)
 
     @property
     def position(self) -> "Position":
+        """User Data Streams."""
         return self._get("position", Position)
 
 
 class BinanceSpotDataStore(BinanceDataStoreBase):
+    """Binance Spot の DataStoreCollection クラス"""
+
     _ORDERBOOK_INIT_ENDPOINT = "/api/v3/depth"
     _ORDER_INIT_ENDPOINT = "/api/v3/openOrders"
     _LISTENKEY_INIT_ENDPOINT = "/api/v3/userDataStream"
@@ -321,14 +336,18 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
 
     @property
     def account(self):
+        """User Data Streams."""
         return self._get("account", Account)
 
     @property
     def ocoorder(self):
+        """User Data Streams."""
         return self._get("ocoorder", OCOOrder)
 
 
 class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
+    """Binance USDⓈ-M の DataStoreCollection クラス"""
+
     _ORDERBOOK_INIT_ENDPOINT = "/fapi/v1/depth"
     _BALANCE_INIT_ENDPOINT = "/fapi/v2/balance"
     _ORDER_INIT_ENDPOINT = "/fapi/v1/openOrders"
@@ -356,10 +375,13 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
 
     @property
     def compositeindex(self) -> "CompositeIndex":
+        """compositeindex stream."""
         return self._get("compositeindex", CompositeIndex)
 
 
 class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
+    """Binance COIN-M の DataStoreCollection クラス"""
+
     _ORDERBOOK_INIT_ENDPOINT = "/dapi/v1/depth"
     _BALANCE_INIT_ENDPOINT = "/dapi/v1/balance"
     _ORDER_INIT_ENDPOINT = "/dapi/v1/openOrders"
@@ -414,14 +436,17 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
 
     @property
     def indexprice(self) -> "IndexPrice":
+        """indexprice stream."""
         return self._get("indexprice", IndexPrice)
 
     @property
     def indexpricekline(self) -> "Kline":
+        """indexpricekline stream."""
         return self._get("indexpricekline", Kline)
 
     @property
     def markpricekline(self) -> "Kline":
+        """markpricekline stream."""
         return self._get("markpricekline", Kline)
 
 

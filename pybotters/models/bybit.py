@@ -77,67 +77,67 @@ class BybitDataStore(DataStoreCollection):
 
     @property
     def orderbook(self) -> "OrderBook":
-        """orderbook channel"""
+        """orderbook topic."""
         return self._get("orderbook", OrderBook)
 
     @property
     def trade(self) -> "Trade":
-        """trade channel"""
+        """trade topic."""
         return self._get("publicTrade", Trade)
 
     @property
     def ticker(self) -> "Ticker":
-        """ticker channel"""
+        """ticker topic."""
         return self._get("tickers", Ticker)
 
     @property
     def kline(self) -> "Kline":
-        """kline channel"""
+        """kline topic."""
         return self._get("kline", Kline)
 
     @property
     def liquidation(self) -> "Liquidation":
-        """liquidation channel"""
+        """liquidation topic."""
         return self._get("liquidation", Liquidation)
 
     @property
     def lt_kline(self) -> "LTKline":
-        """lt_kline channel"""
+        """lt_kline topic."""
         return self._get("kline_lt", LTKline)
 
     @property
     def lt_ticker(self) -> "LTTicker":
-        """lt_ticker channel"""
+        """lt_ticker topic."""
         return self._get("tickers_lt", LTTicker)
 
     @property
     def lt_nav(self) -> "LTNav":
-        """lt_nav channel"""
+        """lt_nav topic."""
         return self._get("lt", LTNav)
 
     @property
     def position(self) -> "Position":
-        """position channel"""
+        """position topic."""
         return self._get("position", Position)
 
     @property
     def execution(self) -> "Execution":
-        """execution channel"""
+        """execution topic."""
         return self._get("execution", Execution)
 
     @property
     def order(self) -> "Order":
-        """order channel"""
+        """order topic."""
         return self._get("order", Order)
 
     @property
     def wallet(self) -> "Wallet":
-        """wallet channel"""
+        """wallet topic."""
         return self._get("wallet", Wallet)
 
     @property
     def greek(self) -> "Greek":
-        """greek channel"""
+        """greek topic."""
         return self._get("greeks", Greek)
 
 

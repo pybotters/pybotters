@@ -332,7 +332,7 @@ class StoreStream:
 
 
 class DataStoreCollection:
-    """DataStoreCollection class
+    """DataStoreCollection class.
 
     DataStore のコレクションクラスです。
     DataStore を作成することができ、 1 つまたは複数の DataStore を管理します

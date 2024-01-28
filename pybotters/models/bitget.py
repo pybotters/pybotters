@@ -14,10 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class BitgetDataStore(DataStoreCollection):
-    """
-    Bitgetのデータストアマネージャー
-    https://bitgetlimited.github.io/apidoc/en/mix/#websocketapi
-    """
+    """Bitget の DataStoreCollection クラス"""
 
     def _init(self) -> None:
         self._create("trade", datastore_class=Trade)
@@ -29,10 +26,11 @@ class BitgetDataStore(DataStoreCollection):
         self._create("positions", datastore_class=Positions)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
-        """
+        """Initialize DataStore from HTTP response data.
+
         対応エンドポイント
 
-        - GET /api/mix/v1/order/current (DataStore: orders)
+        - GET /api/mix/v1/order/current (:attr:`.BitgetDataStore.orders`)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -70,30 +68,37 @@ class BitgetDataStore(DataStoreCollection):
 
     @property
     def trade(self) -> "Trade":
+        """trade channel."""
         return self._get("trade", Trade)
 
     @property
     def orderbook(self) -> "OrderBook":
+        """books channel."""
         return self._get("orderbook", OrderBook)
 
     @property
     def ticker(self):
+        """ticker channel."""
         return self._get("ticker", Ticker)
 
     @property
     def candlesticks(self) -> "CandleSticks":
+        """candle1m channel."""
         return self._get("candlesticks", CandleSticks)
 
     @property
     def account(self) -> "Account":
+        """account channel."""
         return self._get("account", Account)
 
     @property
     def orders(self) -> "Orders":
+        """orders channel."""
         return self._get("orders", Orders)
 
     @property
     def positions(self) -> "Positions":
+        """positions channel."""
         return self._get("positions", Positions)
 
 
