@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Awaitable, Optional
+from typing import Awaitable
 
 import aiohttp
 
@@ -121,7 +121,7 @@ class OrderBook(DataStore):
     _KEYS = ["instId", "side", "px"]
 
     def _init(self) -> None:
-        self.timestamp: Optional[int] = None
+        self.timestamp: int | None = None
 
     def sorted(
         self, query: Item | None = None, limit: int | None = None

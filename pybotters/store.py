@@ -4,7 +4,7 @@ import asyncio
 import copy
 import uuid
 from dataclasses import dataclass
-from typing import Any, Hashable, Iterator, Optional, Type, TypeVar, cast
+from typing import Any, Hashable, Iterator, Type, TypeVar, cast
 
 from .typedefs import Item
 from .ws import ClientWebSocketResponse
@@ -20,9 +20,9 @@ class DataStore:
 
     def __init__(
         self,
-        name: Optional[str] = None,
-        keys: Optional[list[str]] = None,
-        data: Optional[list[Item]] = None,
+        name: str | None = None,
+        keys: list[str] | None = None,
+        data: list[Item] | None = None,
     ) -> None:
         self.name: str = name
         self._data: dict[uuid.UUID, Item] = {}
@@ -156,7 +156,7 @@ class DataStore:
             for k in keys:
                 del self._data[k]
 
-    def get(self, item: Item) -> Optional[Item]:
+    def get(self, item: Item) -> Item | None:
         """
         Item を取得します
         """
@@ -170,7 +170,7 @@ class DataStore:
                 if keyhash in self._index:
                     return self._data[self._index[keyhash]]
 
-    def _pop(self, item: Item) -> Optional[Item]:
+    def _pop(self, item: Item) -> Item | None:
         if self._keys:
             try:
                 keyitem = {k: item[k] for k in self._keys}
@@ -184,7 +184,7 @@ class DataStore:
                     del self._index[keyhash]
                     return ret
 
-    def find(self, query: Optional[Item] = None) -> list[Item]:
+    def find(self, query: Item | None = None) -> list[Item]:
         """
         Item のリストを取得します
         """
@@ -197,7 +197,7 @@ class DataStore:
         else:
             return list(self)
 
-    def _find_with_uuid(self, query: Optional[Item] = None) -> dict[uuid.UUID, Item]:
+    def _find_with_uuid(self, query: Item | None = None) -> dict[uuid.UUID, Item]:
         if query is None:
             query = {}
         if query:
@@ -209,7 +209,7 @@ class DataStore:
         else:
             return self._data
 
-    def _find_and_delete(self, query: Optional[Item] = None) -> list[Item]:
+    def _find_and_delete(self, query: Item | None = None) -> list[Item]:
         if query is None:
             query = {}
         if query:
@@ -265,7 +265,7 @@ class DataStore:
         self._events.append(event)
         await event.wait()
 
-    def _put(self, operation: str, source: Optional[Item], item: Item) -> None:
+    def _put(self, operation: str, source: Item | None, item: Item) -> None:
         for queue in self._queues:
             queue.put_nowait(
                 StoreChange(self, operation, copy.deepcopy(source), copy.deepcopy(item))
@@ -289,7 +289,7 @@ class StoreChange:
 
     store: DataStore
     operation: str
-    source: Optional[Item]
+    source: Item | None
     data: Item
 
 
@@ -334,7 +334,7 @@ class DataStoreCollection:
         if hasattr(self, "_init"):
             getattr(self, "_init")()
 
-    def __getitem__(self, name: str) -> Optional["DataStore"]:
+    def __getitem__(self, name: str) -> DataStore | None:
         return self._stores[name]
 
     def __contains__(self, name: str) -> bool:
@@ -344,8 +344,8 @@ class DataStoreCollection:
         self,
         name: str,
         *,
-        keys: Optional[list[str]] = None,
-        data: Optional[list[Item]] = None,
+        keys: list[str] | None = None,
+        data: list[Item] | None = None,
         datastore_class: Type[DataStore] = DataStore,
     ) -> None:
         if keys is None:

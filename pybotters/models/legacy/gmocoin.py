@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum, auto
-from typing import Any, Awaitable, Optional, TypedDict, cast
+from typing import Any, Awaitable, TypedDict, cast
 
 import aiohttp
 
@@ -250,13 +250,13 @@ class Execution(TypedDict):
     loss_gain: Decimal
     fee: Decimal
     # properties that only appears websocket message
-    position_id: Optional[int]
-    execution_type: Optional[ExecutionType]
-    order_price: Optional[Decimal]
-    order_size: Optional[Decimal]
-    order_executed_size: Optional[Decimal]
-    order_timestamp: Optional[datetime]
-    time_in_force: Optional[str]
+    position_id: int | None
+    execution_type: ExecutionType | None
+    order_price: Decimal | None
+    order_size: Decimal | None
+    order_executed_size: Decimal | None
+    order_timestamp: datetime | None
+    time_in_force: str | None
 
 
 class Order(TypedDict):
@@ -273,7 +273,7 @@ class Order(TypedDict):
     losscut_price: Decimal
     time_in_force: TimeInForce
     # properties that only appears websocket message
-    cancel_type: Optional[CancelType]
+    cancel_type: CancelType | None
 
 
 class Position(TypedDict):
@@ -310,9 +310,9 @@ class OrderBookStore(DataStore):
     _KEYS = ["symbol", "side", "price"]
 
     def _init(self) -> None:
-        self.timestamp: Optional[datetime] = None
+        self.timestamp: datetime | None = None
 
-    def sorted(self, query: Optional[Item] = None) -> dict[OrderSide, list[OrderLevel]]:
+    def sorted(self, query: Item | None = None) -> dict[OrderSide, list[OrderLevel]]:
         if query is None:
             query = {}
         result: dict[OrderSide, list[OrderLevel]] = {
@@ -369,7 +369,7 @@ class OrderStore(DataStore):
 class ExecutionStore(DataStore):
     _KEYS = ["execution_id"]
 
-    def sorted(self, query: Optional[Item] = None) -> list[Execution]:
+    def sorted(self, query: Item | None = None) -> list[Execution]:
         if query is None:
             query = {}
         result = []
@@ -580,7 +580,7 @@ class GMOCoinDataStore(DataStoreCollection):
         self.create("positions", datastore_class=PositionStore)
         self.create("executions", datastore_class=ExecutionStore)
         self.create("position_summary", datastore_class=PositionSummaryStore)
-        self.token: Optional[str] = None
+        self.token: str | None = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """
