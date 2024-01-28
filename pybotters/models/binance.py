@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict, deque
-from typing import Any, Awaitable, Union
+from typing import Any, Awaitable
 
 import aiohttp
 
@@ -80,7 +80,7 @@ class BinanceDataStoreBase(DataStoreManager):
         """子クラス用initialize hook"""
         ...
 
-    def _is_target_endpoint(self, target: Union[str, tuple[str], None], endpoint: str):
+    def _is_target_endpoint(self, target: str | tuple[str] | None, endpoint: str):
         if target:
             if isinstance(target, str):
                 return endpoint == target
@@ -435,7 +435,7 @@ class Trade(DataStore):
 class MarkPrice(DataStore):
     _KEYS = ["s"]
 
-    def _onmessage(self, data: Union[Item, list[Item]]) -> None:
+    def _onmessage(self, data: Item | list[Item]) -> None:
         if isinstance(data, list):
             self._update(data)
         else:
@@ -520,7 +520,7 @@ class ContinuousKline(DataStore):
 class Ticker(DataStore):
     _KEYS = ["s"]
 
-    def _onmessage(self, data: Union[Item, list[Item]]) -> None:
+    def _onmessage(self, data: Item | list[Item]) -> None:
         if isinstance(data, list):
             self._update(data)
         else:

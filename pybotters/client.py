@@ -5,7 +5,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Literal, Mapping, Union
+from typing import Any, Literal, Mapping
 
 import aiohttp
 from aiohttp import hdrs
@@ -80,7 +80,7 @@ class Client:
 
     def __init__(
         self,
-        apis: Union[dict[str, list[str]], str] = None,
+        apis: dict[str, list[str]] | str | None = None,
         base_url: str = "",
         **kwargs: Any,
     ) -> None:
@@ -208,12 +208,12 @@ class Client:
         self,
         url: str,
         *,
-        send_str: Union[str, list[str]] | None = None,
-        send_bytes: Union[bytes, list[bytes]] | None = None,
-        send_json: Union[dict, list[dict]] | None = None,
-        hdlr_str: Union[WsStrHandler, list[WsStrHandler]] | None = None,
-        hdlr_bytes: Union[WsBytesHandler, list[WsBytesHandler]] | None = None,
-        hdlr_json: Union[WsJsonHandler, list[WsJsonHandler]] | None = None,
+        send_str: str | list[str] | None = None,
+        send_bytes: bytes | list[bytes] | None = None,
+        send_json: dict | list[dict] | None = None,
+        hdlr_str: WsStrHandler | list[WsStrHandler] | None = None,
+        hdlr_bytes: WsBytesHandler | list[WsBytesHandler] | None = None,
+        hdlr_json: WsJsonHandler | list[WsJsonHandler] | None = None,
         backoff: tuple[float, float, float, float] = WebSocketApp.DEFAULT_BACKOFF,
         heartbeat: float = 10.0,
         auth: Auth | None = Auth,
@@ -249,7 +249,7 @@ class Client:
 
     @staticmethod
     def _load_apis(
-        apis: Union[dict[str, list[str]], str] | None
+        apis: dict[str, list[str]] | str | None
     ) -> dict[str, list[str]]:
         if apis is None:
             current_apis = os.path.join(os.getcwd(), "apis.json")

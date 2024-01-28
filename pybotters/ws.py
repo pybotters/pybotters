@@ -12,7 +12,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from secrets import token_hex
-from typing import Any, AsyncIterator, Generator, Union
+from typing import Any, AsyncIterator, Generator
 
 import aiohttp
 from aiohttp.http_websocket import json
@@ -43,12 +43,12 @@ class WebSocketApp:
         session: aiohttp.ClientSession,
         url: str,
         *,
-        send_str: Union[str, list[str]] | None = None,
-        send_bytes: Union[bytes, list[bytes]] | None = None,
-        send_json: Union[dict, list[dict]] | None = None,
-        hdlr_str: Union[WsStrHandler, list[WsStrHandler]] | None = None,
-        hdlr_bytes: Union[WsBytesHandler, list[WsBytesHandler]] | None = None,
-        hdlr_json: Union[WsJsonHandler, list[WsJsonHandler]] | None = None,
+        send_str: str | list[str] | None = None,
+        send_bytes: bytes | list[bytes] | None = None,
+        send_json: dict | list[dict] | None = None,
+        hdlr_str: WsStrHandler | list[WsStrHandler] | None = None,
+        hdlr_bytes: WsBytesHandler | list[WsBytesHandler] | None = None,
+        hdlr_json: WsJsonHandler | list[WsJsonHandler] | None = None,
         backoff: tuple[float, float, float, float] = DEFAULT_BACKOFF,
         **kwargs: Any,
     ) -> None:
