@@ -20,13 +20,13 @@ class BitgetDataStore(DataStoreCollection):
     """
 
     def _init(self) -> None:
-        self.create("trade", datastore_class=Trade)
-        self.create("orderbook", datastore_class=OrderBook)
-        self.create("ticker", datastore_class=Ticker)
-        self.create("candlesticks", datastore_class=CandleSticks)
-        self.create("account", datastore_class=Account)
-        self.create("orders", datastore_class=Orders)
-        self.create("positions", datastore_class=Positions)
+        self._create("trade", datastore_class=Trade)
+        self._create("orderbook", datastore_class=OrderBook)
+        self._create("ticker", datastore_class=Ticker)
+        self._create("candlesticks", datastore_class=CandleSticks)
+        self._create("account", datastore_class=Account)
+        self._create("orders", datastore_class=Orders)
+        self._create("positions", datastore_class=Positions)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """
@@ -70,31 +70,31 @@ class BitgetDataStore(DataStoreCollection):
 
     @property
     def trade(self) -> "Trade":
-        return self.get("trade", Trade)
+        return self._get("trade", Trade)
 
     @property
     def orderbook(self) -> "OrderBook":
-        return self.get("orderbook", OrderBook)
+        return self._get("orderbook", OrderBook)
 
     @property
     def ticker(self):
-        return self.get("ticker", Ticker)
+        return self._get("ticker", Ticker)
 
     @property
     def candlesticks(self) -> "CandleSticks":
-        return self.get("candlesticks", CandleSticks)
+        return self._get("candlesticks", CandleSticks)
 
     @property
     def account(self) -> "Account":
-        return self.get("account", Account)
+        return self._get("account", Account)
 
     @property
     def orders(self) -> "Orders":
-        return self.get("orders", Orders)
+        return self._get("orders", Orders)
 
     @property
     def positions(self) -> "Positions":
-        return self.get("positions", Positions)
+        return self._get("positions", Positions)
 
 
 class Trade(DataStore):

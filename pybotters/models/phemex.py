@@ -20,14 +20,14 @@ class PhemexDataStore(DataStoreCollection):
     """
 
     def _init(self) -> None:
-        self.create("trade", datastore_class=Trade)
-        self.create("orderbook", datastore_class=OrderBook)
-        self.create("ticker", datastore_class=Ticker)
-        self.create("market24h", datastore_class=Market24h)
-        self.create("kline", datastore_class=Kline)
-        self.create("accounts", datastore_class=Accounts)
-        self.create("orders", datastore_class=Orders)
-        self.create("positions", datastore_class=Positions)
+        self._create("trade", datastore_class=Trade)
+        self._create("orderbook", datastore_class=OrderBook)
+        self._create("ticker", datastore_class=Ticker)
+        self._create("market24h", datastore_class=Market24h)
+        self._create("kline", datastore_class=Kline)
+        self._create("accounts", datastore_class=Accounts)
+        self._create("orders", datastore_class=Orders)
+        self._create("positions", datastore_class=Positions)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """
@@ -76,35 +76,35 @@ class PhemexDataStore(DataStoreCollection):
 
     @property
     def trade(self) -> "Trade":
-        return self.get("trade", Trade)
+        return self._get("trade", Trade)
 
     @property
     def orderbook(self) -> "OrderBook":
-        return self.get("orderbook", OrderBook)
+        return self._get("orderbook", OrderBook)
 
     @property
     def ticker(self):
-        return self.get("ticker", Ticker)
+        return self._get("ticker", Ticker)
 
     @property
     def market24h(self) -> "Market24h":
-        return self.get("market24h", Market24h)
+        return self._get("market24h", Market24h)
 
     @property
     def kline(self) -> "Kline":
-        return self.get("kline", Kline)
+        return self._get("kline", Kline)
 
     @property
     def accounts(self) -> "Accounts":
-        return self.get("accounts", Accounts)
+        return self._get("accounts", Accounts)
 
     @property
     def orders(self) -> "Orders":
-        return self.get("orders", Orders)
+        return self._get("orders", Orders)
 
     @property
     def positions(self) -> "Positions":
-        return self.get("positions", Positions)
+        return self._get("positions", Positions)
 
 
 class Trade(DataStore):

@@ -19,15 +19,15 @@ logger = logging.getLogger(__name__)
 
 class bitFlyerDataStore(DataStoreCollection):
     def _init(self) -> None:
-        self.create("board", datastore_class=Board)
-        self.create("ticker", datastore_class=Ticker)
-        self.create("executions", datastore_class=Executions)
-        self.create("childorderevents", datastore_class=ChildOrderEvents)
-        self.create("childorders", datastore_class=ChildOrders)
-        self.create("parentorderevents", datastore_class=ParentOrderEvents)
-        self.create("parentorders", datastore_class=ParentOrders)
-        self.create("positions", datastore_class=Positions)
-        self.create("balance", datastore_class=Balance)
+        self._create("board", datastore_class=Board)
+        self._create("ticker", datastore_class=Ticker)
+        self._create("executions", datastore_class=Executions)
+        self._create("childorderevents", datastore_class=ChildOrderEvents)
+        self._create("childorders", datastore_class=ChildOrders)
+        self._create("parentorderevents", datastore_class=ParentOrderEvents)
+        self._create("parentorders", datastore_class=ParentOrders)
+        self._create("positions", datastore_class=Positions)
+        self._create("balance", datastore_class=Balance)
         self._snapshots = set()
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
@@ -82,42 +82,42 @@ class bitFlyerDataStore(DataStoreCollection):
 
     @property
     def board(self) -> "Board":
-        return self.get("board", Board)
+        return self._get("board", Board)
 
     @property
     def ticker(self) -> "Ticker":
         """
         Ticker ストア
         """
-        return self.get("ticker", Ticker)
+        return self._get("ticker", Ticker)
 
     @property
     def executions(self) -> "Executions":
-        return self.get("executions", Executions)
+        return self._get("executions", Executions)
 
     @property
     def childorderevents(self) -> "ChildOrderEvents":
-        return self.get("childorderevents", ChildOrderEvents)
+        return self._get("childorderevents", ChildOrderEvents)
 
     @property
     def childorders(self) -> "ChildOrders":
-        return self.get("childorders", ChildOrders)
+        return self._get("childorders", ChildOrders)
 
     @property
     def parentorderevents(self) -> "ParentOrderEvents":
-        return self.get("parentorderevents", ParentOrderEvents)
+        return self._get("parentorderevents", ParentOrderEvents)
 
     @property
     def parentorders(self) -> "ParentOrders":
-        return self.get("parentorders", ParentOrders)
+        return self._get("parentorders", ParentOrders)
 
     @property
     def positions(self) -> "Positions":
-        return self.get("positions", Positions)
+        return self._get("positions", Positions)
 
     @property
     def balance(self) -> "Balance":
-        return self.get("balance", Balance)
+        return self._get("balance", Balance)
 
 
 class Board(DataStore):

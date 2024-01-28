@@ -22,12 +22,12 @@ class BinanceDataStoreBase(DataStoreCollection):
     _KLINE_INIT_ENDPOINT = None
 
     def _init(self) -> None:
-        self.create("trade", datastore_class=Trade)
-        self.create("kline", datastore_class=Kline)
-        self.create("ticker", datastore_class=Ticker)
-        self.create("bookticker", datastore_class=BookTicker)
-        self.create("orderbook", datastore_class=OrderBook)
-        self.create("order", datastore_class=Order)
+        self._create("trade", datastore_class=Trade)
+        self._create("kline", datastore_class=Kline)
+        self._create("ticker", datastore_class=Ticker)
+        self._create("bookticker", datastore_class=BookTicker)
+        self._create("orderbook", datastore_class=OrderBook)
+        self._create("order", datastore_class=Order)
         self.listenkey: str | None = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
@@ -183,30 +183,30 @@ class BinanceDataStoreBase(DataStoreCollection):
 
     @property
     def trade(self) -> "Trade":
-        return self.get("trade", Trade)
+        return self._get("trade", Trade)
 
     @property
     def kline(self) -> "Kline":
-        return self.get("kline", Kline)
+        return self._get("kline", Kline)
 
     @property
     def ticker(self) -> "Ticker":
-        return self.get("ticker", Ticker)
+        return self._get("ticker", Ticker)
 
     @property
     def bookticker(self) -> "BookTicker":
-        return self.get("bookticker", BookTicker)
+        return self._get("bookticker", BookTicker)
 
     @property
     def orderbook(self) -> "OrderBook":
-        return self.get("orderbook", OrderBook)
+        return self._get("orderbook", OrderBook)
 
     @property
     def order(self) -> "Order":
         """
         アクティブオーダーのみ(約定・キャンセル済みは削除される)
         """
-        return self.get("order", Order)
+        return self._get("order", Order)
 
 
 class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
@@ -215,11 +215,11 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
     def _init(self) -> None:
         super()._init()
-        self.create("markprice", datastore_class=MarkPrice)
-        self.create("continuouskline", datastore_class=ContinuousKline)
-        self.create("liquidation", datastore_class=Liquidation)
-        self.create("balance", datastore_class=Balance)
-        self.create("position", datastore_class=Position)
+        self._create("markprice", datastore_class=MarkPrice)
+        self._create("continuouskline", datastore_class=ContinuousKline)
+        self._create("liquidation", datastore_class=Liquidation)
+        self._create("balance", datastore_class=Balance)
+        self._create("position", datastore_class=Position)
 
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
         if self._is_target_endpoint(self._BALANCE_INIT_ENDPOINT, endpoint):
@@ -264,23 +264,23 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
     @property
     def markprice(self) -> "MarkPrice":
-        return self.get("markprice", MarkPrice)
+        return self._get("markprice", MarkPrice)
 
     @property
     def continuouskline(self) -> "ContinuousKline":
-        return self.get("continuouskline", ContinuousKline)
+        return self._get("continuouskline", ContinuousKline)
 
     @property
     def liquidation(self) -> "Liquidation":
-        return self.get("liquidation", Liquidation)
+        return self._get("liquidation", Liquidation)
 
     @property
     def balance(self) -> "Balance":
-        return self.get("balance", Balance)
+        return self._get("balance", Balance)
 
     @property
     def position(self) -> "Position":
-        return self.get("position", Position)
+        return self._get("position", Position)
 
 
 class BinanceSpotDataStore(BinanceDataStoreBase):
@@ -293,8 +293,8 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
 
     def _init(self):
         super()._init()
-        self.create("account", datastore_class=Account)
-        self.create("ocoorder", datastore_class=OCOOrder)
+        self._create("account", datastore_class=Account)
+        self._create("ocoorder", datastore_class=OCOOrder)
 
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
         if self._is_target_endpoint(self._ACCOUNT_INIT_ENDPOINT, endpoint):
@@ -321,11 +321,11 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
 
     @property
     def account(self):
-        return self.get("account", Account)
+        return self._get("account", Account)
 
     @property
     def ocoorder(self):
-        return self.get("ocoorder", OCOOrder)
+        return self._get("ocoorder", OCOOrder)
 
 
 class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
@@ -339,7 +339,7 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
 
     def _init(self):
         super()._init()
-        self.create("compositeindex", datastore_class=CompositeIndex)
+        self._create("compositeindex", datastore_class=CompositeIndex)
 
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
         super()._initialize_hook(resp, data, endpoint)
@@ -356,7 +356,7 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
 
     @property
     def compositeindex(self) -> "CompositeIndex":
-        return self.get("compositeindex", CompositeIndex)
+        return self._get("compositeindex", CompositeIndex)
 
 
 class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
@@ -373,9 +373,9 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
 
     def _init(self):
         super()._init()
-        self.create("indexprice", datastore_class=IndexPrice)
-        self.create("indexpricekline", datastore_class=Kline)
-        self.create("markpricekline", datastore_class=Kline)
+        self._create("indexprice", datastore_class=IndexPrice)
+        self._create("indexpricekline", datastore_class=Kline)
+        self._create("markpricekline", datastore_class=Kline)
 
     def _onmessage_hook(self, msg: Any, event: str, data: Any):
         super()._onmessage_hook(msg, event, data)
@@ -414,15 +414,15 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
 
     @property
     def indexprice(self) -> "IndexPrice":
-        return self.get("indexprice", IndexPrice)
+        return self._get("indexprice", IndexPrice)
 
     @property
     def indexpricekline(self) -> "Kline":
-        return self.get("indexpricekline", Kline)
+        return self._get("indexpricekline", Kline)
 
     @property
     def markpricekline(self) -> "Kline":
-        return self.get("markpricekline", Kline)
+        return self._get("markpricekline", Kline)
 
 
 class Trade(DataStore):

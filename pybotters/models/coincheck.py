@@ -12,8 +12,8 @@ from ..ws import ClientWebSocketResponse
 
 class CoincheckDataStore(DataStoreCollection):
     def _init(self) -> None:
-        self.create("trades", datastore_class=Trades)
-        self.create("orderbook", datastore_class=Orderbook)
+        self._create("trades", datastore_class=Trades)
+        self._create("orderbook", datastore_class=Orderbook)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         for f in asyncio.as_completed(aws):
@@ -32,11 +32,11 @@ class CoincheckDataStore(DataStoreCollection):
 
     @property
     def trades(self) -> "Trades":
-        return self.get("trades", Trades)
+        return self._get("trades", Trades)
 
     @property
     def orderbook(self) -> "Orderbook":
-        return self.get("orderbook", Orderbook)
+        return self._get("orderbook", Orderbook)
 
 
 class Trades(DataStore):

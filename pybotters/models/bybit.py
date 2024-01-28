@@ -15,24 +15,22 @@ logger = logging.getLogger(__name__)
 
 
 class BybitDataStore(DataStoreCollection):
-    """Bybit の DataStoreCollection
-    https://bitgetlimited.github.io/apidoc/en/mix/#websocketapi
-    """
+    """Bybit の DataStoreCollection クラス"""
 
     def _init(self) -> None:
-        self.create("orderbook", datastore_class=OrderBook)
-        self.create("publicTrade", datastore_class=Trade)
-        self.create("tickers", datastore_class=Ticker)
-        self.create("kline", datastore_class=Kline)
-        self.create("liquidation", datastore_class=Liquidation)
-        self.create("kline_lt", datastore_class=LTKline)
-        self.create("tickers_lt", datastore_class=LTTicker)
-        self.create("lt", datastore_class=LTNav)
-        self.create("position", datastore_class=Position)
-        self.create("execution", datastore_class=Execution)
-        self.create("order", datastore_class=Order)
-        self.create("wallet", datastore_class=Wallet)
-        self.create("greeks", datastore_class=Greek)
+        self._create("orderbook", datastore_class=OrderBook)
+        self._create("publicTrade", datastore_class=Trade)
+        self._create("tickers", datastore_class=Ticker)
+        self._create("kline", datastore_class=Kline)
+        self._create("liquidation", datastore_class=Liquidation)
+        self._create("kline_lt", datastore_class=LTKline)
+        self._create("tickers_lt", datastore_class=LTTicker)
+        self._create("lt", datastore_class=LTNav)
+        self._create("position", datastore_class=Position)
+        self._create("execution", datastore_class=Execution)
+        self._create("order", datastore_class=Order)
+        self._create("wallet", datastore_class=Wallet)
+        self._create("greeks", datastore_class=Greek)
 
     _MAP_PATH_TOPIC = {
         "/v5/position/list": "position",
@@ -41,12 +39,13 @@ class BybitDataStore(DataStoreCollection):
     }
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
-        """
+        """Initialize DataStore from HTTP response data.
+
         対応エンドポイント
 
-        - GET /v5/position/list (DataStore: position)
-        - GET /v5/order/realtime (DataStore: order)
-        - GET /v5/account/wallet-balance (DataStore: wallet)
+        - GET /v5/position/list (:attr:`.BybitDataStore.position`)
+        - GET /v5/order/realtime (:attr:`.BybitDataStore.order`)
+        - GET /v5/account/wallet-balance (:attr:`.BybitDataStore.wallet`)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -78,55 +77,68 @@ class BybitDataStore(DataStoreCollection):
 
     @property
     def orderbook(self) -> "OrderBook":
-        return self.get("orderbook", OrderBook)
+        """orderbook channel"""
+        return self._get("orderbook", OrderBook)
 
     @property
     def trade(self) -> "Trade":
-        return self.get("publicTrade", Trade)
+        """trade channel"""
+        return self._get("publicTrade", Trade)
 
     @property
     def ticker(self) -> "Ticker":
-        return self.get("tickers", Ticker)
+        """ticker channel"""
+        return self._get("tickers", Ticker)
 
     @property
     def kline(self) -> "Kline":
-        return self.get("kline", Kline)
+        """kline channel"""
+        return self._get("kline", Kline)
 
     @property
     def liquidation(self) -> "Liquidation":
-        return self.get("liquidation", Liquidation)
+        """liquidation channel"""
+        return self._get("liquidation", Liquidation)
 
     @property
     def lt_kline(self) -> "LTKline":
-        return self.get("kline_lt", LTKline)
+        """lt_kline channel"""
+        return self._get("kline_lt", LTKline)
 
     @property
     def lt_ticker(self) -> "LTTicker":
-        return self.get("tickers_lt", LTTicker)
+        """lt_ticker channel"""
+        return self._get("tickers_lt", LTTicker)
 
     @property
     def lt_nav(self) -> "LTNav":
-        return self.get("lt", LTNav)
+        """lt_nav channel"""
+        return self._get("lt", LTNav)
 
     @property
     def position(self) -> "Position":
-        return self.get("position", Position)
+        """position channel"""
+        return self._get("position", Position)
 
     @property
     def execution(self) -> "Execution":
-        return self.get("execution", Execution)
+        """execution channel"""
+        return self._get("execution", Execution)
 
     @property
     def order(self) -> "Order":
-        return self.get("order", Order)
+        """order channel"""
+        return self._get("order", Order)
 
     @property
     def wallet(self) -> "Wallet":
-        return self.get("wallet", Wallet)
+        """wallet channel"""
+        return self._get("wallet", Wallet)
 
     @property
     def greek(self) -> "Greek":
-        return self.get("greeks", Greek)
+        """greek channel"""
+        return self._get("greeks", Greek)
 
 
 class OrderBook(DataStore):

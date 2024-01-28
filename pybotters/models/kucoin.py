@@ -29,27 +29,27 @@ class KuCoinDataStore(DataStoreCollection):
         self._endpoint = None
 
     def _init(self) -> None:
-        self.create("ticker", datastore_class=Ticker)
-        self.create("kline", datastore_class=Kline)
-        self.create("symbolsnapshot", datastore_class=SymbolSnapshot)
-        self.create("orderbook5", datastore_class=TopKOrderBook)
-        self.create("orderbook50", datastore_class=TopKOrderBook)
-        self.create("execution", datastore_class=Execution)
-        self.create("indexprice", datastore_class=IndexPrice)
-        self.create("markprice", datastore_class=MarkPrice)
-        self.create("orderevents", datastore_class=OrderEvents)
-        self.create("orders", datastore_class=Orders)
-        self.create("balance", datastore_class=Balance)
-        self.create("marginfundingbook", datastore_class=MarginFundingBook)
-        self.create("marginpositions", datastore_class=MarginPositions)
-        self.create("marginpositionevents", datastore_class=MarginPositionEvents)
-        self.create("marginorderevents", datastore_class=MarginOrderEvents)
-        self.create("marginorders", datastore_class=MarginOrders)
-        self.create("instrument", datastore_class=Instrument)
-        self.create("announcements", datastore_class=Announcements)
-        self.create("transactionstats", datastore_class=TransactionStats)
-        self.create("balanceevents", datastore_class=BalanceEvents)
-        self.create("positions", datastore_class=Positions)
+        self._create("ticker", datastore_class=Ticker)
+        self._create("kline", datastore_class=Kline)
+        self._create("symbolsnapshot", datastore_class=SymbolSnapshot)
+        self._create("orderbook5", datastore_class=TopKOrderBook)
+        self._create("orderbook50", datastore_class=TopKOrderBook)
+        self._create("execution", datastore_class=Execution)
+        self._create("indexprice", datastore_class=IndexPrice)
+        self._create("markprice", datastore_class=MarkPrice)
+        self._create("orderevents", datastore_class=OrderEvents)
+        self._create("orders", datastore_class=Orders)
+        self._create("balance", datastore_class=Balance)
+        self._create("marginfundingbook", datastore_class=MarginFundingBook)
+        self._create("marginpositions", datastore_class=MarginPositions)
+        self._create("marginpositionevents", datastore_class=MarginPositionEvents)
+        self._create("marginorderevents", datastore_class=MarginOrderEvents)
+        self._create("marginorders", datastore_class=MarginOrders)
+        self._create("instrument", datastore_class=Instrument)
+        self._create("announcements", datastore_class=Announcements)
+        self._create("transactionstats", datastore_class=TransactionStats)
+        self._create("balanceevents", datastore_class=BalanceEvents)
+        self._create("positions", datastore_class=Positions)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """
@@ -151,87 +151,87 @@ class KuCoinDataStore(DataStoreCollection):
 
     @property
     def ticker(self) -> "Ticker":
-        return self.get("ticker", Ticker)
+        return self._get("ticker", Ticker)
 
     @property
     def kline(self) -> "Kline":
-        return self.get("kline", Kline)
+        return self._get("kline", Kline)
 
     @property
     def symbolsnapshot(self) -> "SymbolSnapshot":
-        return self.get("symbolsnapshot", SymbolSnapshot)
+        return self._get("symbolsnapshot", SymbolSnapshot)
 
     @property
     def orderbook5(self) -> "TopKOrderBook":
-        return self.get("orderbook5", TopKOrderBook)
+        return self._get("orderbook5", TopKOrderBook)
 
     @property
     def orderbook50(self) -> "TopKOrderBook":
-        return self.get("orderbook50", TopKOrderBook)
+        return self._get("orderbook50", TopKOrderBook)
 
     @property
     def execution(self) -> "Execution":
-        return self.get("execution", Execution)
+        return self._get("execution", Execution)
 
     @property
     def indexprice(self) -> "IndexPrice":
-        return self.get("indexprice", IndexPrice)
+        return self._get("indexprice", IndexPrice)
 
     @property
     def markprice(self) -> "MarkPrice":
-        return self.get("markprice", MarkPrice)
+        return self._get("markprice", MarkPrice)
 
     @property
     def orderevents(self) -> "OrderEvents":
-        return self.get("orderevents", OrderEvents)
+        return self._get("orderevents", OrderEvents)
 
     @property
     def orders(self) -> "Orders":
-        return self.get("orders", Orders)
+        return self._get("orders", Orders)
 
     @property
     def balance(self) -> "Balance":
-        return self.get("balance", Balance)
+        return self._get("balance", Balance)
 
     @property
     def marginfundingbook(self) -> "MarginFundingBook":
-        return self.get("marginfundingbook", MarginFundingBook)
+        return self._get("marginfundingbook", MarginFundingBook)
 
     @property
     def marginpositions(self) -> "MarginPositions":
-        return self.get("marginpositions", MarginPositions)
+        return self._get("marginpositions", MarginPositions)
 
     @property
     def marginpositionevents(self) -> "MarginPositionEvents":
-        return self.get("marginpositionevents", MarginPositionEvents)
+        return self._get("marginpositionevents", MarginPositionEvents)
 
     @property
     def marginorderevents(self) -> "MarginOrderEvents":
-        return self.get("marginorderevents", MarginOrderEvents)
+        return self._get("marginorderevents", MarginOrderEvents)
 
     @property
     def marginorders(self) -> "MarginOrders":
-        return self.get("marginorders", MarginOrders)
+        return self._get("marginorders", MarginOrders)
 
     @property
     def instrument(self) -> "Instrument":
-        return self.get("instrument", Instrument)
+        return self._get("instrument", Instrument)
 
     @property
     def announcements(self) -> "Announcements":
-        return self.get("announcements", Announcements)
+        return self._get("announcements", Announcements)
 
     @property
     def transactionstats(self) -> "TransactionStats":
-        return self.get("transactionstats", TransactionStats)
+        return self._get("transactionstats", TransactionStats)
 
     @property
     def balanceevents(self) -> "BalanceEvents":
-        return self.get("balanceevents", BalanceEvents)
+        return self._get("balanceevents", BalanceEvents)
 
     @property
     def positions(self) -> "Positions":
-        return self.get("positions", Positions)
+        return self._get("positions", Positions)
 
     @property
     def endpoint(self):

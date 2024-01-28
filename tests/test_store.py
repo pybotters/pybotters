@@ -9,14 +9,14 @@ import pybotters.store
 
 def test_dsm_construct():
     dsm = pybotters.store.DataStoreCollection()
-    dsm.create("example")
+    dsm._create("example")
     assert isinstance(dsm._stores, dict)
     assert isinstance(dsm._events, list)
     assert isinstance(dsm._iscorofunc, bool)
     assert "example" in dsm
     assert isinstance(dsm["example"], pybotters.store.DataStore)
     assert isinstance(
-        dsm.get("example", pybotters.store.DataStore), pybotters.store.DataStore
+        dsm._get("example", pybotters.store.DataStore), pybotters.store.DataStore
     )
 
 

@@ -4,16 +4,14 @@ import asyncio
 import copy
 import uuid
 from dataclasses import dataclass
-from typing import Any, Hashable, Iterator, Type, TypeVar, cast
+from typing import Any, Hashable, Iterator, Literal, Type, TypeVar, cast
 
 from .typedefs import Item
 from .ws import ClientWebSocketResponse
 
 
 class DataStore:
-    """
-    DataStore クラス
-    """
+    """DataStore class."""
 
     _KEYS = []
     _MAXLEN = 9999
@@ -157,8 +155,14 @@ class DataStore:
                 del self._data[k]
 
     def get(self, item: Item) -> Item | None:
-        """
-        Item を取得します
+        """DataStore から Item を取得します。
+
+        Args:
+            item: DataStore のキー (:attr:`.DataStore._KES`) を指定する辞書
+
+        Returns:
+            キーに一致するアイテムがアイテムがあればそのアイテムを返します。
+            なければ None を返します
         """
         if self._keys:
             try:
@@ -185,8 +189,14 @@ class DataStore:
                     return ret
 
     def find(self, query: Item | None = None) -> list[Item]:
-        """
-        Item のリストを取得します
+        """DataStore から Item のリストを取得します。
+
+        Args:
+            query: DataStore をフィルタするクエリ辞書
+
+        Returns:
+            クエリの指定がなければ全件データを返します。
+            クエリの指定があれば、それに一致するデータを返します
         """
         if query:
             return [
@@ -258,9 +268,7 @@ class DataStore:
         self._events.clear()
 
     async def wait(self) -> None:
-        """
-        DataStore にデータが受信されるまで待機します
-        """
+        """DataStore にデータの変更があるまで待機します。"""
         event = asyncio.Event()
         self._events.append(event)
         await event.wait()
@@ -272,9 +280,7 @@ class DataStore:
             )
 
     def watch(self) -> "StoreStream":
-        """
-        DataStore の更新データをストリームします
-        """
+        """DataStore の更新データをストリームします。"""
         return StoreStream(self)
 
 
@@ -283,20 +289,23 @@ TDataStore = TypeVar("TDataStore", bound=DataStore)
 
 @dataclass
 class StoreChange:
-    """
-    変更データクラス
+    """DataStore の変更データクラス
+
+    Attributes:
+        store: 変更対象の DataStore
+        operation: 変更オペレーション
+        source: 変更に影響したデータ。 なければ None が格納されます
+        data: 変更されたデータ
     """
 
     store: DataStore
-    operation: str
+    operation: Literal["insert", "update", "delete"]
     source: Item | None
     data: Item
 
 
 class StoreStream:
-    """
-    変更ストリーム
-    """
+    """DataStore の変更ストリーム"""
 
     def __init__(self, store: "DataStore") -> None:
         self._queue = asyncio.Queue()
@@ -323,8 +332,10 @@ class StoreStream:
 
 
 class DataStoreCollection:
-    """
-    データストアマネージャーの抽象クラスです。 データストアの作成・参照・ハンドリングなどの役割を持ちます。 それぞれの取引所のクラスが継承します。
+    """DataStoreCollection class
+
+    DataStore のコレクションクラスです。
+    DataStore を作成することができ、 1 つまたは複数の DataStore を管理します
     """
 
     def __init__(self) -> None:
@@ -340,7 +351,7 @@ class DataStoreCollection:
     def __contains__(self, name: str) -> bool:
         return name in self._stores
 
-    def create(
+    def _create(
         self,
         name: str,
         *,
@@ -354,15 +365,20 @@ class DataStoreCollection:
             data = []
         self._stores[name] = datastore_class(name, keys, data)
 
-    def get(self, name: str, type: Type[TDataStore]) -> TDataStore:
+    def _get(self, name: str, type: Type[TDataStore]) -> TDataStore:
         return cast(type, self._stores.get(name))
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         print(msg)
 
     def onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
-        """
-        Clientクラスws_connectメソッドの引数send_jsonに渡すハンドラです。
+        """WebSocket message handler.
+
+        :meth:`.Client.ws_connect` に渡すコールバックです
+
+        Args:
+            msg: WebSocket メッセージ
+            ws: WebSocket レスポンスクラス
         """
         self._onmessage(msg, ws)
         self._set()
@@ -373,9 +389,7 @@ class DataStoreCollection:
         self._events.clear()
 
     async def wait(self) -> None:
-        """
-        非同期メソッド。onmessageのイベントがあるまで待機します。
-        """
+        """DataStoreCollection の onmessage ハンドラが呼び出しされるまで待機します。"""
         event = asyncio.Event()
         self._events.append(event)
         await event.wait()

@@ -22,7 +22,9 @@ class BitMEXDataStore(DataStoreCollection):
             action = msg["action"]
             data = msg["data"]
             if action == "partial":
-                self.create(table, keys=msg["keys"] if "keys" in msg else [], data=data)
+                self._create(
+                    table, keys=msg["keys"] if "keys" in msg else [], data=data
+                )
                 if table == "trade":
                     self["trade"]._MAXLEN = 99999
             elif action == "insert":
@@ -46,83 +48,83 @@ class BitMEXDataStore(DataStoreCollection):
 
     @property
     def funding(self) -> DataStore:
-        return self.get("funding", DataStore)
+        return self._get("funding", DataStore)
 
     @property
     def instrument(self) -> DataStore:
-        return self.get("instrument", DataStore)
+        return self._get("instrument", DataStore)
 
     @property
     def insurance(self) -> DataStore:
-        return self.get("insurance", DataStore)
+        return self._get("insurance", DataStore)
 
     @property
     def liquidation(self) -> DataStore:
-        return self.get("liquidation", DataStore)
+        return self._get("liquidation", DataStore)
 
     @property
     def orderbook(self) -> DataStore:
-        return self.get("orderBookL2", DataStore)
+        return self._get("orderBookL2", DataStore)
 
     @property
     def quote(self) -> DataStore:
-        return self.get("quote", DataStore)
+        return self._get("quote", DataStore)
 
     @property
     def quotebin1m(self) -> DataStore:
-        return self.get("quoteBin1m", DataStore)
+        return self._get("quoteBin1m", DataStore)
 
     @property
     def quotebin5m(self) -> DataStore:
-        return self.get("quoteBin5m", DataStore)
+        return self._get("quoteBin5m", DataStore)
 
     @property
     def quotebin1h(self) -> DataStore:
-        return self.get("quoteBin1h", DataStore)
+        return self._get("quoteBin1h", DataStore)
 
     @property
     def quotebin1d(self) -> DataStore:
-        return self.get("quoteBin1d", DataStore)
+        return self._get("quoteBin1d", DataStore)
 
     @property
     def trade(self) -> DataStore:
-        return self.get("trade", DataStore)
+        return self._get("trade", DataStore)
 
     @property
     def tradebin1m(self) -> DataStore:
-        return self.get("tradeBin1m", DataStore)
+        return self._get("tradeBin1m", DataStore)
 
     @property
     def tradebin5m(self) -> DataStore:
-        return self.get("tradeBin5m", DataStore)
+        return self._get("tradeBin5m", DataStore)
 
     @property
     def tradebin1h(self) -> DataStore:
-        return self.get("tradeBin1h", DataStore)
+        return self._get("tradeBin1h", DataStore)
 
     @property
     def tradebin1d(self) -> DataStore:
-        return self.get("tradeBin1d", DataStore)
+        return self._get("tradeBin1d", DataStore)
 
     @property
     def execution(self) -> DataStore:
-        return self.get("execution", DataStore)
+        return self._get("execution", DataStore)
 
     @property
     def order(self) -> DataStore:
         """
         アクティブオーダーのみ(約定・キャンセル済みは削除される)
         """
-        return self.get("order", DataStore)
+        return self._get("order", DataStore)
 
     @property
     def margin(self) -> DataStore:
-        return self.get("margin", DataStore)
+        return self._get("margin", DataStore)
 
     @property
     def position(self) -> DataStore:
-        return self.get("position", DataStore)
+        return self._get("position", DataStore)
 
     @property
     def wallet(self) -> DataStore:
-        return self.get("wallet", DataStore)
+        return self._get("wallet", DataStore)

@@ -9,9 +9,9 @@ from ..ws import ClientWebSocketResponse
 
 class bitbankDataStore(DataStoreCollection):
     def _init(self) -> None:
-        self.create("transactions", datastore_class=Transactions)
-        self.create("depth", datastore_class=Depth)
-        self.create("ticker", datastore_class=Ticker)
+        self._create("transactions", datastore_class=Transactions)
+        self._create("depth", datastore_class=Depth)
+        self._create("ticker", datastore_class=Ticker)
 
     def _onmessage(self, msg: str, ws: ClientWebSocketResponse) -> None:
         if msg.startswith("42"):
@@ -27,15 +27,15 @@ class bitbankDataStore(DataStoreCollection):
 
     @property
     def transactions(self) -> "Transactions":
-        return self.get("transactions", Transactions)
+        return self._get("transactions", Transactions)
 
     @property
     def depth(self) -> "Depth":
-        return self.get("depth", Depth)
+        return self._get("depth", Depth)
 
     @property
     def ticker(self) -> "Ticker":
-        return self.get("ticker", Ticker)
+        return self._get("ticker", Ticker)
 
 
 class Transactions(DataStore):

@@ -29,8 +29,8 @@ WebSocket API Returns
    pybotters.WebSocketApp
 
 
-WebSocket handlers
-------------------
+Common WebSocket handlers
+-------------------------
 
 .. autosummary::
    :toctree: generated
@@ -40,8 +40,8 @@ WebSocket handlers
 
 .. _exchange-specific-websocket-handlers:
 
-Exchange-specific WebSocket handlers
-------------------------------------
+Exchange-specific Data Stores
+-----------------------------
 
 .. autosummary::
    :toctree: generated
@@ -61,13 +61,21 @@ Exchange-specific WebSocket handlers
    pybotters.bitbankDataStore
 
 
-Abstract WebSocket handlers
----------------------------
+Abstract DataStore
+------------------
 
 .. autosummary::
    :toctree: generated
 
    pybotters.DataStoreCollection
    pybotters.DataStore
+
+
+Store changes
+-------------
+
+.. autosummary::
+   :toctree: generated
+
    pybotters.StoreChange
    pybotters.StoreStream
