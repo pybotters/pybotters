@@ -5,7 +5,6 @@ Client class
 ------------
 
 :class:`pybotters.Client` は HTTP リクエストを行う為のメインクラスです。
-
 :class:`.Client` の利用を開始するにはいくつかのステップが必要です。
 
 1. :mod:`asyncio` と :mod:`pybotters` を ``import`` する
@@ -31,6 +30,12 @@ Client class
 
 .. note::
 
+    :mod:`pybotters` を支える中核は `asyncio <https://docs.python.org/ja/3/library/asyncio.html>`_ と `aiohttp Client <https://docs.aiohttp.org/en/stable/client_quickstart.html>`_ です。
+
+    このユーザーガイド中ではそれらを知識がなくても入門として完結するようにしていますが、実際 pybotters を活用しようとなるとそれらの知識は必要となるでしょう。
+
+.. note::
+
     このユーザーガイドの以降で説明する HTTP / WebSocket API には、仮想通貨取引所 bitFlyer の API を例として利用します。
     ただし bitFlyer API の詳しい内容は説明を行いません。
     公式ドキュメントをご確認ください。
@@ -48,6 +53,9 @@ Fetch API
 
 :meth:`.Client.fetch` メソッドで HTTP リクエストを作成します。
 
+:ref:`Fetch API <fetch-api>` は従来の :ref:`HTTP メソッド API <http-method-api>` と比較して、シンプルなリクエスト／レスポンスのフローを提供します。
+一度の ``await`` 式で HTTP レスポンスデータの JSON デコードまで行います。
+
 .. code-block:: python
 
     async def main():
@@ -57,12 +65,16 @@ Fetch API
                 "https://api.bitflyer.com/v1/getticker",
                 params={"product_code": "BTC_JPY"},
             )
+            print(result.response.status, result.response.reason)
             print(result.data)
 
-:ref:`Fetch API <fetch-api>` は従来の :ref:`HTTP メソッド API <http-method-api>` と比較して、シンプルなリクエスト／レスポンスのフローを提供します。
 
-一度の ``await`` 式で HTTP レスポンスデータの JSON デコードまで行います。
-返り値は :class:`.FetchResult` となっており、デコードされた JSON データは :attr:`.FetchResult.data` 属性から参照できます。
+第 1 引数 (``method``) は HTTP メソッドです。 文字列で ``"GET"`` ``"POST"`` 等の HTTP メソッドを指定します。
+第 2 引数 (``url``) はリクエストの URL です。 文字列で指定します。
+
+返り値は :class:`.FetchResult` です。
+:attr:`.FetchResult.response` 属性には `aiohttp.ClientResponse <https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse>`_ が格納されており、
+:attr:`.FetchResult.data` 属性にはデコードされた JSON データが格納されています。
 
 .. versionadded:: 1.0
 
@@ -72,6 +84,9 @@ HTTP method API
 ~~~~~~~~~~~~~~~
 
 従来の :ref:`HTTP メソッド API <http-method-api>` で HTTP リクエストを作成します。
+
+:ref:`HTTP メソッド API <http-method-api>` でリクエストを開始するには *async with* ブロックを利用します。
+こちらは従来の `aiohttp.ClientSession <https://docs.aiohttp.org/en/stable/client_reference.html#client-session>`_ と同様のリクエスト／レスポンスのフローになります。
 
 * :meth:`.Client.request`
 * :meth:`.Client.get`
@@ -97,6 +112,126 @@ HTTP method API
             ) as resp:
                 data = await resp.json()
             print(data)
+
+まず *async with* ブロックの返り値によってレスポンス `aiohttp.ClientResponse <https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse>`_ を受信します。
+このレスポンスは HTTP ヘッダーまでとなります。
+そして *async* :meth:`json` メソッドを ``await`` するによって残りの HTTP 本文が受信され、データが JSON としてデコードされた値が返ります。
+
+Request parameters
+~~~~~~~~~~~~~~~~~~
+
+HTTP リクエストのパラメーターは ``params`` 引数または ``data`` 引数に指定します。
+
+``params`` 引数は「**URL クエリ文字列**」です。
+主に ``GET`` リクエストに利用します。
+ただし一部の仮想通貨取引所 API においては ``POST PUT DELETE`` リクエストでも利用することがあります。
+
+.. code:: python
+
+    async def main():
+        async with pybotters.Client() as client:
+            result = await client.fetch(
+                "GET",
+                "https://api.bitflyer.com/v1/getticker",
+                params={"product_code": "BTC_JPY"},
+            )
+            print(r.response.status, r.response.reason)
+            print(result.data)
+
+``data`` 引数は「**HTTP 本文**」です。
+主に ``POST`` リクエストで送信する JSON データとして利用します。
+
+.. code:: python
+
+    async def main():
+        async with pybotters.Client() as client:
+            result = await client.fetch(
+                "POST",
+                "https://api.bitflyer.com/v1/me/sendchildorder",
+                data={"product_code": "BTC_JPY", "child_order_type": "MARKET", "size": 0.01},
+            )  # NOTE: Authentication is required
+            print(r.response.status, r.response.reason)
+            print(result.data)
+
+これらの仕様は :ref:`Fetch API <fetch-api>` と :ref:`HTTP メソッド API <http-method-api>` の間でも同様です。
+
+.. note::
+
+    この例は bitFlyer の「新規注文を出す」 API です。 実際にこれをリクエストするには自動認証 :ref:`authentication` が必要です。
+
+.. warning::
+
+    aiohttp の知識が方は JSON データの POST リクエストに ``json`` 引数を使おうとするかもしれません。
+    **しかし pybotters では** ``json`` **引数は利用できません** 。
+    これは pybotters の自動認証処理による影響です。
+    対応する取引所では ``data`` 引数を指定すると適切な JSON またはフォームなどの Content-Type が設定されます。
+
+Response headers and data
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Fetch API <fetch-api>` の戻り値におけるオブジェクト属性 :attr:`.FetchResult.response` と、
+:ref:`HTTP メソッド API <http-method-api>` の戻り値は共に `aiohttp.ClientResponse <https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse>`_ です。
+
+HTTP レスポンスヘッダーについては、 ``headers`` 属性から取得できます。
+
+.. code:: python
+
+    async def main():
+        async with pybotters.Client() as client:
+            # Fetch API
+            r = await client.fetch(
+                "GET",
+                "https://api.bitflyer.com/v1/getticker",
+                params={"product_code": "BTC_JPY"},
+            )
+            print(r.response.headers)
+
+            # HTTP method API
+            async with client.get(
+                "https://api.bitflyer.com/v1/getticker", params={"product_code": "BTC_JPY"}
+            ) as resp:
+                print(resp.headers)
+
+HTTP レスポンスの JSON データについては、:ref:`Fetch API <fetch-api>` と :ref:`HTTP メソッド API <http-method-api>` にある説明の通りです。
+:ref:`Fetch API <fetch-api>` では :attr:`.FetchResult.data` に格納されており、 :ref:`HTTP メソッド API <http-method-api>` では *async* :meth:`json` メソッドを ``await`` することで取得できます。
+
+.. code:: python
+
+    async def main():
+        async with pybotters.Client() as client:
+            # Fetch API
+            r = await client.fetch(
+                "GET",
+                "https://api.bitflyer.com/v1/getticker",
+                params={"product_code": "BTC_JPY"},
+            )
+            print(r.data)
+
+            # HTTP method API
+            async with client.get(
+                "https://api.bitflyer.com/v1/getticker", params={"product_code": "BTC_JPY"}
+            ) as resp:
+                data = await resp.json()
+                print(data)
+
+Base URL
+--------
+
+:class:`.Client` の引数 ``base_url`` を設定することで、取引所 API エンドポイントのベース URL を省略して HTTP リクエストができます。
+
+``base_url`` を設定した場合、HTTP リクエストでは続きの相対 URL パスを設定します。
+
+.. code:: python
+
+    async def main():
+        async with pybotters.Client(base_url="https://api.bitflyer.com") as client:
+            r = await client.fetch("GET", "/v1/getticker")
+            r = await client.fetch("GET", "/v1/getboard")
+
+            await client.ws_connect("wss://ws.lightstream.bitflyer.com/json-rpc")  # Base URL is not applicable
+
+ただし pybotters では WebSocket API の URL には ``base_url`` は適用しません。
+これは基本的に取引所の HTTP API と WebSocket API のベース URL が異なっている為であり、殆どの場合で期待される動作です。
 
 
 WebSocket API
@@ -141,32 +276,14 @@ WebSocket API
     そうした時に :meth:`.WebSocketApp.wait` はプログラムの終了を防ぐのに役に立ちます。
 
 
-Base URL
-----------------------------
-
-:class:`.Client` の引数 ``base_url`` を設定することで、取引所 API エンドポイントのベース URL を省略して HTTP リクエストができます。
-
-``base_url`` を設定した場合、HTTP リクエストでは続きの相対 URL パスを設定します。
-
-.. code:: python
-
-    async def main():
-        async with pybotters.Client(base_url="https://api.bitflyer.com") as client:
-            r = await client.fetch("GET", "/v1/getticker")
-            r = await client.fetch("GET", "/v1/getboard")
-
-            await client.ws_connect("wss://ws.lightstream.bitflyer.com/json-rpc")  # Base URL is not applicable
-
-ただし pybotters では WebSocket リクエスト :meth:`~.ws_connect` の URL には ``base_url`` は適用しません。
-殆どの取引所では HTTP API 用のベース URL と WebSocket 用のベース URL が異なる為です。
-
+.. _authentication:
 
 Authentication
 --------------
 
 仮想通貨取引所の Private API を利用するには、API キー・シークレットによるユーザー認証が必要です。
 
-pybotters では :class:`.Client` クラスの引数 ``apis`` に API 情報を渡すことで、認証処理が自動的に行われます。
+pybotters では :class:`.Client` クラスの引数 ``apis`` に API 認証情報を渡すことで、認証処理が自動的に行われます。
 
 以下のコードでは自動認証を利用して bitFlyer の Private API で資産残高の取得 (``/v1/me/getbalance``) のリクエストを作成します。
 
@@ -204,7 +321,7 @@ pybotters では :class:`.Client` クラスの引数 ``apis`` に API 情報を�
             await ws.wait()  # Ctrl+C to break
 
 .. warning::
-    コード上に API 情報をハードコードすることはセキュリティリスクがあります。
+    コード上に API 認証情報をハードコードすることはセキュリティリスクがあります。
     ドキュメント上は説明の為にハードコードしていますが、実際は環境変数を利用して ``os.getenv`` などから取得することを推奨します。
 
 引数 ``apis`` の形式は以下のような辞書形式です。
@@ -271,7 +388,6 @@ DataStore
 * データの参照 (特殊)
     * :meth:`.DataStore.sorted` (※板情報系のみ)
         * 板情報を ``"売り", "買い"`` で分類した辞書を返します (例: :ref:`order-book`) 
-        * この辞書の形式は可能な限り、取引所から取得できる元の JSON 形式のようにして返されます
 * データの待機
     * *async* :meth:`.DataStore.wait`
         * DataStore に更新があるまで待機します (例: :ref:`ticker`)
@@ -480,18 +596,15 @@ Order Book
             )
 
             while True:  # Ctrl+C to break
-                board = store.board.sorted()
-                board_10 = board["SELL"][:5][::-1] + board["BUY"][:5]
-                if board_10:
-                    print(*board_10, sep="\n", end="\n\n")
+                board = store.board.sorted(limit=2)
+                print(board)
 
-                await asyncio.sleep(1.0)
+                await store.board.wait()
 
 * :class:`.bitFlyerDataStore` のインスタンスを生成します。
 * :meth:`.Client.ws_connect` の引数 ``send_json`` に板情報 (スナップショットと差分) の購読メッセージを渡します。
 * :meth:`.Client.ws_connect` の引数 ``hdlr_json`` に :class:`.bitFlyerDataStore` のコールバック :meth:`.DataStoreCollection.onmessage` を渡します。
 * :meth:`.bitFlyerDataStore.board.sorted` で Asks / Bids で分類した板情報を取得します。
-* Asks / Bids ベスト 5 (合計 10 行) の板情報に整形して標準出力します。
 
 .. _positions:
 

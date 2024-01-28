@@ -70,7 +70,7 @@ Quickstart
         asyncio.run(main())
 
 .. note::
-    :class:`pybotters.Client` に API 情報 ``apis`` を入力することで、HTTP リクエストの **自動認証機能** が有効になります。
+    :class:`pybotters.Client` に API 認証情報 ``apis`` を入力することで、HTTP リクエストの **自動認証機能** が有効になります。
 
 * WebSocket API (Ticker channel):
 

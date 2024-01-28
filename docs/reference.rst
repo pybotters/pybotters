@@ -13,8 +13,6 @@ Client class
 Fetch API Returns
 -----------------
 
-:meth:`pybotters.Client.fetch` Returns
-
 .. autosummary::
    :toctree: generated
 
@@ -25,8 +23,6 @@ Fetch API Returns
 WebSocket API Returns
 ---------------------
 
-:meth:`pybotters.Client.ws_connect` Returns
-
 .. autosummary::
    :toctree: generated
 
@@ -35,8 +31,6 @@ WebSocket API Returns
 
 WebSocket handlers
 ------------------
-
-WebSocket handlers for :meth:`pybotters.Client.ws_connect`
 
 .. autosummary::
    :toctree: generated
@@ -48,8 +42,6 @@ WebSocket handlers for :meth:`pybotters.Client.ws_connect`
 
 Exchange-specific WebSocket handlers
 ------------------------------------
-
-Exchange-specific WebSocket handlers for :meth:`pybotters.Client.ws_connect`
 
 .. autosummary::
    :toctree: generated
@@ -71,8 +63,6 @@ Exchange-specific WebSocket handlers for :meth:`pybotters.Client.ws_connect`
 
 Abstract WebSocket handlers
 ---------------------------
-
-Abstract WebSocket handler for :meth:`pybotters.Client.ws_connect`
 
 .. autosummary::
    :toctree: generated

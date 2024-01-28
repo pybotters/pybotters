@@ -21,17 +21,17 @@ Implicit loading of ``apis``
 
 2. 環境変数 ``PYBOTTERS_APIS`` にファイルパスを設定する
 
-    環境変数 ``PYBOTTERS_APIS`` に API 情報の JSON ファイルパスを設定することでそのファイルを読み込みます。
+    環境変数 ``PYBOTTERS_APIS`` に API 認証情報の JSON ファイルパスを設定することでそのファイルを読み込みます。
     UNIX 系の環境を利用している場合は、``~/.bashrc`` ファイルなどを編集することで環境変数を設定できます。
 
     .. code:: bash
 
         # .~/.bashrc
-        $ export PYBOTTERS_APIS=/path/to/apis.json
+        export PYBOTTERS_APIS=/path/to/apis.json
 
 **優先順位**
 
-以下のような優先順位で pybotters に API 情報が読み込まれます。 複数の設定があった場合、下位の設定は無視されます。
+以下のような優先順位で pybotters に API 認証情報が読み込まれます。 複数の設定があった場合、下位の設定は無視されます。
 
 1. :class:`.Client` の引数 ``apis`` を明示的に指定する
 2. カレントディレクトリに ``apis.json`` JSON ファイルを配置する
@@ -52,7 +52,7 @@ pybotters の自動認証処理を無効にする場合は、リクエストメ�
 
 .. note::
 
-    pybotters では :class:`~.Client` の引数 ``apis`` に API 情報を渡すことでホスト名に紐づく **全てのリクエスト** への自動認証が有効になります。
+    pybotters では :class:`~.Client` の引数 ``apis`` に API 認証情報を渡すことでホスト名に紐づく **全てのリクエスト** への自動認証が有効になります。
     その為 Public API エンドポイントなどに対しても認証処理が働きます
     (これは pybotters が取引所のホスト名のみ把握しており、URL パス以降を把握していない為です) 。
 
@@ -348,7 +348,7 @@ How to implement original DataStore
         * 処理: :meth:`.DataStore._insert` :meth:`.DataStore._update` :meth:`.DataStore._delete` などの CURD メソッドを用いて、レスポンスを解釈して内部のデータを更新します
     5. :meth:`sorted` メソッド (※板情報系のみ)
         * 引数: ``query: dict[str, Any]``
-        * 処理: 板情報を ``"売り", "買い"`` で分類した辞書を返します (:ref:`bitFlyerDataStore での例 <order-book>`) 。 この辞書の形式は可能な限り、取引所から取得できる元の JSON 形式のようにして返します
+        * 処理: 板情報を ``"売り", "買い"`` で分類した辞書を返します (:ref:`bitFlyerDataStore での例 <order-book>`) 。
 
 次のコードはシンプルな独自の DataStore の例です。
 
@@ -423,16 +423,15 @@ How to implement original DataStore
             self._update(data_to_update)
             self._update(data_to_delete)
 
-        def sorted(self, query=None):
-            if query is None:
-                query = {}
-            result = {"asks": [], "bids": []}
-            for item in self:
-                if all(k in item and query[k] == item[k] for k in query):
-                    result[item["side"]].append(item)
-            result["asks"].sort(key=lambda x: x["price"])
-            result["bids"].sort(key=lambda x: x["price"], reverse=True)
-            return result
+        def sorted(self, query=None, limit=None):
+            return self._sorted(
+                item_key="side",
+                item_asc_key="asks",
+                item_desc_key="bids",
+                sort_key="price",
+                query=query,
+                limit=limit,
+            )
 
 
     class Position(DataStore):

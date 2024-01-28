@@ -52,6 +52,10 @@ class WebSocketApp:
         backoff: tuple[float, float, float, float] = _DEFAULT_BACKOFF,
         **kwargs: Any,
     ) -> None:
+        """WebSocket Application.
+
+        自動再接続、自動認証、自動 PING/PONG を備えた WebSocket アプリケーション
+        """
         self._session = session
         self._url = url
 
@@ -104,8 +108,10 @@ class WebSocketApp:
 
     @property
     def url(self) -> str:
-        """
-        WebSocket の接続 URL です。 接続中に値を変更した場合は、再接続時に設定 URL に接続されます。
+        """WebSocket URL.
+
+        WebSocket の接続 URL です。
+        接続中に値を変更した場合は、再接続時に設定 URL に接続されます。
         """
         return self._url
 
@@ -115,7 +121,8 @@ class WebSocketApp:
 
     @property
     def current_ws(self) -> ClientWebSocketResponse | None:
-        """
+        """Current WebSocket connection.
+
         現在の WebSocket コネクションです。
         現在のコネクションが存在する場合は ClientWebSocketResponse を返します。
         コネクションが存在しない場合は None を返します。
@@ -237,6 +244,12 @@ class WebSocketApp:
                     self._loop.call_soon(hdlr, data, ws)
 
     async def wait(self) -> None:
+        """Wait WebSocketApp.
+
+        WebSocketApp の待機を待ちます。
+        ただし WebSocketApp は自動再接続の機構を備えるので、実質的に無限待機です。
+        プログラムの終了を防ぐのに役に立ちます。
+        """
         await self._task
 
     async def _wait_handshake(self) -> "WebSocketApp":
@@ -248,10 +261,14 @@ class WebSocketApp:
 
 
 class WebSocketQueue(asyncio.Queue):
+    """WebSocket queue (from asyncio.Queue)."""
+
     def onmessage(self, msg: Any, ws: aiohttp.ClientWebSocketResponse):
+        """WebSocket message hander callback."""
         self.put_nowait(msg)
 
     async def __aiter__(self) -> AsyncIterator[Any]:
+        """Receive WebSocket message."""
         while True:
             yield await self.get()
 

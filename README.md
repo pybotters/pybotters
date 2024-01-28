@@ -41,7 +41,7 @@ It has the following features, making it useful for developing a trading bot.
     - **High-speed data processing** and querying
 - ✨ Other Experiences
     - Support for type hints.
-    - Asynchronous programming using `asyncio`.
+    - Asynchronous programming using [`asyncio`](https://docs.python.org/ja/3/library/asyncio.html).
     - Discord community.
 
 ## 🏦 Exchanges
@@ -85,49 +85,6 @@ Example of bitFlyer API:
 
 ### HTTP API
 
-```python
-import asyncio
-
-import pybotters
-
-apis = {
-    "bitflyer": ["YOUER_BITFLYER_API_KEY", "YOUER_BITFLYER_API_SECRET"],
-}
-
-
-async def main():
-    async with pybotters.Client(
-        apis=apis, base_url="https://api.bitflyer.com"
-    ) as client:
-        # Fetch balance
-        async with client.get("/v1/me/getbalance") as resp:
-            data = await resp.json()
-
-        print(resp.status, resp.reason)
-        print(data)
-
-        # Create order
-        CREATE_ORDER = False  # Set to `True` if you are trying to create an order.
-        if CREATE_ORDER:
-            async with client.post(
-                "/v1/me/sendchildorder",
-                data={
-                    "product_code": "BTC_JPY",
-                    "child_order_type": "MARKET",
-                    "side": "BUY",
-                    "size": 0.001,
-                },
-            ) as resp:
-                data = await resp.json()
-
-            print(data)
-
-
-asyncio.run(main())
-```
-
-#### New interface
-
 New interface from version 1.0: **Fetch API**.
 
 More simple request/response.
@@ -168,6 +125,49 @@ async def main():
 
             print(r.response.status, r.response.reason, r.response.url)
             print(r.data)
+
+
+asyncio.run(main())
+```
+
+aiohttp-based API.
+
+```python
+import asyncio
+
+import pybotters
+
+apis = {
+    "bitflyer": ["YOUER_BITFLYER_API_KEY", "YOUER_BITFLYER_API_SECRET"],
+}
+
+
+async def main():
+    async with pybotters.Client(
+        apis=apis, base_url="https://api.bitflyer.com"
+    ) as client:
+        # Fetch balance
+        async with client.get("/v1/me/getbalance") as resp:
+            data = await resp.json()
+
+        print(resp.status, resp.reason)
+        print(data)
+
+        # Create order
+        CREATE_ORDER = False  # Set to `True` if you are trying to create an order.
+        if CREATE_ORDER:
+            async with client.post(
+                "/v1/me/sendchildorder",
+                data={
+                    "product_code": "BTC_JPY",
+                    "child_order_type": "MARKET",
+                    "side": "BUY",
+                    "size": 0.001,
+                },
+            ) as resp:
+                data = await resp.json()
+
+            print(data)
 
 
 asyncio.run(main())
@@ -239,8 +239,8 @@ async def main():
         # Watch for the best prices on Board. (Ctrl+C to break)
         with store.board.watch() as stream:
             async for change in stream:
-                board = store.board.sorted()
-                print({k: v[:1] for k, v in board.items()})
+                board = store.board.sorted(limit=2)
+                print(board)
 
 
 try:

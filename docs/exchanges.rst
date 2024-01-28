@@ -1,10 +1,12 @@
 Exchanges
 =========
 
-それぞれの取引所での固有の用法を記載します。
+対応取引所において、自動認証処理など pybotters が暗黙的に行っている処理について説明します。
 
 Bybit
 -----
+
+.. literalinclude:: ../example/datastore/bybit.py
 
 Initialize
 ~~~~~~~~~~

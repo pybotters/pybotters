@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class BybitDataStore(DataStoreCollection):
+    """Bybit の DataStoreCollection
+    https://bitgetlimited.github.io/apidoc/en/mix/#websocketapi
+    """
+
     def _init(self) -> None:
         self.create("orderbook", datastore_class=OrderBook)
         self.create("publicTrade", datastore_class=Trade)
