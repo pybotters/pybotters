@@ -248,9 +248,7 @@ class Client:
         )
 
     @staticmethod
-    def _load_apis(
-        apis: dict[str, list[str]] | str | None
-    ) -> dict[str, list[str]]:
+    def _load_apis(apis: dict[str, list[str]] | str | None) -> dict[str, list[str]]:
         if apis is None:
             current_apis = os.path.join(os.getcwd(), "apis.json")
             if os.path.isfile(current_apis):
