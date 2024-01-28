@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict, deque
-from typing import Any, Awaitable, Optional, Union
+from typing import Any, Awaitable, Union
 
 import aiohttp
 

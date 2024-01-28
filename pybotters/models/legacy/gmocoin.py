@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum, auto
-from typing import Any, Awaitable, Optional, TypedDict, cast
+from typing import Any, Awaitable, TypedDict, cast
 
 import aiohttp
 

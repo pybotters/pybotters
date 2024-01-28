@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Awaitable, Optional
+from typing import Awaitable
 
 import aiohttp
 

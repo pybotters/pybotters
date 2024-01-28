@@ -4,7 +4,7 @@ import asyncio
 import copy
 import uuid
 from dataclasses import dataclass
-from typing import Any, Hashable, Iterator, Optional, Type, TypeVar, cast
+from typing import Any, Hashable, Iterator, Type, TypeVar, cast
 
 from .typedefs import Item
 from .ws import ClientWebSocketResponse
@@ -17,8 +17,8 @@ class DataStore:
     def __init__(
         self,
         name: str | None = None,
-        keys: Optional[list[str]] = None,
-        data: Optional[list[Item]] = None,
+        keys: list[str] | None = None,
+        data: list[Item] | None = None,
     ) -> None:
         self.name: str = name
         self._data: dict[uuid.UUID, Item] = {}
@@ -310,7 +310,7 @@ class DataStoreManager:
         if hasattr(self, "_init"):
             getattr(self, "_init")()
 
-    def __getitem__(self, name: str) -> Optional["DataStore"]:
+    def __getitem__(self, name: str) -> DataStore | None:
         return self._stores[name]
 
     def __contains__(self, name: str) -> bool:
@@ -320,8 +320,8 @@ class DataStoreManager:
         self,
         name: str,
         *,
-        keys: Optional[list[str]] = None,
-        data: Optional[list[Item]] = None,
+        keys: list[str] | None = None,
+        data: list[Item] | None = None,
         datastore_class: Type[DataStore] = DataStore,
     ) -> None:
         if keys is None:

@@ -5,7 +5,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Literal, Mapping, Optional, Union
+from typing import Any, Literal, Mapping, Union
 
 import aiohttp
 from aiohttp import hdrs
@@ -80,7 +80,7 @@ class Client:
 
     def __init__(
         self,
-        apis: Optional[Union[dict[str, list[str]], str]] = None,
+        apis: Union[dict[str, list[str]], str] = None,
         base_url: str = "",
         **kwargs: Any,
     ) -> None:
@@ -114,8 +114,8 @@ class Client:
         method: str,
         url: str,
         *,
-        params: Optional[Mapping[str, Any]] = None,
-        data: Optional[dict[str, Any]] = None,
+        params: Mapping[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
         auth: Auth | None = Auth,
         **kwargs: Any,
     ) -> _RequestContextManager:
@@ -133,7 +133,7 @@ class Client:
         method: str,
         url: str,
         *,
-        params: Optional[Mapping[str, str]] = None,
+        params: Mapping[str, str] | None = None,
         data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
@@ -153,7 +153,7 @@ class Client:
         method: Literal["GET", "POST", "PUT", "DELETE"],
         url: str,
         *,
-        params: Optional[Mapping[str, str]] = None,
+        params: Mapping[str, str] | None = None,
         data: Any = None,
         **kwargs: Any,
     ) -> FetchResult:
@@ -172,7 +172,7 @@ class Client:
         self,
         url: str,
         *,
-        params: Optional[Mapping[str, str]] = None,
+        params: Mapping[str, str] | None = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
         return self._request(hdrs.METH_GET, url, params=params, **kwargs)
@@ -208,12 +208,12 @@ class Client:
         self,
         url: str,
         *,
-        send_str: Optional[Union[str, list[str]]] = None,
-        send_bytes: Optional[Union[bytes, list[bytes]]] = None,
-        send_json: Optional[Union[dict, list[dict]]] = None,
-        hdlr_str: Optional[Union[WsStrHandler, list[WsStrHandler]]] = None,
-        hdlr_bytes: Optional[Union[WsBytesHandler, list[WsBytesHandler]]] = None,
-        hdlr_json: Optional[Union[WsJsonHandler, list[WsJsonHandler]]] = None,
+        send_str: Union[str, list[str]] | None = None,
+        send_bytes: Union[bytes, list[bytes]] | None = None,
+        send_json: Union[dict, list[dict]] | None = None,
+        hdlr_str: Union[WsStrHandler, list[WsStrHandler]] | None = None,
+        hdlr_bytes: Union[WsBytesHandler, list[WsBytesHandler]] | None = None,
+        hdlr_json: Union[WsJsonHandler, list[WsJsonHandler]] | None = None,
         backoff: tuple[float, float, float, float] = WebSocketApp.DEFAULT_BACKOFF,
         heartbeat: float = 10.0,
         auth: Auth | None = Auth,
@@ -249,7 +249,7 @@ class Client:
 
     @staticmethod
     def _load_apis(
-        apis: Optional[Union[dict[str, list[str]], str]]
+        apis: Union[dict[str, list[str]], str] | None
     ) -> dict[str, list[str]]:
         if apis is None:
             current_apis = os.path.join(os.getcwd(), "apis.json")
