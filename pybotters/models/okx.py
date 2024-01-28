@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Awaitable, Optional
+from typing import Any, Awaitable
 
 import aiohttp
 
@@ -232,7 +232,7 @@ class Books(DataStore):
 
     def _init(self) -> None:
         self.checksum: dict[str, int] = {}
-        self.ts: Optional[str] = None
+        self.ts: str | None = None
 
     def sorted(
         self, query: Item | None = None, limit: int | None = None

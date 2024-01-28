@@ -1,5 +1,6 @@
-import pybotters
 import toml
+
+import pybotters
 
 
 def test_version():
