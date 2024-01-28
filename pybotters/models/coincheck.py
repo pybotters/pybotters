@@ -64,7 +64,7 @@ class Orderbook(DataStore):
     _KEYS = ["pair", "side", "rate"]
 
     def _init(self):
-        self.last_update_at: Optional[str] = None
+        self.last_update_at: str | None = None
 
     def sorted(
         self, query: Item | None = None, limit: int | None = None
@@ -78,7 +78,7 @@ class Orderbook(DataStore):
             limit=limit,
         )
 
-    def _onresponse(self, pair: Optional[str], data: dict[list[str]]) -> None:
+    def _onresponse(self, pair: str | None, data: dict[list[str]]) -> None:
         if pair is None:
             pair = "btc_jpy"
         self._find_and_delete({"pair": pair})

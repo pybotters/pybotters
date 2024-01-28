@@ -26,7 +26,7 @@ class OrderBookStore(DataStore):
     _KEYS = ["symbol", "side", "price"]
 
     def _init(self) -> None:
-        self.timestamp: Optional[str] = None
+        self.timestamp: str | None = None
 
     def sorted(
         self, query: Item | None = None, limit: int | None = None
@@ -132,7 +132,7 @@ class GMOCoinDataStore(DataStoreManager):
         self.create("positions", datastore_class=PositionStore)
         self.create("executions", datastore_class=ExecutionStore)
         self.create("position_summary", datastore_class=PositionSummaryStore)
-        self.token: Optional[str] = None
+        self.token: str | None = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """

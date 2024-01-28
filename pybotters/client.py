@@ -116,7 +116,7 @@ class Client:
         *,
         params: Optional[Mapping[str, Any]] = None,
         data: Optional[dict[str, Any]] = None,
-        auth: Optional[Auth] = Auth,
+        auth: Auth | None = Auth,
         **kwargs: Any,
     ) -> _RequestContextManager:
         return self._session.request(
@@ -216,7 +216,7 @@ class Client:
         hdlr_json: Optional[Union[WsJsonHandler, list[WsJsonHandler]]] = None,
         backoff: tuple[float, float, float, float] = WebSocketApp.DEFAULT_BACKOFF,
         heartbeat: float = 10.0,
-        auth: Optional[Auth] = Auth,
+        auth: Auth | None = Auth,
         **kwargs: Any,
     ) -> WebSocketApp:
         """

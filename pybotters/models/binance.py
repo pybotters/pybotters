@@ -28,7 +28,7 @@ class BinanceDataStoreBase(DataStoreManager):
         self.create("bookticker", datastore_class=BookTicker)
         self.create("orderbook", datastore_class=OrderBook)
         self.create("order", datastore_class=Order)
-        self.listenkey: Optional[str] = None
+        self.listenkey: str | None = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """
@@ -663,7 +663,7 @@ class Order(DataStore):
         else:
             self._delete(items)
 
-    def _onresponse(self, symbol: Optional[str], data: list[Item]) -> None:
+    def _onresponse(self, symbol: str | None, data: list[Item]) -> None:
         if symbol is not None:
             self._delete(self.find({"s": symbol}))
         else:

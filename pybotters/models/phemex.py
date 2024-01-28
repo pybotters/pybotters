@@ -132,7 +132,7 @@ class OrderBook(DataStore):
     _KEYS = ["symbol", "side", "priceEp"]
 
     def _init(self) -> None:
-        self.timestamp: Optional[int] = None
+        self.timestamp: int | None = None
 
     def sorted(
         self, query: Item | None = None, limit: int | None = None
