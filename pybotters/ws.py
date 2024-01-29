@@ -55,6 +55,8 @@ class WebSocketApp:
         """WebSocket Application.
 
         自動再接続、自動認証、自動 PING/PONG を備えた WebSocket アプリケーションです。
+
+        Usage example: :ref:`websocketqueue`
         """
         self._session = session
         self._url = url

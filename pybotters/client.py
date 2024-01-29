@@ -322,9 +322,9 @@ class FetchResult:
     """Fetch API result.
 
     Attributes:
-        response: aiohttp のレスポンスクラス
-        text: レスポンステキストデータ
-        data: レスポンス JSON データ
+        response: `aiohttp.ClientResponse`
+        text: テキストデータ
+        data: JSON データ (JSON ではない場合は :class:`.NotJSONContent`)
     """
 
     response: aiohttp.ClientResponse

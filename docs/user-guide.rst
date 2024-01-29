@@ -264,7 +264,7 @@ WebSocket API
     指定するハンドラは第 1 引数 ``msg: aiohttp.WSMessage`` 第 2 引数 ``ws: aiohttp.ClientWebSocketResponse`` を取る必要があります。
     上記のコードでは無名関数をハンドラに指定して WebSocket メッセージを標準出力しています。
 
-    pybotters には組み込みのなハンドラとして、汎用性の高い :class:`.WebSocketQueue` クラスや、取引所固有の WebSocket データを扱う :ref:`datastore` クラスがあります。
+    pybotters には組み込みのなハンドラとして、汎用性の高い :ref:`websocketqueue` や、取引所固有の WebSocket データを扱う :ref:`datastore` クラスがあります。
 * 再接続
     さらに :meth:`.Client.ws_connect` メソッドで作成した WebSocket 接続は **自動再接続** の機能を備えています。 これにより切断を意識することなく継続的にデータの取得が可能です。
 
@@ -649,6 +649,8 @@ Positions
 * :meth:`.Client.ws_connect` の引数 ``send_json`` にアカウントの注文イベントの購読メッセージを渡します。
 * :meth:`.Client.ws_connect` の引数 ``hdlr_json`` に :class:`.bitFlyerDataStore` のコールバック :meth:`.DataStoreCollection.onmessage` を渡します。
 * :meth:`.DataStore.wait` でポジションの更新を待機します。
+
+.. _websocketqueue:
 
 WebSocketQueue
 --------------
