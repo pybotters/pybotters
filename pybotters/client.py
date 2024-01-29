@@ -32,7 +32,7 @@ class Client:
     ) -> None:
         """HTTP / WebSocket API Client.
 
-        自動認証を備えた HTTP クライアント
+        自動認証を備えた HTTP クライアントです。
 
         Args:
             apis: API 認証情報
@@ -100,6 +100,8 @@ class Client:
 
         Returns:
             aiohttp.ClientResponse
+
+        Usage example: :ref:`http-method-api`
         """
         return self._request(method, url, params=params, data=data, **kwargs)
 
@@ -124,6 +126,8 @@ class Client:
 
         Returns:
             FetchResult
+
+        Usage example: :ref:`fetch-api`
         """
         async with self.request(
             method, url, params=params, data=data, **kwargs
@@ -153,6 +157,8 @@ class Client:
 
         Returns:
             aiohttp.ClientResponse
+
+        Usage example: :ref:`http-method-api`
         """
         return self._request(hdrs.METH_GET, url, params=params, **kwargs)
 
@@ -173,6 +179,8 @@ class Client:
 
         Returns:
             aiohttp.ClientResponse
+
+        Usage example: :ref:`http-method-api`
         """
         return self._request(hdrs.METH_POST, url, data=data, **kwargs)
 
@@ -194,6 +202,8 @@ class Client:
 
         Returns:
             aiohttp.ClientResponse
+
+        Usage example: :ref:`http-method-api`
         """
         return self._request(hdrs.METH_PUT, url, data=data, **kwargs)
 
@@ -215,6 +225,8 @@ class Client:
 
         Returns:
             aiohttp.ClientResponse
+
+        Usage example: :ref:`http-method-api`
         """
         return self._request(hdrs.METH_DELETE, url, data=data, **kwargs)
 
@@ -250,6 +262,8 @@ class Client:
 
         Returns:
             WebSocketApp
+
+        Usage example: :ref:`websocket-api`
         """
         return WebSocketApp(
             self._session,
@@ -323,7 +337,7 @@ class NotJSONContent:
     """Result of JSON decoding failure.
 
     Attributes:
-        error: 例外 `JSONDecodeError`
+        error: `JSONDecodeError`
     """
 
     error: json.JSONDecodeError

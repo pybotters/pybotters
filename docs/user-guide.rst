@@ -234,6 +234,8 @@ Base URL
 これは基本的に取引所の HTTP API と WebSocket API のベース URL が異なっている為であり、殆どの場合で期待される動作です。
 
 
+.. _websocket-api:
+
 WebSocket API
 -------------
 

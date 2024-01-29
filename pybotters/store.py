@@ -268,7 +268,10 @@ class DataStore:
         self._events.clear()
 
     async def wait(self) -> None:
-        """DataStore にデータの変更があるまで待機します。"""
+        """DataStore にデータの変更があるまで待機します。
+
+        Usage example: :ref:`ticker`
+        """
         event = asyncio.Event()
         self._events.append(event)
         await event.wait()
@@ -280,7 +283,10 @@ class DataStore:
             )
 
     def watch(self) -> "StoreStream":
-        """DataStore の更新データをストリームします。"""
+        """DataStore の更新データをストリームします。
+
+        Usage example: :ref:`execution-history`
+        """
         return StoreStream(self)
 
 
@@ -296,6 +302,8 @@ class StoreChange:
         operation: 変更オペレーション
         source: 変更に影響したデータ。 なければ None が格納されます
         data: 変更されたデータ
+
+    Usage example: :ref:`execution-history`
     """
 
     store: DataStore
@@ -305,7 +313,10 @@ class StoreChange:
 
 
 class StoreStream:
-    """DataStore の変更ストリーム"""
+    """DataStore の変更ストリーム
+
+    Usage example: :ref:`execution-history`
+    """
 
     def __init__(self, store: "DataStore") -> None:
         self._queue = asyncio.Queue()
@@ -335,7 +346,7 @@ class DataStoreCollection:
     """Abstract DataStoreCollection class.
 
     DataStore のコレクションクラスです。
-    DataStore を作成することができ、 1 つまたは複数の DataStore を管理します
+    DataStore を作成することができ、 1 つまたは複数の DataStore を管理します。
     """
 
     def __init__(self) -> None:
@@ -374,7 +385,7 @@ class DataStoreCollection:
     def onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         """WebSocket message handler.
 
-        :meth:`.Client.ws_connect` に渡すコールバックです
+        :meth:`.Client.ws_connect` に渡すコールバックです。
 
         Args:
             msg: WebSocket メッセージ
