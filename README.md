@@ -48,6 +48,10 @@ It has the following features, making it useful for developing a trading bot.
 
 | Name | API auth | DataStore | API docs |
 | --- | --- | --- | --- |
+| bitFlyer | ✅ | ✅ | [Official](https://lightning.bitflyer.com/docs) |
+| GMO Coin | ✅ | ✅ | [Official](https://api.coin.z.com/docs/) |
+| bitbank | ✅ | ✅ | [Official](https://github.com/bitbankinc/bitbank-api-docs) |
+| Coincheck | ✅ | ✅ | [Official](https://coincheck.com/ja/documents/exchange/api) |
 | Bybit | ✅ | ✅ | [Official](https://bybit-exchange.github.io/docs/v5/intro) |
 | Binance | ✅ | ✅ | [Official](https://binance-docs.github.io/apidocs/spot/en/) |
 | OKX | ✅ | ✅ | [Official](https://www.okx.com/docs-v5/en/) |
@@ -56,10 +60,6 @@ It has the following features, making it useful for developing a trading bot.
 | MEXC | ✅ | No support | [Official](https://mexcdevelop.github.io/apidocs/spot_v3_en/) |
 | KuCoin | ✅ | ✅ | [Official](https://www.kucoin.com/docs/beginners/introduction) |
 | BitMEX | ✅ | ✅ | [Official](https://www.bitmex.com/app/apiOverview) |
-| bitFlyer | ✅ | ✅ | [Official](https://lightning.bitflyer.com/docs) |
-| GMO Coin | ✅ | ✅ | [Official](https://api.coin.z.com/docs/) |
-| bitbank | ✅ | ✅ | [Official](https://github.com/bitbankinc/bitbank-api-docs) |
-| Coincheck | ✅ | ✅ | [Official](https://coincheck.com/ja/documents/exchange/api) |
 
 ## 🐍 Requires
 

@@ -38,7 +38,7 @@ Common WebSocket handlers
    pybotters.WebSocketQueue
 
 
-.. _exchange-specific-websocket-handlers:
+.. _exchange-specific-datastore-reference:
 
 Exchange-specific Data Stores
 -----------------------------

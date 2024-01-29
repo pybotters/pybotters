@@ -3,6 +3,7 @@ from __future__ import annotations
 __version__ = "0.17.0"
 
 
+from .auth import Auth
 from .client import Client, FetchResult, NotJSONContent
 from .models.binance import (
     BinanceCOINMDataStore,
@@ -49,4 +50,6 @@ __all__: tuple[str, ...] = (
     "PhemexDataStore",
     "bitFlyerDataStore",
     "bitbankDataStore",
+    # auth
+    "Auth",
 )

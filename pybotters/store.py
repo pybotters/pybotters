@@ -270,7 +270,7 @@ class DataStore:
     async def wait(self) -> None:
         """DataStore にデータの変更があるまで待機します。
 
-        Usage example: :ref:`ticker`
+        Usage example: :ref:`wait`
         """
         event = asyncio.Event()
         self._events.append(event)
@@ -285,7 +285,7 @@ class DataStore:
     def watch(self) -> "StoreStream":
         """DataStore の更新データをストリームします。
 
-        Usage example: :ref:`execution-history`
+        Usage example: :ref:`watch`
         """
         return StoreStream(self)
 
@@ -303,7 +303,7 @@ class StoreChange:
         source: 変更に影響したデータ。 なければ None が格納されます
         data: 変更されたデータ
 
-    Usage example: :ref:`execution-history`
+    Usage example: :ref:`watch`
     """
 
     store: DataStore
@@ -315,7 +315,7 @@ class StoreChange:
 class StoreStream:
     """DataStore の変更ストリーム
 
-    Usage example: :ref:`execution-history`
+    Usage example: :ref:`watch`
     """
 
     def __init__(self, store: "DataStore") -> None:

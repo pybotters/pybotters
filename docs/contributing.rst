@@ -3,6 +3,8 @@ Contributing
 
 pybotters はオープンソースソフトウェアですので、どなたでも開発に参加できます。
 
+**あなたの Pull request やアイディアを積極的に受け入れています！**
+
 当プロジェクトに参加する方法や選定しているツールなどの環境構築方法、リポジトリの運用方針を記載します。
 
 
@@ -11,13 +13,13 @@ TL;DR
 
 **ワークフロー**
 
-0. マシンをセットアップする (Python 3.8, Poetry, dependencies ...)
-1. メンテナと先に議論が必要な場合、Issue を作成する
-2. リポジトリを Fork して Clone する、または既にある場合 origin main を pull する
-3. main ブランチを元に、変更する内容を表す名称のブランチを作成する
-4. 素晴らしいアイディアをソースコードに反映する 💎💎
+0. マシンをセットアップする (Python 3.8, Poetry, venv, dependencies ...)
+1. (Optional) メンテナと議論が必要な場合 `Discussion <https://github.com/MtkN1/pybotters/discussions>`_ または `Issue <https://github.com/MtkN1/pybotters/pulls>`_ を作成する
+2. リポジトリを Fork する
+3. main ブランチを元に、変更する内容を表す名称のブランチ (トピックブランチ) を作成する
+4. あなたのアイディアをソースコードに反映する 💎💎
 5. pytest, black, flake8 を実行して正しいコードかチェックする
-6. Pull Request を作成して、変更内容を記載する
+6. Pull request を作成して、変更内容を記載する
 7. レビューを受け、必要なら修正を行う
 8. あなたのソースコードがマージされます 🚀🚀
 
@@ -161,30 +163,41 @@ Branch Strategy
 GitHub Flow (`日本語訳 <https://gist.github.com/Gab-km/3705015>`_) に従います。
 
 main ブランチが最新の開発ブランチです。
-Fork 及び Clone したリポジトリの main からトピックブランチを作成して、main を対象に Pull Request を送信してください。
+Fork 及び Clone したリポジトリの main からトピックブランチを作成して、main を対象に Pull request を送信してください。
 
 
-Issue
------
+Discussion and Issue
+--------------------
 
-メンテナと先に議論する必要がある場合は、Issue を作成してください。
+**Discussion 👉 Issue 👉 Pull request 👉 Merge!!**
 
-小規模な変更の場合は恐らく不要でしょう。
-大規模な変更の場合は Issue で要件を確認する方が賢明です。
-またはメンテナは小規模な変更でもバックログとして Issue を作成することがあるので、そのように利用しても構いません。
+バグの疑いがある動作を発見したり、追加の機能リクエスト、質問などがある場合は `GitHub Discussion <https://github.com/MtkN1/pybotters/discussions>`_ から始めましょう。
+その内容についてメンテナと議論して明確な回答を得ることができます。
 
-あなたが Pull Request を行わない場合でも、Issue でバグ報告・伺い・提案として Issue を利用することもできます。
+Discussion によってバグの修正や追加機能などの課題が明確化した場合は、その内容を `GitHub Issue <https://github.com/MtkN1/pybotters/pulls>`_ にエスカレーションします。
+Issue はやるべきことのトラッカーとして利用します。
+メンテナまたはコントリビューターはこの Issue リストを元に Pull request をします。
+
+しかし、このプロセスに完全に則る必要はありません。
+内容が明確に感じている場合は Issue から作成しても問題ないし、初めから Pull request を作成しても構いません。
+例えば明らかな小規模バグやドキュメントの誤字修正は Pull request から始めるのが早いです。
+ただし、内容が間違っていたりプロジェクトの方針と異なる場合は我々はご提案を受け付けることができない場合があります。
+内容に不安を感じるのでれば、あなたの時間を無駄にしない為にも Discussion から始めるのがベストだと思います 💬
+
+もちろん Discord サーバーでカジュアルにチャットするのでも構いません！
 
 
-Pull Request
+Pull request
 ------------
 
-Branch Strategy に記したように、main を対象に Pull Request を送信してください。
+Branch Strategy に記したように、main ブランチを対象に Pull request を送信してください。
 
-タイトル及び内容は、日本語または英語で記載してください。
+Pull request タイトルは、英語でかつコミットメッセージとなる文で記述することを推奨します。
+(例: *Fix xxx in SomeExchangeDataStore* *Support SomeExchange HTTP auth* など)
+内容については日本語でも構いません。
 
-Pull Request はメンテナによって *Squash-and-Merge* 戦略でマージされます。
-*Squash-and-Merge* 戦略とは Pull Request の変更が複数のコミットあったとしてもマージ時に 1 つに押し潰されます。
+Pull request はメンテナによって *Squash-and-Merge* 戦略でマージされます。
+*Squash-and-Merge* 戦略とは Pull request の変更が複数のコミットあったとしてもマージ時に 1 つに押し潰されます。
 
 * あなたが Git に不慣れで作業経過のコミットが沢山あったとしても、それらは 1 つに押し潰されます
 * あなたが Git を心得ていて沢山の素敵なコミットメッセージを残したとしても、それらは 1 つに押し潰されます

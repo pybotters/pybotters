@@ -30,9 +30,13 @@ Client class
 
 .. note::
 
-    :mod:`pybotters` を支える中核は `asyncio <https://docs.python.org/ja/3/library/asyncio.html>`_ と `aiohttp Client <https://docs.aiohttp.org/en/stable/client_quickstart.html>`_ です。
+    pybotters の中核機能は `asyncio <https://docs.python.org/ja/3/library/asyncio.html>`_ と `aiohttp <https://docs.aiohttp.org/en/stable/client_quickstart.html>`_ の上に構築されています。
+    それらの知識が全くないと、このユーザーガイドを進めるのは難しいかもしれません。
 
-    このユーザーガイド中ではそれらを知識がなくても入門として完結するようにしていますが、実際 pybotters を活用しようとなるとそれらの知識は必要となるでしょう。
+    asyncio と aiohttp を掻い摘んで理解するには、著者によるこちらの記事がおすすめです。
+
+    botterのためのasyncio
+    https://zenn.dev/mtkn1/articles/c61e77c1d221aa
 
 .. note::
 
@@ -161,7 +165,7 @@ HTTP リクエストのパラメーターは ``params`` 引数または ``data``
 
 .. warning::
 
-    aiohttp の知識が方は JSON データの POST リクエストに ``json`` 引数を使おうとするかもしれません。
+    aiohttp の知識がある方は JSON データの POST リクエストに ``json`` 引数を使おうとするかもしれません。
     **しかし pybotters では** ``json`` **引数は利用できません** 。
     これは pybotters の自動認証処理による影響です。
     対応する取引所では ``data`` 引数を指定すると適切な JSON またはフォームなどの Content-Type が設定されます。
@@ -241,7 +245,7 @@ WebSocket API
 
 :meth:`.Client.ws_connect` メソッドで WebSocket 接続を作成します。
 
-このメソッドは ``asyncio`` の機能を利用して非同期で WebSocket コネクションを作成します。
+このメソッドは :mod:`asyncio` の機能により非同期で WebSocket コネクションを作成します。
 
 .. code-block:: python
 
@@ -259,12 +263,16 @@ WebSocket API
 
 * WebSocket メッセージの送信
     ``send_str``, ``send_bytes``, ``send_json`` 引数で送信する WebSocket メッセージを指定します。
+
+    これらの引数は送信するメッセージをリストで括ることで複数のメッセージを送信できます (:ref:`multiple-websocket-senders-handlers`) 。
 * WebSocket メッセージの受信
     ``hdlr_str``, ``hdlr_bytes``, ``hdlr_json`` 引数で受信した WebSocket メッセージのハンドラ (コールバック) を指定します。
     指定するハンドラは第 1 引数 ``msg: aiohttp.WSMessage`` 第 2 引数 ``ws: aiohttp.ClientWebSocketResponse`` を取る必要があります。
     上記のコードでは無名関数をハンドラに指定して WebSocket メッセージを標準出力しています。
 
-    pybotters には組み込みのなハンドラとして、汎用性の高い :ref:`websocketqueue` や、取引所固有の WebSocket データを扱う :ref:`datastore` クラスがあります。
+    pybotters には組み込みのハンドラとして、汎用性の高い :ref:`websocketqueue` や、 :ref:`取引所固有の DataStore <exchange-specific-datastore>` があります。
+
+    これらの引数はハンドラをリストで括ることで複数のハンドラを指定できます (:ref:`multiple-websocket-senders-handlers`) 。
 * 再接続
     さらに :meth:`.Client.ws_connect` メソッドで作成した WebSocket 接続は **自動再接続** の機能を備えています。 これにより切断を意識することなく継続的にデータの取得が可能です。
 
@@ -345,8 +353,8 @@ pybotters の自動認証が対応している取引所の API 名はこちら�
 Exchange                  API name
 ========================= =========================
 Binance                   ``binance``
-Binance Testsnet (Future) ``binancefuture_testnet``
-Binance Testsnet (Spot)   ``binancespot_testnet``
+Binance Testnet (Future)  ``binancefuture_testnet``
+Binance Testnet (Spot)    ``binancespot_testnet``
 bitbank                   ``bitbank``
 bitFlyer                  ``bitflyer``
 Bitget                    ``bitget``
@@ -372,50 +380,17 @@ Phemex Testnet            ``phemex_testnet``
         async with pybotters.Client(apis="/path/to/apis.json") as client:
             ...
 
-さらに :ref:`implicit-loading-of-apis` では、環境変数などを利用して ``apis`` 引数の指定を省略することもできます。
+さらに :ref:`implicit-loading-of-apis` では、独自の環境変数などを利用して ``apis`` 引数の指定を省略して API 認証情報のハードコードを避けることができます。
 
 .. _datastore:
 
 DataStore
 ---------
 
-:ref:`datastore` を利用することで、WebSocket のデータを簡単に処理・参照ができます。
+:ref:`datastore` を利用することで WebSocket からのデータを簡単に処理、参照ができます。
 
-* データの参照
-    * :meth:`.DataStore.get`
-        * キーを指定して一意のデータを取得します
-    * :meth:`.DataStore.find`
-        * データをリストで取得します
-        * クエリを指定しない場合全てのデータを取得されます。 クエリを指定すると条件のデータのみを取得します
-* データの参照 (特殊)
-    * :meth:`.DataStore.sorted` (※板情報系のみ)
-        * 板情報を ``"売り", "買い"`` で分類した辞書を返します (例: :ref:`order-book`) 
-* データの待機
-    * *async* :meth:`.DataStore.wait`
-        * DataStore に更新があるまで待機します (例: :ref:`ticker`)
-* データのストリーム
-    * :meth:`.DataStore.watch`
-        * 変更ストリームを開いてデータの更新を監視します (例: :ref:`execution-history`)
-* データのハンドリング
-    * :meth:`.DataStoreCollection.onmessage`
-        * WebSocket メッセージを解釈して DataStore を更新します
-        * :meth:`.Client.ws_connect` のハンドラ引数 ``hdlr_json`` などに渡すコールバックです
-* データの初期化
-    * *async* :meth:`.DataStoreCollection.initialize`
-        * HTTP レスポンスを解釈して DataStore を初期化します (例: :ref:`positions`)
-
-.. note::
-    仮想通貨取引所の WebSocket API ではリアルタイムで配信されるマーケットやアカウントのデータを取得できます。
-    しかし WebSocket で配信されるデータは、差分データとなっている場合があります。
-    例えば、板情報であればは配信されるのは更新された価格と数量だけ、アカウントの注文情報であれば配信されるのは更新された注文 ID の情報だけ、などです。
-    その場合は、事前に全体のデータを保持しておいて、差分データを受信したら追加／更新／削除の処理をする必要があります。
-
-    pybotters でそれを実現するのが :ref:`datastore` クラスです。
-    pybotters では :ref:`取引所固有の DataStore <exchange-specific-datastore>` が実装されています。
-
-    :ref:`datastore` は「ドキュメント指向データベース」のような機能とデータ構造を持っています。
-
-以下に :ref:`datastore` のデータ構造と :meth:`.DataStore.get` 及び :meth:`.DataStore.find` によるデータ取得方法を示します。
+:ref:`datastore` は「ドキュメント指向データベース」のような機能とデータ構造を持っています。
+以下はデータを参照する為のメソッド :meth:`.DataStore.get` と :meth:`.DataStore.find` の利用例です。
 
 >>> ds = pybotters.DataStore(
 ...     keys=["id"],
@@ -434,10 +409,61 @@ None
 [{'id': 1, 'data': 'foo'}, {'id': 2, 'data': 'bar'}, {'id': 3, 'data': 'baz'}, {'id': 4, 'data': 'foo'}]
 >>> print(ds.find({"data": "foo"}))
 [{'id': 1, 'data': 'foo'}, {'id': 4, 'data': 'foo'}]
+>>> print(ds.find({"id": "SPAM"}))
+[]
+
+* :meth:`.DataStore.get`
+    * DataStore のキーを指定して一意のアイテム (1 件の辞書) を取得します
+    * 一致するアイテムがない場合 ``None`` が返されます
+* :meth:`.DataStore.find`
+    * アイテムをリストで取得します
+    * クエリを指定しない場合全てのデータを取得されます
+    * クエリを指定すると条件のデータのみを取得します。 一致するアイテムがない場合は空のリストが返されます
+
+ただし基本的に **DataStore クラスをそのまま利用するケースはありません**。
+
+上記の例では :meth:`.DataStore.get` と :meth:`.DataStore.find` の説明の為に DataStore をそのまま利用しました。
+基本的なユースケースでは次の :ref:`取引所固有の DataStore <exchange-specific-datastore>` を利用します。
+そこで格納されたデータを参照する方法として上記のメソッドを覚えておく必要があります。
+
+.. * データの参照
+..     * :meth:`.DataStore.get`
+..         * キーを指定して一意のデータを取得します
+..     * :meth:`.DataStore.find`
+..         * データをリストで取得します
+..         * クエリを指定しない場合全てのデータを取得されます。 クエリを指定すると条件のデータのみを取得します
+.. * データの参照 (特殊)
+..     * :meth:`.DataStore.sorted` (※板情報系のみ)
+..         * 板情報を ``"売り", "買い"`` で分類した辞書を返します (例: :ref:`order-book`) 
+.. * データの待機
+..     * *async* :meth:`.DataStore.wait`
+..         * DataStore に更新があるまで待機します (例: :ref:`ticker`)
+.. * データのストリーム
+..     * :meth:`.DataStore.watch`
+..         * 変更ストリームを開いてデータの更新を監視します (例: :ref:`execution-history`)
+.. * データのハンドリング
+..     * :meth:`.DataStoreCollection.onmessage`
+..         * WebSocket メッセージを解釈して DataStore を更新します
+..         * :meth:`.Client.ws_connect` のハンドラ引数 ``hdlr_json`` などに渡すコールバックです
+.. * データの初期化
+..     * *async* :meth:`.DataStoreCollection.initialize`
+..         * HTTP レスポンスのデータを利用して DataStore を初期化します (例: :ref:`positions`)
+..         * WebSocket で初期データが配信されないケースで利用します
 
 .. note::
-    :class:`.DataStore` クラス単体だけではすぐにはあまり役に立ちません。
-    トレード bot などのユースケースでは、次の :ref:`取引所固有の DataStore <exchange-specific-datastore>` を利用します。
+    DataStore は、仮想通貨取引所の WebSocket API から高頻度で配信されるリアルタイムデータを処理してトレード bot から利用できるようにする為に開発されました。
+
+    DataStore の設計は MongoDB などの「ドキュメント指向データベース」を参考にしており、それを単純なリストと辞書のデータ構造で実現しています。
+    :mod:`sqlite3` のインメモリ機能などと比べても高速なデータ参照を実現しています。
+
+    またキー情報をハッシュ化してインデックスを作成することで一意のデータを特定できるようにしています。
+    それにより非常に高い頻度で更新される板情報などの更新処理に対応しています。
+    例えば Pandas DataFrame などのリッチなデータライブラリでリアルタイムの板情報を扱おうとすると、処理時間の注意が必要です。
+    DataFrame の更新には多くの処理が含まれる為、配信されるデータの更新頻度に対して DataFrame の更新処理が追い付かない場合があります。
+    それに比べて pybotters の DataStore はシンプルなデータを構造により高速な更新処理を実現しています。
+
+    ただし DataStore の内部構造は説明のように単純なリストと辞書なので **破壊可能である** ことに注意が必要です。
+    取得したアイテムをユーザー側で更新するべきではありません。
 
 
 .. _exchange-specific-datastore:
@@ -445,9 +471,11 @@ None
 Exchange-specific DataStore
 ---------------------------
 
-取引所固有の :ref:`datastore` は :class:`.DataStoreCollection` を継承しており、
-その取引所の WebSocket チャンネルを表す :class:`.DataStore` が複数のプロパティとして定義されています。
+:ref:`取引所固有の DataStore <exchange-specific-datastore>` は対応取引所における WebSocket チャンネルの DataStore 実装です。
 
+つまり、購読した WebSocket チャンネルのデータがこの取引所固有の DataStore に解釈されることでデータを利用できるようになります。
+
+それぞれの :ref:`取引所固有の DataStore <exchange-specific-datastore>` は :class:`.DataStoreCollection` を継承しており、これは :class:`.DataStore` の集まりです。
 :class:`.DataStoreCollection` と :class:`.DataStore` の関係を一般的な RDB システムに例えると
 「データベース」と「テーブル」のようなものです。 「データベース」には複数の「テーブル」が存在しており、「テーブル」にはデータの実体があります。
 
@@ -459,14 +487,32 @@ Exchange-specific DataStore
     * :attr:`.bitFlyerDataStore.board` (bitFlyer の板情報チャンネルをハンドリングする :class:`.DataStore`)
     * ...
 
-pybotters で提供されている全ての取引所固有の DataStore のリファレンスは :ref:`exchange-specific-websocket-handlers` のページにあります。
+pybotters で提供されている取引所固有の DataStore は :doc:`exchanges` のページから探せます。
+全てのリファレンスについては :ref:`exchange-specific-datastore-reference` のページにあります。
 
-次に :class:`.bitFlyerDataStore` において Ticker、約定履歴、板情報、ポジション、を利用する例を説明します。
+Attributes
+~~~~~~~~~~
 
-.. _ticker:
+WebSocket チャンネルに対応する DataStore は、それぞれの取引所固有の DataStore の属性として割り当てられています。
 
-Ticker
-~~~~~~
+>>> store = pybotters.bitFlyerDataStore()
+>>> store.ticker
+<pybotters.models.bitflyer.Ticker object at 0x7f766b9d67f0>
+>>> store.executions
+<pybotters.models.bitflyer.Executions object at 0x7f766b9d6730>
+>>> store.board
+<pybotters.models.bitflyer.Board object at 0x7f7666398d90>
+
+WebSocket チャンネルに対応する全ての属性については、個別のリファレンスをご覧ください。
+
+.. _onmessage:
+
+onmessage
+~~~~~~~~~
+
+取引所固有の DataStore を利用するには、コールバック :attr:`.DataStoreCollection.onmessage` を :meth:`.Client.ws_connect` のハンドラ引数に渡します。
+
+次のコードは bitFlyer の Ticker チャンネルを購読して DataStore としてデータを参照する例です。
 
 .. code:: python
 
@@ -490,89 +536,64 @@ Ticker
 
                 await store.ticker.wait()
 
-* :class:`.bitFlyerDataStore` のインスタンスを生成します。
-* :meth:`.Client.ws_connect` の引数 ``send_json`` に Ticker の購読メッセージを渡します。
-* :meth:`.Client.ws_connect` の引数 ``hdlr_json`` に :class:`.bitFlyerDataStore` のコールバック :meth:`.DataStoreCollection.onmessage` を渡します。
-* :meth:`.DataStore.get` で ``BTC_JPY`` の Ticker を取得して標準出力します。
-* :meth:`.DataStore.wait` で Ticker の更新を待機します。
-* WebSocket によりデータが非同期で受信しているので :meth:`.DataStore.get` による Ticker の取得はループごとに異なる値にはるはずです。
+.. _initialize:
 
-.. note::
-    :meth:`.DataStore.get` は最初は ``None`` が出力されるはずです。
-    これは WebSocket は非同期でデータがやりとりされており、まだ最初はデータが受信されていないことを示しています。
-    トレード bot のユースケースで WebSocket のデータを扱う場合は、まず最初に :meth:`.DataStore.wait` を用いて初期データを受信しておくことが重要です。
+initialize
+~~~~~~~~~~
 
-または複数銘柄のデータがあるなどの場合は :meth:`.DataStore.find` でストア内の全てのデータを取得できます。
+WebSocket API は HTTP API と違って購読を開始しても「それ以降に更新されたデータ」しか配信されない場合があります。
+そうするとプログラム開始時に「初期データ」が存在せず DataStore は空になってしまうので、トレード bot で利用するには不便です。
+
+*async* :meth:`.DataStoreCollection.initialize` メソッドを利用すると HTTP API のデータを初期データとして格納できます。
+
+次のコードは bitFlyer のポジションを HTTP API で初期化して、約定イベントチャンネルを購読することで完全なポジションを構築する例です。
 
 .. code:: python
 
     async def main():
-        async with pybotters.Client() as client:
+        apis = {
+        "bitflyer": ["BITFLYER_API_KEY", "BITFLYER_API_SECRET"],
+        }
+        async with pybotters.Client(apis=apis, base_url="https://api.bitflyer.com") as client:
             store = pybotters.bitFlyerDataStore()
+
+            await store.initialize(
+                client.get("/v1/me/getpositions", params={"product_code": "FX_BTC_JPY"})
+            )
 
             await client.ws_connect(
                 "wss://ws.lightstream.bitflyer.com/json-rpc",
                 send_json=[
                     {
                         "method": "subscribe",
-                        "params": {"channel": "lightning_ticker_BTC_JPY"},
+                        "params": {"channel": "child_order_events"},
                         "id": 1,
-                    },
-                    {
-                        "method": "subscribe",
-                        "params": {"channel": "lightning_ticker_ETH_JPY"},
-                        "id": 2,
                     },
                 ],
                 hdlr_json=store.onmessage,
             )
 
             while True:  # Ctrl+C to break
-                tickers = store.ticker.find()
-                print(tickers)
+                positions = store.positions.find()
+                print(positions)
 
-                await store.ticker.wait()
+                await store.positions.wait()
 
-.. _execution-history:
+:meth:`.DataStoreCollection.initialize` はそれぞれの取引所固有の DataStore において個別に実装されています。
+その為、初期化に対応している HTTP API エンドポイントも異なります。
+詳しくは個別のリファレンスをご覧ください。
 
-Execution History
-~~~~~~~~~~~~~~~~~
+.. _sorted:
 
-.. code:: python
+sorted
+~~~~~~
 
-    async def main():
-        async with pybotters.Client() as client:
-            store = pybotters.bitFlyerDataStore()
+取引所固有の DataStore において Order Book 系の DataStore には :meth:`.DataStore.sorted` メソッドが実装されています。
 
-            await client.ws_connect(
-                "wss://ws.lightstream.bitflyer.com/json-rpc",
-                send_json={
-                    "method": "subscribe",
-                    "params": {"channel": "lightning_executions_BTC_JPY"},
-                    "id": 1,
-                },
-                hdlr_json=store.onmessage,
-            )
+これを利用するとリストでデータを参照する :meth:`.DataStore.find` とは違って、 ``{"asks": [...], "bids": [...]}`` のような辞書形式で板情報が参照できます。
+また板情報はソート済みで返されるのでトレード bot で利用するのに便利です。
 
-            with store.executions.watch() as stream:
-                async for change in stream:  # Ctrl+C to break
-                    print(change.data)
-
-* :class:`.bitFlyerDataStore` のインスタンスを生成します。
-* :meth:`.Client.ws_connect` の引数 ``send_json`` に約定履歴の購読メッセージを渡します。
-* :meth:`.Client.ws_connect` の引数 ``hdlr_json`` に :class:`.bitFlyerDataStore` のコールバック :meth:`.DataStoreCollection.onmessage` を渡します。
-* :meth:`.DataStore.watch` で約定履歴の変更ストリーム :class:`.StoreStream` を開きます。
-* ``async for`` で変更ストリームをイテレートして変更クラス :class:`.StoreChange` を取得します。
-* 約定履歴の変更ストリームは、約定履歴の追加 (``insert``) ごとにイテレートされます。 つまり取引所で約定が発生するごとに ``async for`` がループします。
-    * 変更ストリームは他に更新 (``update``) 削除 (``delete``) イベントが存在します。 更新、削除が行われる板情報や注文などのストアで発生します。
-
-.. note::
-    取引所において約定が発生するまでデータは出力されません。 約定がない場合は時間をおいて確認してみてください。
-
-.. _order-book:
-
-Order Book
-~~~~~~~~~~
+次のコードは bitFlyer の板情報を :meth:`.DataStore.sorted` で取得する例です。
 
 .. code:: python
 
@@ -603,52 +624,76 @@ Order Book
 
                 await store.board.wait()
 
-* :class:`.bitFlyerDataStore` のインスタンスを生成します。
-* :meth:`.Client.ws_connect` の引数 ``send_json`` に板情報 (スナップショットと差分) の購読メッセージを渡します。
-* :meth:`.Client.ws_connect` の引数 ``hdlr_json`` に :class:`.bitFlyerDataStore` のコールバック :meth:`.DataStoreCollection.onmessage` を渡します。
-* :meth:`.bitFlyerDataStore.board.sorted` で Asks / Bids で分類した板情報を取得します。
+.. _wait:
 
-.. _positions:
+wait
+~~~~
 
-Positions
-~~~~~~~~~
+*async* :meth:`.DataStore.wait` メソッドは、その DataStore に更新が発生するまで待機できます。
+
+上で説明した :ref:`onmessage` と :ref:`sorted` の例では、データの受信が始まる前に ``while True`` のループが始まるので最初に ``None`` や空のデータが標準出力されるはずです。
+DataStore の参照をする前に :meth:`.DataStore.wait` することでデータの受信を待機できます。
+
+次のコードは bitFlyer の Ticker を 2 銘柄を購読して受信するまで待機する例です。
 
 .. code:: python
 
     async def main():
-        apis = {
-        "bitflyer": ["BITFLYER_API_KEY", "BITFLYER_API_SECRET"],
-        }
-        async with pybotters.Client(apis=apis, base_url="https://api.bitflyer.com") as client:
+        async with pybotters.Client() as client:
             store = pybotters.bitFlyerDataStore()
-
-            await store.initialize(
-                client.get("/v1/me/getpositions")
-            )
 
             await client.ws_connect(
                 "wss://ws.lightstream.bitflyer.com/json-rpc",
                 send_json=[
                     {
                         "method": "subscribe",
-                        "params": {"channel": "child_order_events"},
+                        "params": {"channel": "lightning_ticker_BTC_JPY"},
                         "id": 1,
+                    },
+                    {
+                        "method": "subscribe",
+                        "params": {"channel": "lightning_ticker_ETH_JPY"},
+                        "id": 2,
                     },
                 ],
                 hdlr_json=store.onmessage,
             )
 
-            while True:  # Ctrl+C to break
-                positions = store.positions.find()
-                print(positions)
+            while not len(store.ticker):
+                await store.ticker.wait()
 
-                await store.positions.wait()
+            print(store.ticker.find())
 
-* :class:`.bitFlyerDataStore` のインスタンスを生成します。
-* :meth:`.bitFlyerDataStore.initialize` メソッドに、:meth:`.Client.get` を渡して HTTP レスポンスでポジションストアのデータを初期化します
-* :meth:`.Client.ws_connect` の引数 ``send_json`` にアカウントの注文イベントの購読メッセージを渡します。
-* :meth:`.Client.ws_connect` の引数 ``hdlr_json`` に :class:`.bitFlyerDataStore` のコールバック :meth:`.DataStoreCollection.onmessage` を渡します。
-* :meth:`.DataStore.wait` でポジションの更新を待機します。
+.. _watch:
+
+watch
+~~~~~
+
+*async* :meth:`.DataStore.watch` メソッドは、変更ストリームを開いて ``async for`` ループで更新データを待機及び取得できます。
+
+*async* :meth:`.DataStore.wait` メソッドと同様に待機できますが、:meth:`.DataStore.watch` では変更データとその詳細を取得できます。
+
+次のコードは bitFlyer の約定履歴を :meth:`.DataStore.watch` で監視する例です。
+
+.. code:: python
+
+    async def main():
+        async with pybotters.Client() as client:
+            store = pybotters.bitFlyerDataStore()
+
+            await client.ws_connect(
+                "wss://ws.lightstream.bitflyer.com/json-rpc",
+                send_json={
+                    "method": "subscribe",
+                    "params": {"channel": "lightning_executions_BTC_JPY"},
+                    "id": 1,
+                },
+                hdlr_json=store.onmessage,
+            )
+
+            with store.executions.watch() as stream:
+                async for change in stream:  # Ctrl+C to break
+                    print(change.data)
 
 .. _websocketqueue:
 

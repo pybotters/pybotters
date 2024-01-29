@@ -9,7 +9,6 @@ Implicit loading of ``apis``
 :class:`.Client` の引数 ``apis`` を指定せず以下のように暗黙的な読み込みが可能です。
 
 1. カレントディレクトリに ``apis.json`` を配置する
-
     カレントディレクトリに ``apis.json`` という名前の JSON ファイルを配置することで自動的にそのファイルを読み込ます。
 
     .. NOTE::
@@ -20,7 +19,6 @@ Implicit loading of ``apis``
         ``.gitignore`` に ``apis.json`` を追加してください。
 
 2. 環境変数 ``PYBOTTERS_APIS`` にファイルパスを設定する
-
     環境変数 ``PYBOTTERS_APIS`` に API 認証情報の JSON ファイルパスを設定することでそのファイルを読み込みます。
     UNIX 系の環境を利用している場合は、``~/.bashrc`` ファイルなどを編集することで環境変数を設定できます。
 
@@ -121,6 +119,8 @@ pybotters がラップしている :class:`aiohttp.ClientSession` や :meth:`aio
             # TimeoutError will be raised
             await client.fetch("GET", "https://httpbin.org/delay/10", timeout=3.0)
 
+
+.. _multiple-websocket-senders-handlers:
 
 Multiple WebSocket senders/handlers
 -----------------------------------
