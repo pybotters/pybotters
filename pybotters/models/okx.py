@@ -14,9 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class OKXDataStore(DataStoreCollection):
-    """
-    OKXのデータストアマネージャー
-    """
+    """OKX の DataStoreCollection クラス"""
 
     def _init(self) -> None:
         self._create("instruments", datastore_class=Instruments)
@@ -44,12 +42,13 @@ class OKXDataStore(DataStoreCollection):
         self._create("account-greeks", datastore_class=AccountGreeks)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
-        """
+        """Initialize DataStore from HTTP response data.
+
         対応エンドポイント
 
-        - GET /api/v5/trade/orders-pending (DataStore: orders)
-        - GET /api/v5/trade/orders-algo-pending (DataStore: ordersalgo, algoadvance)
-        """
+        - GET /api/v5/trade/orders-pending (:attr:`.OKXDataStore.orders`)
+        - GET /api/v5/trade/orders-algo-pending (:attr:`.OKXDataStore.ordersalgo` :attr:`.OKXDataStore.algoadvance`)
+        """  # noqa: E501
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -82,90 +81,115 @@ class OKXDataStore(DataStoreCollection):
 
     @property
     def instruments(self) -> "Instruments":
+        """instruments channel."""
         return self._get("instruments", Instruments)
 
     @property
     def tickers(self) -> "Tickers":
+        """tickers channel."""
         return self._get("tickers", Tickers)
 
     @property
     def openinterest(self) -> "OpenInterest":
+        """openinterest channel."""
         return self._get("open-interest", OpenInterest)
 
     @property
     def candle(self) -> "Candle":
+        """candle channel."""
         return self._get("candle", Candle)
 
     @property
     def trades(self) -> "Trades":
+        """trades channel."""
         return self._get("trades", Trades)
 
     @property
     def estimatedprice(self) -> "EstimatedPrice":
+        """estimatedprice channel."""
         return self._get("estimated-price", EstimatedPrice)
 
     @property
     def markprice(self) -> "MarkPrice":
+        """markprice channel."""
         return self._get("mark-price", MarkPrice)
 
     @property
     def markpricecandle(self) -> "MarkPriceCandle":
+        """markpricecandle channel."""
         return self._get("mark-price-candle", MarkPriceCandle)
 
     @property
     def pricelimit(self) -> "PriceLimit":
+        """pricelimit channel."""
         return self._get("price-limit", PriceLimit)
 
     @property
     def books(self) -> "Books":
+        """books channel."""
         return self._get("books", Books)
 
     @property
     def optsummary(self) -> "OptSummary":
+        """optsummary channel."""
         return self._get("opt-summary", OptSummary)
 
     @property
     def fundingrate(self) -> "FundingRate":
+        """fundingrate channel."""
         return self._get("funding-rate", FundingRate)
 
     @property
     def indexcandle(self) -> "IndexCandle":
+        """indexcandle channel."""
         return self._get("index-candle", IndexCandle)
 
     @property
     def indextickers(self) -> "IndexTickers":
+        """indextickers channel."""
         return self._get("index-tickers", IndexTickers)
 
     @property
     def account(self) -> "Account":
+        """account channel."""
         return self._get("account", Account)
 
     @property
     def positions(self) -> "Positions":
+        """positions channel."""
         return self._get("positions", Positions)
 
     @property
     def balance_and_position(self) -> "BalanceAndPosition":
+        """balance_and_position channel."""
         return self._get("balance_and_position", BalanceAndPosition)
 
     @property
     def orders(self) -> "Orders":
+        """orders channel.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+        """
         return self._get("orders", Orders)
 
     @property
     def ordersalgo(self) -> "OrdersAlgo":
+        """ordersalgo channel."""
         return self._get("orders-algo", OrdersAlgo)
 
     @property
     def algoadvance(self) -> "AlgoAdvance":
+        """algoadvance channel."""
         return self._get("algo-advance", AlgoAdvance)
 
     @property
     def liquidationwarning(self) -> "LiquidationWarning":
+        """liquidationwarning channel."""
         return self._get("liquidation-warning", LiquidationWarning)
 
     @property
     def accountgreeks(self) -> "AccountGreeks":
+        """accountgreeks channel."""
         return self._get("account-greeks", AccountGreeks)
 
 

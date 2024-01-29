@@ -93,7 +93,10 @@ class BitgetDataStore(DataStoreCollection):
 
     @property
     def orders(self) -> "Orders":
-        """orders channel."""
+        """orders channel.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+        """
         return self._get("orders", Orders)
 
     @property

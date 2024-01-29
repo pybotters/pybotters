@@ -8,6 +8,8 @@ from ..ws import ClientWebSocketResponse
 
 
 class bitbankDataStore(DataStoreCollection):
+    """bitbank の DataStoreCollection クラス"""
+
     def _init(self) -> None:
         self._create("transactions", datastore_class=Transactions)
         self._create("depth", datastore_class=Depth)
@@ -27,14 +29,17 @@ class bitbankDataStore(DataStoreCollection):
 
     @property
     def transactions(self) -> "Transactions":
+        """transactions channel."""
         return self._get("transactions", Transactions)
 
     @property
     def depth(self) -> "Depth":
+        """depth channel."""
         return self._get("depth", Depth)
 
     @property
     def ticker(self) -> "Ticker":
+        """ticker channel."""
         return self._get("ticker", Ticker)
 
 

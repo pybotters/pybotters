@@ -211,7 +211,10 @@ class BinanceDataStoreBase(DataStoreCollection):
 
     @property
     def order(self) -> "Order":
-        """order stream."""
+        """order stream.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+        """
         return self._get("order", Order)
 
 

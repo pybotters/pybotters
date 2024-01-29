@@ -11,7 +11,7 @@ from .ws import ClientWebSocketResponse
 
 
 class DataStore:
-    """DataStore class."""
+    """Abstract DataStore class."""
 
     _KEYS = []
     _MAXLEN = 9999
@@ -332,7 +332,7 @@ class StoreStream:
 
 
 class DataStoreCollection:
-    """DataStoreCollection class.
+    """Abstract DataStoreCollection class.
 
     DataStore のコレクションクラスです。
     DataStore を作成することができ、 1 つまたは複数の DataStore を管理します

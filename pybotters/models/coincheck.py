@@ -11,11 +11,19 @@ from ..ws import ClientWebSocketResponse
 
 
 class CoincheckDataStore(DataStoreCollection):
+    """Coincheck の DataStoreCollection クラス"""
+
     def _init(self) -> None:
         self._create("trades", datastore_class=Trades)
         self._create("orderbook", datastore_class=Orderbook)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """Initialize DataStore from HTTP response data.
+
+        対応エンドポイント
+
+        - GET /api/order_books (:attr:`.CoincheckDataStore.orderbook`)
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -32,10 +40,12 @@ class CoincheckDataStore(DataStoreCollection):
 
     @property
     def trades(self) -> "Trades":
+        """trades channel."""
         return self._get("trades", Trades)
 
     @property
     def orderbook(self) -> "Orderbook":
+        """orderbook channel."""
         return self._get("orderbook", Orderbook)
 
 

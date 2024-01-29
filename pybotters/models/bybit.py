@@ -127,7 +127,10 @@ class BybitDataStore(DataStoreCollection):
 
     @property
     def order(self) -> "Order":
-        """order topic."""
+        """order topic.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+        """
         return self._get("order", Order)
 
     @property

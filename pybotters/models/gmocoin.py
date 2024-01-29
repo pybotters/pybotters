@@ -120,9 +120,7 @@ class PositionSummaryStore(DataStore):
 
 
 class GMOCoinDataStore(DataStoreCollection):
-    """
-    GMOコインのデータストアマネージャー
-    """
+    """GMO Coin の DataStoreCollection クラス"""
 
     def _init(self) -> None:
         self._create("ticker", datastore_class=TickerStore)
@@ -135,14 +133,15 @@ class GMOCoinDataStore(DataStoreCollection):
         self.token: str | None = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
-        """
+        """Initialize DataStore from HTTP response data.
+
         対応エンドポイント
 
-        - GET /private/v1/latestExecutions (DataStore: executions)
-        - GET /private/v1/activeOrders (DataStore: orders)
-        - GET /private/v1/openPositions (DataStore: positions)
-        - GET /private/v1/positionSummary (DataStore: position_summary)
-        - POST /private/v1/ws-auth (Property: token)
+        - GET /private/v1/latestExecutions (:attr:`.CoincheckDataStore.executions`)
+        - GET /private/v1/activeOrders (:attr:`.CoincheckDataStore.orders`)
+        - GET /private/v1/openPositions (:attr:`.CoincheckDataStore.positions`)
+        - GET /private/v1/positionSummary (:attr:`.CoincheckDataStore.position_summary`)
+        - POST /private/v1/ws-auth (:attr:`.CoincheckDataStore.token`)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -207,31 +206,38 @@ class GMOCoinDataStore(DataStoreCollection):
 
     @property
     def ticker(self) -> TickerStore:
+        """ticker channel."""
         return self._get("ticker", TickerStore)
 
     @property
     def orderbooks(self) -> OrderBookStore:
+        """orderbooks channel."""
         return self._get("orderbooks", OrderBookStore)
 
     @property
     def trades(self) -> TradeStore:
+        """trades channel."""
         return self._get("trades", TradeStore)
 
     @property
     def orders(self) -> OrderStore:
-        """
-        アクティブオーダーのみ(約定・キャンセル済みは削除される)
+        """orderEvents channel.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
         """
         return self._get("orders", OrderStore)
 
     @property
     def positions(self) -> PositionStore:
+        """positionEvents channel."""
         return self._get("positions", PositionStore)
 
     @property
     def executions(self) -> ExecutionStore:
+        """executionEvents channel."""
         return self._get("executions", ExecutionStore)
 
     @property
     def position_summary(self) -> PositionSummaryStore:
+        """positionSummaryEvents channel."""
         return self._get("position_summary", PositionSummaryStore)

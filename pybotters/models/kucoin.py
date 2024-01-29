@@ -20,13 +20,7 @@ def _symbol_from_msg(msg):
 
 
 class KuCoinDataStore(DataStoreCollection):
-    """
-    Kucoinのデータストアマネージャー
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(KuCoinDataStore, self).__init__(*args, **kwargs)
-        self._endpoint = None
+    """KuCoin の DataStoreCollection クラス"""
 
     def _init(self) -> None:
         self._create("ticker", datastore_class=Ticker)
@@ -50,13 +44,15 @@ class KuCoinDataStore(DataStoreCollection):
         self._create("transactionstats", datastore_class=TransactionStats)
         self._create("balanceevents", datastore_class=BalanceEvents)
         self._create("positions", datastore_class=Positions)
+        self._endpoint = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
-        """
+        """Initialize DataStore from HTTP response data.
+
         対応エンドポイント
 
-        - GET /api/v1/market/candles (DataStore: Kline)
-        - GET /api/v1/positions (DataStore: Positions)
+        - GET /api/v1/market/candles (:attr:`.KuCoinDataStore.kline`)
+        - GET /api/v1/positions (:attr:`.KuCoinDataStore.positions`)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -151,90 +147,116 @@ class KuCoinDataStore(DataStoreCollection):
 
     @property
     def ticker(self) -> "Ticker":
+        """ticker topic."""
         return self._get("ticker", Ticker)
 
     @property
     def kline(self) -> "Kline":
+        """kline topic."""
         return self._get("kline", Kline)
 
     @property
     def symbolsnapshot(self) -> "SymbolSnapshot":
+        """symbolsnapshot topic."""
         return self._get("symbolsnapshot", SymbolSnapshot)
 
     @property
     def orderbook5(self) -> "TopKOrderBook":
+        """orderbook5 topic."""
         return self._get("orderbook5", TopKOrderBook)
 
     @property
     def orderbook50(self) -> "TopKOrderBook":
+        """orderbook50 topic."""
         return self._get("orderbook50", TopKOrderBook)
 
     @property
     def execution(self) -> "Execution":
+        """execution topic."""
         return self._get("execution", Execution)
 
     @property
     def indexprice(self) -> "IndexPrice":
+        """indexprice topic."""
         return self._get("indexprice", IndexPrice)
 
     @property
     def markprice(self) -> "MarkPrice":
+        """markprice topic."""
         return self._get("markprice", MarkPrice)
 
     @property
     def orderevents(self) -> "OrderEvents":
+        """orderevents topic."""
         return self._get("orderevents", OrderEvents)
 
     @property
     def orders(self) -> "Orders":
+        """orders topic.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+        """
         return self._get("orders", Orders)
 
     @property
     def balance(self) -> "Balance":
+        """balance topic."""
         return self._get("balance", Balance)
 
     @property
     def marginfundingbook(self) -> "MarginFundingBook":
+        """marginfundingbook topic."""
         return self._get("marginfundingbook", MarginFundingBook)
 
     @property
     def marginpositions(self) -> "MarginPositions":
+        """marginpositions topic."""
         return self._get("marginpositions", MarginPositions)
 
     @property
     def marginpositionevents(self) -> "MarginPositionEvents":
+        """marginpositionevents topic."""
         return self._get("marginpositionevents", MarginPositionEvents)
 
     @property
     def marginorderevents(self) -> "MarginOrderEvents":
+        """marginorderevents topic."""
         return self._get("marginorderevents", MarginOrderEvents)
 
     @property
     def marginorders(self) -> "MarginOrders":
+        """marginorders topic."""
         return self._get("marginorders", MarginOrders)
 
     @property
     def instrument(self) -> "Instrument":
+        """instrument topic."""
         return self._get("instrument", Instrument)
 
     @property
     def announcements(self) -> "Announcements":
+        """announcements topic."""
         return self._get("announcements", Announcements)
 
     @property
     def transactionstats(self) -> "TransactionStats":
+        """transactionstats topic."""
         return self._get("transactionstats", TransactionStats)
 
     @property
     def balanceevents(self) -> "BalanceEvents":
+        """balanceevents topic."""
         return self._get("balanceevents", BalanceEvents)
 
     @property
     def positions(self) -> "Positions":
+        """positions topic."""
         return self._get("positions", Positions)
 
     @property
     def endpoint(self):
+        """Retrieved KuCoin WebSocket endpoint."""
+
         if self._endpoint is None:
             raise RuntimeError("A websocket endpoint has not been initialized.")
         return self._endpoint

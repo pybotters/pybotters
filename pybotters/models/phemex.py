@@ -14,10 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class PhemexDataStore(DataStoreCollection):
-    """
-    Phemexのデータストアマネージャー
-    https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
-    """
+    """Phemex の DataStoreCollection クラス"""
 
     def _init(self) -> None:
         self._create("trade", datastore_class=Trade)
@@ -30,13 +27,14 @@ class PhemexDataStore(DataStoreCollection):
         self._create("positions", datastore_class=Positions)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
-        """
+        """Initialize DataStore from HTTP response data.
+
         対応エンドポイント
 
-        - GET /exchange/public/md/v2/kline (DataStore: kline)
-        - GET /exchange/public/md/kline (DataStore: kline)
-        - GET /exchange/public/md/v2/kline/last (DataStore: kline)
-        - GET /exchange/public/md/v2/kline/list (DataStore: kline)
+        - GET /exchange/public/md/v2/kline (:attr:`.PhemexDataStore.kline`)
+        - GET /exchange/public/md/kline (:attr:`.PhemexDataStore.kline`)
+        - GET /exchange/public/md/v2/kline/last (:attr:`.PhemexDataStore.kline`)
+        - GET /exchange/public/md/v2/kline/list (:attr:`.PhemexDataStore.kline`)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -76,34 +74,45 @@ class PhemexDataStore(DataStoreCollection):
 
     @property
     def trade(self) -> "Trade":
+        """trades/trades_p channel."""
         return self._get("trade", Trade)
 
     @property
     def orderbook(self) -> "OrderBook":
+        """book/orderbook_p channel."""
         return self._get("orderbook", OrderBook)
 
     @property
     def ticker(self):
+        """tick/tick_p channel."""
         return self._get("ticker", Ticker)
 
     @property
     def market24h(self) -> "Market24h":
+        """market24h/market24h_p channel."""
         return self._get("market24h", Market24h)
 
     @property
     def kline(self) -> "Kline":
+        """kline/kline_pkline_p channel."""
         return self._get("kline", Kline)
 
     @property
     def accounts(self) -> "Accounts":
+        """accounts/accounts_p channel."""
         return self._get("accounts", Accounts)
 
     @property
     def orders(self) -> "Orders":
+        """orders/orders_p channel.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+        """
         return self._get("orders", Orders)
 
     @property
     def positions(self) -> "Positions":
+        """positions/positions_p channel."""
         return self._get("positions", Positions)
 
 

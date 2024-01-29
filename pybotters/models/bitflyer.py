@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 class bitFlyerDataStore(DataStoreCollection):
+    """bitFlyer の DataStoreCollection クラス"""
+
     def _init(self) -> None:
         self._create("board", datastore_class=Board)
         self._create("ticker", datastore_class=Ticker)
@@ -31,6 +33,15 @@ class bitFlyerDataStore(DataStoreCollection):
         self._snapshots = set()
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """Initialize DataStore from HTTP response data.
+
+        対応エンドポイント
+
+        - GET /v1/me/getchildorders (:attr:`.bitFlyerDataStore.childorders`)
+        - GET /v1/me/getchildorders (:attr:`.bitFlyerDataStore.parentorders`)
+        - GET /v1/me/getpositions (:attr:`.bitFlyerDataStore.positions`)
+        - GET /v1/me/getbalance (:attr:`.bitFlyerDataStore.balance`)
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -82,41 +93,47 @@ class bitFlyerDataStore(DataStoreCollection):
 
     @property
     def board(self) -> "Board":
+        """lightning_board/lightning_board_snapshot channel."""
         return self._get("board", Board)
 
     @property
     def ticker(self) -> "Ticker":
-        """
-        Ticker ストア
-        """
+        """lightning_ticker channel."""
         return self._get("ticker", Ticker)
 
     @property
     def executions(self) -> "Executions":
+        """lightning_executions channel."""
         return self._get("executions", Executions)
 
     @property
     def childorderevents(self) -> "ChildOrderEvents":
+        """board channel."""
         return self._get("childorderevents", ChildOrderEvents)
 
     @property
     def childorders(self) -> "ChildOrders":
+        """child_order_events channel."""
         return self._get("childorders", ChildOrders)
 
     @property
     def parentorderevents(self) -> "ParentOrderEvents":
+        """board channel."""
         return self._get("parentorderevents", ParentOrderEvents)
 
     @property
     def parentorders(self) -> "ParentOrders":
+        """parent_order_events channel."""
         return self._get("parentorders", ParentOrders)
 
     @property
     def positions(self) -> "Positions":
+        """Handmade positions from child_order_events channel."""
         return self._get("positions", Positions)
 
     @property
     def balance(self) -> "Balance":
+        """Handmade balance from child_order_events channel."""
         return self._get("balance", Balance)
 
 
