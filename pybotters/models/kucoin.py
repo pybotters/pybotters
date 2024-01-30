@@ -147,110 +147,185 @@ class KuCoinDataStore(DataStoreCollection):
 
     @property
     def ticker(self) -> "Ticker":
-        """ticker topic."""
+        """/market/ticker, /contractMarket/tickerV2, /contractMarket/ticker topic.
+
+        * https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
+        * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker-v2
+        * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker
+        """
         return self._get("ticker", Ticker)
 
     @property
     def kline(self) -> "Kline":
-        """kline topic."""
+        """/market/candles topic.
+
+        * https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
+        """
         return self._get("kline", Kline)
 
     @property
     def symbolsnapshot(self) -> "SymbolSnapshot":
-        """symbolsnapshot topic."""
+        """/market/snapshot topic.
+
+        * https://www.kucoin.com/docs/websocket/spot-trading/public-channels/symbol-snapshot
+        """
         return self._get("symbolsnapshot", SymbolSnapshot)
 
     @property
     def orderbook5(self) -> "TopKOrderBook":
-        """orderbook5 topic."""
+        """/spotMarket/level2Depth50, /contractMarket/level2Depth5 topic.
+
+        * https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+        * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/level2-5-best-ask-bid-orders
+        """
         return self._get("orderbook5", TopKOrderBook)
 
     @property
     def orderbook50(self) -> "TopKOrderBook":
-        """orderbook50 topic."""
+        """/spotMarket/level2Depth50, /contractMarket/level2Depth50 topic.
+
+        * https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+        * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/level2-50-best-ask-bid-orders
+        """
         return self._get("orderbook50", TopKOrderBook)
 
     @property
     def execution(self) -> "Execution":
-        """execution topic."""
+        """/market/match, /contractMarket/execution topic.
+
+        * https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+        * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/match-execution-data
+        """
         return self._get("execution", Execution)
 
     @property
     def indexprice(self) -> "IndexPrice":
-        """indexprice topic."""
+        """/indicator/index topic.
+
+        * https://www.kucoin.com/docs/websocket/margin-trading/public-channels/index-price
+        """
         return self._get("indexprice", IndexPrice)
 
     @property
     def markprice(self) -> "MarkPrice":
-        """markprice topic."""
+        """/indicator/markPrice topic.
+
+        * https://www.kucoin.com/docs/websocket/margin-trading/public-channels/mark-price
+        """
         return self._get("markprice", MarkPrice)
 
     @property
     def orderevents(self) -> "OrderEvents":
-        """orderevents topic."""
+        """/spotMarket/tradeOrders, /spotMarket/advancedOrders, /contractMarket/tradeOrders, /contractMarket/advancedOrders topic.
+
+        * https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
+        * https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
+        * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/trade-orders
+        * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/stop-order-lifecycle-event
+        """
         return self._get("orderevents", OrderEvents)
 
     @property
     def orders(self) -> "Orders":
-        """orders topic.
+        """tradeOrders/advancedOrders topic.
 
         アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        * https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
+        * https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
+        * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/trade-orders
+        * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/stop-order-lifecycle-event
         """
         return self._get("orders", Orders)
 
     @property
     def balance(self) -> "Balance":
-        """balance topic."""
+        """/account/balance topic.
+
+        * https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
+        """
         return self._get("balance", Balance)
 
     @property
     def marginfundingbook(self) -> "MarginFundingBook":
-        """marginfundingbook topic."""
+        """/margin/fundingBook topic.
+
+        * https://www.kucoin.com/docs/websocket/margin-trading/public-channels/margin-funding-order-book-change
+        """
         return self._get("marginfundingbook", MarginFundingBook)
 
     @property
     def marginpositions(self) -> "MarginPositions":
-        """marginpositions topic."""
+        """/margin/position topic.
+
+        * https://www.kucoin.com/docs/websocket/margin-trading/private-channels/cross-margin-position-event
+        """
         return self._get("marginpositions", MarginPositions)
 
     @property
     def marginpositionevents(self) -> "MarginPositionEvents":
-        """marginpositionevents topic."""
+        """/margin/position topic.
+
+        * https://www.kucoin.com/docs/websocket/margin-trading/private-channels/cross-margin-position-event
+        """
         return self._get("marginpositionevents", MarginPositionEvents)
 
     @property
     def marginorderevents(self) -> "MarginOrderEvents":
-        """marginorderevents topic."""
+        """/margin/loan topic.
+
+        * https://www.kucoin.com/docs/websocket/margin-trading/private-channels/margin-trade-order-event
+        """
         return self._get("marginorderevents", MarginOrderEvents)
 
     @property
     def marginorders(self) -> "MarginOrders":
-        """marginorders topic."""
+        """/margin/loan topic.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        * https://www.kucoin.com/docs/websocket/margin-trading/private-channels/margin-trade-order-event
+        """
         return self._get("marginorders", MarginOrders)
 
     @property
     def instrument(self) -> "Instrument":
-        """instrument topic."""
+        """/contract/instrument topic.
+
+        * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/contract-market-data
+        """
         return self._get("instrument", Instrument)
 
     @property
     def announcements(self) -> "Announcements":
-        """announcements topic."""
+        """/contract/announcement topic.
+
+        * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/funding-fee-settlement
+        """
         return self._get("announcements", Announcements)
 
     @property
     def transactionstats(self) -> "TransactionStats":
-        """transactionstats topic."""
+        """/contractMarket/snapshot topic.
+
+        * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/transaction-statistics-timer-event
+        """
         return self._get("transactionstats", TransactionStats)
 
     @property
     def balanceevents(self) -> "BalanceEvents":
-        """balanceevents topic."""
+        """/contractAccount/wallet topic.
+
+        * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/account-balance-events
+        """
         return self._get("balanceevents", BalanceEvents)
 
     @property
     def positions(self) -> "Positions":
-        """positions topic."""
+        """/contract/position topic.
+
+        * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/position-change-events
+        """
         return self._get("positions", Positions)
 
     @property

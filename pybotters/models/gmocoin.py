@@ -206,17 +206,26 @@ class GMOCoinDataStore(DataStoreCollection):
 
     @property
     def ticker(self) -> TickerStore:
-        """ticker channel."""
+        """ticker channel.
+
+        https://api.coin.z.com/docs/#ws-ticker
+        """
         return self._get("ticker", TickerStore)
 
     @property
     def orderbooks(self) -> OrderBookStore:
-        """orderbooks channel."""
+        """orderbooks channel.
+
+        https://api.coin.z.com/docs/#ws-orderbooks
+        """
         return self._get("orderbooks", OrderBookStore)
 
     @property
     def trades(self) -> TradeStore:
-        """trades channel."""
+        """trades channel.
+
+        https://api.coin.z.com/docs/#ws-trades
+        """
         return self._get("trades", TradeStore)
 
     @property
@@ -224,20 +233,31 @@ class GMOCoinDataStore(DataStoreCollection):
         """orderEvents channel.
 
         アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        https://api.coin.z.com/docs/#ws-order-events
         """
         return self._get("orders", OrderStore)
 
     @property
     def positions(self) -> PositionStore:
-        """positionEvents channel."""
+        """positionEvents channel.
+
+        https://api.coin.z.com/docs/#ws-position-events
+        """
         return self._get("positions", PositionStore)
 
     @property
     def executions(self) -> ExecutionStore:
-        """executionEvents channel."""
+        """executionEvents channel.
+
+        https://api.coin.z.com/docs/#ws-execution-events
+        """
         return self._get("executions", ExecutionStore)
 
     @property
     def position_summary(self) -> PositionSummaryStore:
-        """positionSummaryEvents channel."""
+        """positionSummaryEvents channel.
+
+        https://api.coin.z.com/docs/#ws-position-summary-events
+        """
         return self._get("position_summary", PositionSummaryStore)

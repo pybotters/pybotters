@@ -186,34 +186,85 @@ class BinanceDataStoreBase(DataStoreCollection):
 
     @property
     def trade(self) -> "Trade":
-        """trade/aggTrade stream."""
+        """trade/aggTrade stream.
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+            * https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+        """  # noqa: E501
         return self._get("trade", Trade)
 
     @property
     def kline(self) -> "Kline":
-        """kline stream."""
+        """kline stream.
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-streams
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-streams
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-streams
+        """  # noqa: E501
         return self._get("kline", Kline)
 
     @property
     def ticker(self) -> "Ticker":
-        """24hrMiniTicker/24hrTicker stream."""
+        """24hrMiniTicker/24hrTicker stream.
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+            * https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-mini-ticker-stream
+            * https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-mini-ticker-stream
+            * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
+        """  # noqa: E501
         return self._get("ticker", Ticker)
 
     @property
     def bookticker(self) -> "BookTicker":
-        """bookTicker stream."""
+        """bookTicker stream.
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-book-ticker-streams
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-book-ticker-streams
+        """  # noqa: E501
         return self._get("bookticker", BookTicker)
 
     @property
     def orderbook(self) -> "OrderBook":
-        """depth stream."""
+        """depthUpdate stream.
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
+        """  # noqa: E501
         return self._get("orderbook", OrderBook)
 
     @property
     def order(self) -> "Order":
-        """order stream.
+        """executionReport/ORDER_TRADE_UPDATE from User Data Streams.
 
         アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#event-order-update
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
         """
         return self._get("order", Order)
 
@@ -275,27 +326,47 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
     @property
     def markprice(self) -> "MarkPrice":
-        """markPriceUpdate stream."""
+        """markPriceUpdate stream.
+
+        * https://binance-docs.github.io/apidocs/futures/en/#mark-price-stream
+        * https://binance-docs.github.io/apidocs/delivery/en/#mark-price-stream
+        """
         return self._get("markprice", MarkPrice)
 
     @property
     def continuouskline(self) -> "ContinuousKline":
-        """continuous_kline stream."""
+        """continuous_kline stream.
+
+        * https://binance-docs.github.io/apidocs/futures/en/#continuous-contract-kline-candlestick-data
+        * https://binance-docs.github.io/apidocs/delivery/en/#continuous-contract-kline-candlestick-data
+        """  # noqa: E501
         return self._get("continuouskline", ContinuousKline)
 
     @property
     def liquidation(self) -> "Liquidation":
-        """forceOrder stream."""
+        """forceOrder stream.
+
+        * https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
+        * https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
+        """  # noqa: E501
         return self._get("liquidation", Liquidation)
 
     @property
     def balance(self) -> "Balance":
-        """User Data Streams."""
+        """ACCOUNT_UPDATE from User Data Streams.
+
+        * https://binance-docs.github.io/apidocs/futures/en/#event-balance-and-position-update
+        * https://binance-docs.github.io/apidocs/delivery/en/#event-balance-and-position-update
+        """  # noqa: E501
         return self._get("balance", Balance)
 
     @property
     def position(self) -> "Position":
-        """User Data Streams."""
+        """ACCOUNT_UPDATE from User Data Streams.
+
+        * https://binance-docs.github.io/apidocs/futures/en/#event-balance-and-position-update
+        * https://binance-docs.github.io/apidocs/delivery/en/#event-balance-and-position-update
+        """  # noqa: E501
         return self._get("position", Position)
 
 
@@ -339,12 +410,18 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
 
     @property
     def account(self):
-        """User Data Streams."""
+        """outboundAccountPosition from User Data Streams.
+
+        https://binance-docs.github.io/apidocs/spot/en/#payload-account-update
+        """
         return self._get("account", Account)
 
     @property
     def ocoorder(self):
-        """User Data Streams."""
+        """listStatus from User Data Streams.
+
+        https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+        """
         return self._get("ocoorder", OCOOrder)
 
 
@@ -378,7 +455,10 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
 
     @property
     def compositeindex(self) -> "CompositeIndex":
-        """compositeindex stream."""
+        """compositeindex stream.
+
+        https://binance-docs.github.io/apidocs/futures/en/#composite-index-symbol-information-streams
+        """
         return self._get("compositeindex", CompositeIndex)
 
 
@@ -439,17 +519,26 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
 
     @property
     def indexprice(self) -> "IndexPrice":
-        """indexprice stream."""
+        """indexprice stream.
+
+        https://binance-docs.github.io/apidocs/delivery/en/#index-price-stream
+        """
         return self._get("indexprice", IndexPrice)
 
     @property
     def indexpricekline(self) -> "Kline":
-        """indexpricekline stream."""
+        """indexpricekline stream.
+
+        https://binance-docs.github.io/apidocs/delivery/en/#index-kline-candlestick-streams
+        """
         return self._get("indexpricekline", Kline)
 
     @property
     def markpricekline(self) -> "Kline":
-        """markpricekline stream."""
+        """markpricekline stream.
+
+        https://binance-docs.github.io/apidocs/delivery/en/#mark-price-kline-candlestick-streams
+        """
         return self._get("markpricekline", Kline)
 
 

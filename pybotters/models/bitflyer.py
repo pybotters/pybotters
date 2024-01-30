@@ -93,47 +93,75 @@ class bitFlyerDataStore(DataStoreCollection):
 
     @property
     def board(self) -> "Board":
-        """lightning_board/lightning_board_snapshot channel."""
+        """lightning_board/lightning_board_snapshot channel.
+
+        * https://bf-lightning-api.readme.io/docs/realtime-board-snapshot
+        * https://bf-lightning-api.readme.io/docs/realtime-board
+        """
         return self._get("board", Board)
 
     @property
     def ticker(self) -> "Ticker":
-        """lightning_ticker channel."""
+        """lightning_ticker channel.
+
+        https://bf-lightning-api.readme.io/docs/realtime-ticker
+        """
         return self._get("ticker", Ticker)
 
     @property
     def executions(self) -> "Executions":
-        """lightning_executions channel."""
+        """lightning_executions channel.
+
+        https://bf-lightning-api.readme.io/docs/realtime-executions
+        """
         return self._get("executions", Executions)
 
     @property
     def childorderevents(self) -> "ChildOrderEvents":
-        """board channel."""
+        """child_order_events channel.
+
+        https://bf-lightning-api.readme.io/docs/realtime-child-order-events
+        """
         return self._get("childorderevents", ChildOrderEvents)
 
     @property
     def childorders(self) -> "ChildOrders":
-        """child_order_events channel."""
+        """Handmade childorders from child_order_events channel.
+
+        https://bf-lightning-api.readme.io/docs/realtime-child-order-events
+        """
         return self._get("childorders", ChildOrders)
 
     @property
     def parentorderevents(self) -> "ParentOrderEvents":
-        """board channel."""
+        """parent_order_events channel.
+
+        https://bf-lightning-api.readme.io/docs/realtime-parent-order-events
+        """
         return self._get("parentorderevents", ParentOrderEvents)
 
     @property
     def parentorders(self) -> "ParentOrders":
-        """parent_order_events channel."""
+        """Handmade parentorders from parent_order_events channel.
+
+        https://bf-lightning-api.readme.io/docs/realtime-parent-order-events
+        """
         return self._get("parentorders", ParentOrders)
 
     @property
     def positions(self) -> "Positions":
-        """Handmade positions from child_order_events channel."""
+        """Handmade positions from child_order_events channel.
+
+        https://bf-lightning-api.readme.io/docs/realtime-child-order-events
+        """
         return self._get("positions", Positions)
 
     @property
     def balance(self) -> "Balance":
-        """Handmade balance from child_order_events channel."""
+        """Handmade balance from child_order_events channel.
+
+        https://bf-lightning-api.readme.io/docs/realtime-child-order-events
+        """
         return self._get("balance", Balance)
 
 

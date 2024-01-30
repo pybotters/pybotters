@@ -81,87 +81,138 @@ class OKXDataStore(DataStoreCollection):
 
     @property
     def instruments(self) -> "Instruments":
-        """instruments channel."""
+        """instruments channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-instruments-channel
+        """
         return self._get("instruments", Instruments)
 
     @property
     def tickers(self) -> "Tickers":
-        """tickers channel."""
+        """tickers channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+        """
         return self._get("tickers", Tickers)
 
     @property
     def openinterest(self) -> "OpenInterest":
-        """openinterest channel."""
+        """open-interest channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-open-interest-channel
+        """
         return self._get("open-interest", OpenInterest)
 
     @property
     def candle(self) -> "Candle":
-        """candle channel."""
+        """candle channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+        """
         return self._get("candle", Candle)
 
     @property
     def trades(self) -> "Trades":
-        """trades channel."""
+        """trades channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
+        """
         return self._get("trades", Trades)
 
     @property
     def estimatedprice(self) -> "EstimatedPrice":
-        """estimatedprice channel."""
+        """estimated-price channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-estimated-delivery-exercise-price-channel
+        """
         return self._get("estimated-price", EstimatedPrice)
 
     @property
     def markprice(self) -> "MarkPrice":
-        """markprice channel."""
+        """mark-price channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+        """
         return self._get("mark-price", MarkPrice)
 
     @property
     def markpricecandle(self) -> "MarkPriceCandle":
-        """markpricecandle channel."""
+        """mark-price-candle channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-candlesticks-channel
+        """
         return self._get("mark-price-candle", MarkPriceCandle)
 
     @property
     def pricelimit(self) -> "PriceLimit":
-        """pricelimit channel."""
+        """price-limit channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-price-limit-channel
+        """
         return self._get("price-limit", PriceLimit)
 
     @property
     def books(self) -> "Books":
-        """books channel."""
+        """books channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+        """
         return self._get("books", Books)
 
     @property
     def optsummary(self) -> "OptSummary":
-        """optsummary channel."""
+        """opt-summary channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-option-summary-channel
+        """
         return self._get("opt-summary", OptSummary)
 
     @property
     def fundingrate(self) -> "FundingRate":
-        """fundingrate channel."""
+        """funding-rate channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+        """
         return self._get("funding-rate", FundingRate)
 
     @property
     def indexcandle(self) -> "IndexCandle":
-        """indexcandle channel."""
+        """index-candle channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-index-candlesticks-channel
+        """
         return self._get("index-candle", IndexCandle)
 
     @property
     def indextickers(self) -> "IndexTickers":
-        """indextickers channel."""
+        """index-tickers channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-index-tickers-channel
+        """
         return self._get("index-tickers", IndexTickers)
 
     @property
     def account(self) -> "Account":
-        """account channel."""
+        """account channel.
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel
+        """
         return self._get("account", Account)
 
     @property
     def positions(self) -> "Positions":
-        """positions channel."""
+        """positions channel.
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
+        """
         return self._get("positions", Positions)
 
     @property
     def balance_and_position(self) -> "BalanceAndPosition":
-        """balance_and_position channel."""
+        """balance_and_position channel.
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-balance-and-position-channel
+        """
         return self._get("balance_and_position", BalanceAndPosition)
 
     @property
@@ -169,27 +220,41 @@ class OKXDataStore(DataStoreCollection):
         """orders channel.
 
         アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         """
         return self._get("orders", Orders)
 
     @property
     def ordersalgo(self) -> "OrdersAlgo":
-        """ordersalgo channel."""
+        """ordersalgo channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-ws-algo-orders-channel
+        """
         return self._get("orders-algo", OrdersAlgo)
 
     @property
     def algoadvance(self) -> "AlgoAdvance":
-        """algoadvance channel."""
+        """algoadvance channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-ws-advance-algo-orders-channel
+        """
         return self._get("algo-advance", AlgoAdvance)
 
     @property
     def liquidationwarning(self) -> "LiquidationWarning":
-        """liquidationwarning channel."""
+        """liquidation-warning channel.
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-position-risk-warning
+        """
         return self._get("liquidation-warning", LiquidationWarning)
 
     @property
     def accountgreeks(self) -> "AccountGreeks":
-        """accountgreeks channel."""
+        """account-greeks channel.
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-account-greeks-channel
+        """
         return self._get("account-greeks", AccountGreeks)
 
 

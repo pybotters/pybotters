@@ -40,12 +40,18 @@ class CoincheckDataStore(DataStoreCollection):
 
     @property
     def trades(self) -> "Trades":
-        """trades channel."""
+        """trades channel.
+
+        https://coincheck.com/ja/documents/exchange/api#websocket-trades
+        """
         return self._get("trades", Trades)
 
     @property
     def orderbook(self) -> "Orderbook":
-        """orderbook channel."""
+        """orderbook channel.
+
+        https://coincheck.com/ja/documents/exchange/api#websocket-order-book
+        """
         return self._get("orderbook", Orderbook)
 
 

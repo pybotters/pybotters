@@ -68,27 +68,47 @@ class BitgetDataStore(DataStoreCollection):
 
     @property
     def trade(self) -> "Trade":
-        """trade channel."""
+        """trade channel.
+
+        * https://bitgetlimited.github.io/apidoc/en/spot/#trades-channel
+        * https://bitgetlimited.github.io/apidoc/en/mix/#trades-channel
+        """
         return self._get("trade", Trade)
 
     @property
     def orderbook(self) -> "OrderBook":
-        """books channel."""
+        """books channel.
+
+        * https://bitgetlimited.github.io/apidoc/en/spot/#depth-channel
+        * https://bitgetlimited.github.io/apidoc/en/mix/#order-book-channel
+        """
         return self._get("orderbook", OrderBook)
 
     @property
     def ticker(self):
-        """ticker channel."""
+        """ticker channel.
+
+        * https://bitgetlimited.github.io/apidoc/en/spot/#tickers-channel
+        * https://bitgetlimited.github.io/apidoc/en/mix/#tickers-channel
+        """
         return self._get("ticker", Ticker)
 
     @property
     def candlesticks(self) -> "CandleSticks":
-        """candle1m channel."""
+        """candle1m channel.
+
+        * https://bitgetlimited.github.io/apidoc/en/spot/#candlesticks-channel
+        * https://bitgetlimited.github.io/apidoc/en/mix/#candlesticks-channel
+        """
         return self._get("candlesticks", CandleSticks)
 
     @property
     def account(self) -> "Account":
-        """account channel."""
+        """account channel.
+
+        * https://bitgetlimited.github.io/apidoc/en/mix/#account-channel
+        * https://bitgetlimited.github.io/apidoc/en/spot/#account-channel
+        """
         return self._get("account", Account)
 
     @property
@@ -96,12 +116,18 @@ class BitgetDataStore(DataStoreCollection):
         """orders channel.
 
         アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        * https://bitgetlimited.github.io/apidoc/en/spot/#order-channel
+        * https://bitgetlimited.github.io/apidoc/en/mix/#order-channel
         """
         return self._get("orders", Orders)
 
     @property
     def positions(self) -> "Positions":
-        """positions channel."""
+        """positions channel.
+
+        * https://bitgetlimited.github.io/apidoc/en/mix/#positions-channel
+        """
         return self._get("positions", Positions)
 
 

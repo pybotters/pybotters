@@ -426,30 +426,6 @@ None
 基本的なユースケースでは次の :ref:`取引所固有の DataStore <exchange-specific-datastore>` を利用します。
 そこで格納されたデータを参照する方法として上記のメソッドを覚えておく必要があります。
 
-.. * データの参照
-..     * :meth:`.DataStore.get`
-..         * キーを指定して一意のデータを取得します
-..     * :meth:`.DataStore.find`
-..         * データをリストで取得します
-..         * クエリを指定しない場合全てのデータを取得されます。 クエリを指定すると条件のデータのみを取得します
-.. * データの参照 (特殊)
-..     * :meth:`.DataStore.sorted` (※板情報系のみ)
-..         * 板情報を ``"売り", "買い"`` で分類した辞書を返します (例: :ref:`order-book`) 
-.. * データの待機
-..     * *async* :meth:`.DataStore.wait`
-..         * DataStore に更新があるまで待機します (例: :ref:`ticker`)
-.. * データのストリーム
-..     * :meth:`.DataStore.watch`
-..         * 変更ストリームを開いてデータの更新を監視します (例: :ref:`execution-history`)
-.. * データのハンドリング
-..     * :meth:`.DataStoreCollection.onmessage`
-..         * WebSocket メッセージを解釈して DataStore を更新します
-..         * :meth:`.Client.ws_connect` のハンドラ引数 ``hdlr_json`` などに渡すコールバックです
-.. * データの初期化
-..     * *async* :meth:`.DataStoreCollection.initialize`
-..         * HTTP レスポンスのデータを利用して DataStore を初期化します (例: :ref:`positions`)
-..         * WebSocket で初期データが配信されないケースで利用します
-
 .. note::
     DataStore は、仮想通貨取引所の WebSocket API から高頻度で配信されるリアルタイムデータを処理してトレード bot から利用できるようにする為に開発されました。
 

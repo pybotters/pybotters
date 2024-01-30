@@ -348,7 +348,7 @@ How to implement original DataStore
         * 処理: :meth:`.DataStore._insert` :meth:`.DataStore._update` :meth:`.DataStore._delete` などの CURD メソッドを用いて、レスポンスを解釈して内部のデータを更新します
     5. :meth:`sorted` メソッド (※板情報系のみ)
         * 引数: ``query: dict[str, Any]``
-        * 処理: 板情報を ``"売り", "買い"`` で分類した辞書を返します (:ref:`bitFlyerDataStore での例 <order-book>`) 。
+        * 処理: 板情報を ``"売り", "買い"`` で分類した辞書を返します (:ref:`bitFlyerDataStore での例 <sorted>`) 。
 
 次のコードはシンプルな独自の DataStore の例です。
 

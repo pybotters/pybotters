@@ -77,52 +77,82 @@ class BybitDataStore(DataStoreCollection):
 
     @property
     def orderbook(self) -> "OrderBook":
-        """orderbook topic."""
+        """orderbook topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+        """
         return self._get("orderbook", OrderBook)
 
     @property
     def trade(self) -> "Trade":
-        """trade topic."""
+        """trade topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+        """
         return self._get("publicTrade", Trade)
 
     @property
     def ticker(self) -> "Ticker":
-        """ticker topic."""
+        """ticker topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+        """
         return self._get("tickers", Ticker)
 
     @property
     def kline(self) -> "Kline":
-        """kline topic."""
+        """kline topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        """
         return self._get("kline", Kline)
 
     @property
     def liquidation(self) -> "Liquidation":
-        """liquidation topic."""
+        """liquidation topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+        """
         return self._get("liquidation", Liquidation)
 
     @property
     def lt_kline(self) -> "LTKline":
-        """lt_kline topic."""
+        """lt_kline topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+        """
         return self._get("kline_lt", LTKline)
 
     @property
     def lt_ticker(self) -> "LTTicker":
-        """lt_ticker topic."""
+        """lt_ticker topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+        """
         return self._get("tickers_lt", LTTicker)
 
     @property
     def lt_nav(self) -> "LTNav":
-        """lt_nav topic."""
+        """lt_nav topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/etp-nav
+        """
         return self._get("lt", LTNav)
 
     @property
     def position(self) -> "Position":
-        """position topic."""
+        """position topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/position"""
+
         return self._get("position", Position)
 
     @property
     def execution(self) -> "Execution":
-        """execution topic."""
+        """execution topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+        """
         return self._get("execution", Execution)
 
     @property
@@ -130,17 +160,25 @@ class BybitDataStore(DataStoreCollection):
         """order topic.
 
         アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/order
         """
         return self._get("order", Order)
 
     @property
     def wallet(self) -> "Wallet":
-        """wallet topic."""
+        """wallet topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
+        """
         return self._get("wallet", Wallet)
 
     @property
     def greek(self) -> "Greek":
-        """greek topic."""
+        """greek topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/greek
+        """
         return self._get("greeks", Greek)
 
 

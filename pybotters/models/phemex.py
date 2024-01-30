@@ -74,32 +74,74 @@ class PhemexDataStore(DataStoreCollection):
 
     @property
     def trade(self) -> "Trade":
-        """trades/trades_p channel."""
+        """trades/trades_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#trade-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#trade-message-format
+        * Spot Websocket API
+            * https://phemex-docs.github.io/#trade-message-2
+        """
         return self._get("trade", Trade)
 
     @property
     def orderbook(self) -> "OrderBook":
-        """book/orderbook_p channel."""
+        """book/orderbook_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#orderbook-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#orderbook-message-2
+        * Spot Websocket API
+            * https://phemex-docs.github.io/#orderbook-message-3
+        """
         return self._get("orderbook", OrderBook)
 
     @property
     def ticker(self):
-        """tick/tick_p channel."""
+        """tick/tick_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#tick-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#push-event
+        """
         return self._get("ticker", Ticker)
 
     @property
     def market24h(self) -> "Market24h":
-        """market24h/market24h_p channel."""
+        """market24h/market24h_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#24-hours-ticker-message
+        * Hedged Contract Websocket API
+            * httpshttps://phemex-docs.github.io/#hours-ticker-message-format
+        """
         return self._get("market24h", Market24h)
 
     @property
     def kline(self) -> "Kline":
-        """kline/kline_pkline_p channel."""
+        """kline/kline_pkline_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#kline-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#kline-message-format
+        * Spot Websocket API
+            * https://phemex-docs.github.io/#kline-message-2
+        """
         return self._get("kline", Kline)
 
     @property
     def accounts(self) -> "Accounts":
-        """accounts/accounts_p channel."""
+        """accounts/accounts_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message-sample
+        """
         return self._get("accounts", Accounts)
 
     @property
@@ -107,12 +149,23 @@ class PhemexDataStore(DataStoreCollection):
         """orders/orders_p channel.
 
         アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message-sample
         """
         return self._get("orders", Orders)
 
     @property
     def positions(self) -> "Positions":
-        """positions/positions_p channel."""
+        """positions/positions_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message-sample
+        """
         return self._get("positions", Positions)
 
 
