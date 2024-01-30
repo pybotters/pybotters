@@ -30,7 +30,7 @@ Client class
 
 .. note::
 
-    pybotters の中核機能は `asyncio <https://docs.python.org/ja/3/library/asyncio.html>`_ と `aiohttp <https://docs.aiohttp.org/en/stable/client_quickstart.html>`_ の上に構築されています。
+    pybotters の中核機能は `asyncio <https://docs.python.org/ja/3/library/asyncio.html>`_ と `aiohttp <https://docs.aiohttp.org/en/stable/client_quickstart.html>`__ の上に構築されています。
     それらの知識が全くないと、このユーザーガイドを進めるのは難しいかもしれません。
 
     asyncio と aiohttp を掻い摘んで理解するには、著者によるこちらの記事がおすすめです。
@@ -702,7 +702,7 @@ Differences with aiohttp
 
 aiohttp との違いについて。
 
-pybotters は `aiohttp <https://pypi.org/project/aiohttp/>`_ を基盤として利用しているライブラリです。
+pybotters は `aiohttp <https://pypi.org/project/aiohttp/>`__ を基盤として利用しているライブラリです。
 
 その為、:class:`pybotters.Client` におけるインターフェースの多くは ``aiohttp.ClientSession`` と同様です。
 また pybotters の HTTP リクエストのレスポンスクラスは aiohttp のレスポンスクラスを返します。
