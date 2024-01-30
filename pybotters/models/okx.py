@@ -6,50 +6,49 @@ from typing import Any, Awaitable
 
 import aiohttp
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class OKXDataStore(DataStoreManager):
-    """
-    OKXのデータストアマネージャー
-    """
+class OKXDataStore(DataStoreCollection):
+    """OKX の DataStoreCollection クラス"""
 
     def _init(self) -> None:
-        self.create("instruments", datastore_class=Instruments)
-        self.create("tickers", datastore_class=Tickers)
-        self.create("open-interest", datastore_class=OpenInterest)
-        self.create("candle", datastore_class=Candle)
-        self.create("trades", datastore_class=Trades)
-        self.create("estimated-price", datastore_class=EstimatedPrice)
-        self.create("mark-price", datastore_class=MarkPrice)
-        self.create("mark-price-candle", datastore_class=MarkPriceCandle)
-        self.create("price-limit", datastore_class=PriceLimit)
-        self.create("books", datastore_class=Books)
-        self.create("opt-summary", datastore_class=OptSummary)
-        self.create("funding-rate", datastore_class=FundingRate)
-        self.create("index-candle", datastore_class=IndexCandle)
-        self.create("index-tickers", datastore_class=IndexTickers)
-        self.create("status", datastore_class=Status)
-        self.create("account", datastore_class=Account)
-        self.create("positions", datastore_class=Positions)
-        self.create("balance_and_position", datastore_class=BalanceAndPosition)
-        self.create("orders", datastore_class=Orders)
-        self.create("orders-algo", datastore_class=OrdersAlgo)
-        self.create("algo-advance", datastore_class=AlgoAdvance)
-        self.create("liquidation-warning", datastore_class=LiquidationWarning)
-        self.create("account-greeks", datastore_class=AccountGreeks)
+        self._create("instruments", datastore_class=Instruments)
+        self._create("tickers", datastore_class=Tickers)
+        self._create("open-interest", datastore_class=OpenInterest)
+        self._create("candle", datastore_class=Candle)
+        self._create("trades", datastore_class=Trades)
+        self._create("estimated-price", datastore_class=EstimatedPrice)
+        self._create("mark-price", datastore_class=MarkPrice)
+        self._create("mark-price-candle", datastore_class=MarkPriceCandle)
+        self._create("price-limit", datastore_class=PriceLimit)
+        self._create("books", datastore_class=Books)
+        self._create("opt-summary", datastore_class=OptSummary)
+        self._create("funding-rate", datastore_class=FundingRate)
+        self._create("index-candle", datastore_class=IndexCandle)
+        self._create("index-tickers", datastore_class=IndexTickers)
+        self._create("status", datastore_class=Status)
+        self._create("account", datastore_class=Account)
+        self._create("positions", datastore_class=Positions)
+        self._create("balance_and_position", datastore_class=BalanceAndPosition)
+        self._create("orders", datastore_class=Orders)
+        self._create("orders-algo", datastore_class=OrdersAlgo)
+        self._create("algo-advance", datastore_class=AlgoAdvance)
+        self._create("liquidation-warning", datastore_class=LiquidationWarning)
+        self._create("account-greeks", datastore_class=AccountGreeks)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
-        """
+        """Initialize DataStore from HTTP response data.
+
         対応エンドポイント
 
-        - GET /api/v5/trade/orders-pending (DataStore: orders)
-        - GET /api/v5/trade/orders-algo-pending (DataStore: ordersalgo, algoadvance)
-        """
+        - GET /api/v5/trade/orders-pending (:attr:`.OKXDataStore.orders`)
+        - GET /api/v5/trade/orders-algo-pending (:attr:`.OKXDataStore.ordersalgo` :attr:`.OKXDataStore.algoadvance`)
+        """  # noqa: E501
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -82,91 +81,181 @@ class OKXDataStore(DataStoreManager):
 
     @property
     def instruments(self) -> "Instruments":
-        return self.get("instruments", Instruments)
+        """instruments channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-instruments-channel
+        """
+        return self._get("instruments", Instruments)
 
     @property
     def tickers(self) -> "Tickers":
-        return self.get("tickers", Tickers)
+        """tickers channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+        """
+        return self._get("tickers", Tickers)
 
     @property
     def openinterest(self) -> "OpenInterest":
-        return self.get("open-interest", OpenInterest)
+        """open-interest channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-open-interest-channel
+        """
+        return self._get("open-interest", OpenInterest)
 
     @property
     def candle(self) -> "Candle":
-        return self.get("candle", Candle)
+        """candle channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+        """
+        return self._get("candle", Candle)
 
     @property
     def trades(self) -> "Trades":
-        return self.get("trades", Trades)
+        """trades channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
+        """
+        return self._get("trades", Trades)
 
     @property
     def estimatedprice(self) -> "EstimatedPrice":
-        return self.get("estimated-price", EstimatedPrice)
+        """estimated-price channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-estimated-delivery-exercise-price-channel
+        """
+        return self._get("estimated-price", EstimatedPrice)
 
     @property
     def markprice(self) -> "MarkPrice":
-        return self.get("mark-price", MarkPrice)
+        """mark-price channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+        """
+        return self._get("mark-price", MarkPrice)
 
     @property
     def markpricecandle(self) -> "MarkPriceCandle":
-        return self.get("mark-price-candle", MarkPriceCandle)
+        """mark-price-candle channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-candlesticks-channel
+        """
+        return self._get("mark-price-candle", MarkPriceCandle)
 
     @property
     def pricelimit(self) -> "PriceLimit":
-        return self.get("price-limit", PriceLimit)
+        """price-limit channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-price-limit-channel
+        """
+        return self._get("price-limit", PriceLimit)
 
     @property
     def books(self) -> "Books":
-        return self.get("books", Books)
+        """books channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+        """
+        return self._get("books", Books)
 
     @property
     def optsummary(self) -> "OptSummary":
-        return self.get("opt-summary", OptSummary)
+        """opt-summary channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-option-summary-channel
+        """
+        return self._get("opt-summary", OptSummary)
 
     @property
     def fundingrate(self) -> "FundingRate":
-        return self.get("funding-rate", FundingRate)
+        """funding-rate channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+        """
+        return self._get("funding-rate", FundingRate)
 
     @property
     def indexcandle(self) -> "IndexCandle":
-        return self.get("index-candle", IndexCandle)
+        """index-candle channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-index-candlesticks-channel
+        """
+        return self._get("index-candle", IndexCandle)
 
     @property
     def indextickers(self) -> "IndexTickers":
-        return self.get("index-tickers", IndexTickers)
+        """index-tickers channel.
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-index-tickers-channel
+        """
+        return self._get("index-tickers", IndexTickers)
 
     @property
     def account(self) -> "Account":
-        return self.get("account", Account)
+        """account channel.
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel
+        """
+        return self._get("account", Account)
 
     @property
     def positions(self) -> "Positions":
-        return self.get("positions", Positions)
+        """positions channel.
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
+        """
+        return self._get("positions", Positions)
 
     @property
     def balance_and_position(self) -> "BalanceAndPosition":
-        return self.get("balance_and_position", BalanceAndPosition)
+        """balance_and_position channel.
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-balance-and-position-channel
+        """
+        return self._get("balance_and_position", BalanceAndPosition)
 
     @property
     def orders(self) -> "Orders":
-        return self.get("orders", Orders)
+        """orders channel.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
+        """
+        return self._get("orders", Orders)
 
     @property
     def ordersalgo(self) -> "OrdersAlgo":
-        return self.get("orders-algo", OrdersAlgo)
+        """ordersalgo channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-ws-algo-orders-channel
+        """
+        return self._get("orders-algo", OrdersAlgo)
 
     @property
     def algoadvance(self) -> "AlgoAdvance":
-        return self.get("algo-advance", AlgoAdvance)
+        """algoadvance channel.
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-ws-advance-algo-orders-channel
+        """
+        return self._get("algo-advance", AlgoAdvance)
 
     @property
     def liquidationwarning(self) -> "LiquidationWarning":
-        return self.get("liquidation-warning", LiquidationWarning)
+        """liquidation-warning channel.
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-position-risk-warning
+        """
+        return self._get("liquidation-warning", LiquidationWarning)
 
     @property
     def accountgreeks(self) -> "AccountGreeks":
-        return self.get("account-greeks", AccountGreeks)
+        """account-greeks channel.
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-account-greeks-channel
+        """
+        return self._get("account-greeks", AccountGreeks)
 
 
 class _InsertStore(DataStore):

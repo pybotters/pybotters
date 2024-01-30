@@ -21,60 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 class Client:
-    """
-    HTTPリクエストクライアントクラス
-
-    .. note::
-        引数 apis は省略できます。
-
-    :Example:
-
-    .. code-block:: python
-
-        async def main():
-            async with pybotters.Client(apis={'example': ['KEY', 'SECRET']}) as client:
-                r = await client.get('https://...', params={'foo': 'bar'})
-                print(await r.json())
-
-    .. code-block:: python
-
-        async def main():
-            async with pybotters.Client(apis={'example': ['KEY', 'SECRET']}) as client:
-                wstask = await client.ws_connect(
-                    'wss://...',
-                    send_json={'foo': 'bar'},
-                    hdlr_json=print
-                    )
-                await wstask
-                # Ctrl+C to break
-
-    Basic API
-
-    パッケージトップレベルで利用できるHTTPリクエスト関数です。 これらは同期関数です。 内部的にpybotters.Clientをラップしています。
-
-    :Example:
-
-    .. code-block:: python
-
-        r = pybotters.get(
-                'https://...',
-                params={'foo': 'bar'},
-                apis={'example': ['KEY', 'SECRET']}
-            )
-        print(r.text())
-        print(r.json())
-
-    .. code-block:: python
-
-        pybotters.ws_connect(
-                'wss://...',
-                send_json={'foo': 'bar'},
-                hdlr_json=print,
-                apis={'example': ['KEY', 'SECRET']}
-            )
-        # Ctrl+C to break
-    """
-
     _session: aiohttp.ClientSession
     _base_url: str
 
@@ -84,10 +30,14 @@ class Client:
         base_url: str = "",
         **kwargs: Any,
     ) -> None:
-        """
-        :param apis: APIキー・シークレットのデータ(optional) ex: {'exchange': ['key', 'secret']}
-        :param base_url: リクエストメソッドの url の前方に自動付加するURL(optional)
-        :param ``**kwargs``: aiohttp.Client.requestに渡されるキーワード引数(optional)
+        """HTTP / WebSocket API Client.
+
+        自動認証を備えた HTTP クライアントです。
+
+        Args:
+            apis: API 認証情報
+            base_url: ベース URL
+            **kwargs: aiohttp.ClientSession にバイパスされる引数
         """
         self._session = aiohttp.ClientSession(
             request_class=ClientRequest,
@@ -107,6 +57,7 @@ class Client:
         await self.close()
 
     async def close(self) -> None:
+        """Close client session."""
         await self._session.close()
 
     def _request(
@@ -137,14 +88,20 @@ class Client:
         data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
-        """
-        :param method: GET, POST, PUT, DELETE などのHTTPメソッド
-        :param url: リクエストURL
-        :param params: URLのクエリ文字列(optional)
-        :param data: リクエストボディ(optional)
-        :param headers: リクエストヘッダー(optional)
-        :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)
-        :param ``kwargs``: aiohttp.Client.requestに渡されるキーワード引数(optional)
+        """HTTP request.
+
+        Args:
+            method: HTTP メソッド
+            url: リクエスト URL
+            params: リクエスト URL のクエリ文字列
+            data: リクエストの本文で送信するデータ
+            auth: 認証オプション (デフォルトで有効、None で無効)
+            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+
+        Returns:
+            aiohttp.ClientResponse
+
+        Usage example: :ref:`http-method-api`
         """
         return self._request(method, url, params=params, data=data, **kwargs)
 
@@ -157,6 +114,21 @@ class Client:
         data: Any = None,
         **kwargs: Any,
     ) -> FetchResult:
+        """Fetch API.
+
+        Args:
+            method: HTTP メソッド
+            url: リクエスト URL
+            params: リクエスト URL のクエリ文字列
+            data: リクエストの本文で送信するデータ
+            auth: 認証オプション (デフォルトで有効、None で無効)
+            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+
+        Returns:
+            FetchResult
+
+        Usage example: :ref:`fetch-api`
+        """
         async with self.request(
             method, url, params=params, data=data, **kwargs
         ) as resp:
@@ -175,6 +147,19 @@ class Client:
         params: Mapping[str, str] | None = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
+        """HTTP GET request.
+
+        Args:
+            url: リクエスト URL
+            params: リクエスト URL のクエリ文字列
+            auth: 認証オプション (デフォルトで有効、None で無効)
+            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+
+        Returns:
+            aiohttp.ClientResponse
+
+        Usage example: :ref:`http-method-api`
+        """
         return self._request(hdrs.METH_GET, url, params=params, **kwargs)
 
     def post(
@@ -184,6 +169,19 @@ class Client:
         data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
+        """HTTP POST request.
+
+        Args:
+            url: リクエスト URL
+            data: リクエストの本文で送信するデータ
+            auth: 認証オプション (デフォルトで有効、None で無効)
+            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+
+        Returns:
+            aiohttp.ClientResponse
+
+        Usage example: :ref:`http-method-api`
+        """
         return self._request(hdrs.METH_POST, url, data=data, **kwargs)
 
     def put(
@@ -193,6 +191,20 @@ class Client:
         data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
+        """HTTP PUT request.
+
+        Args:
+            url: リクエスト URL
+            params: リクエスト URL のクエリ文字列
+            data: リクエストの本文で送信するデータ
+            auth: 認証オプション (デフォルトで有効、None で無効)
+            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+
+        Returns:
+            aiohttp.ClientResponse
+
+        Usage example: :ref:`http-method-api`
+        """
         return self._request(hdrs.METH_PUT, url, data=data, **kwargs)
 
     def delete(
@@ -202,6 +214,20 @@ class Client:
         data: Any = None,
         **kwargs: Any,
     ) -> _RequestContextManager:
+        """HTTP DELETE request.
+
+        Args:
+            url: リクエスト URL
+            params: リクエスト URL のクエリ文字列
+            data: リクエストの本文で送信するデータ
+            auth: 認証オプション (デフォルトで有効、None で無効)
+            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+
+        Returns:
+            aiohttp.ClientResponse
+
+        Usage example: :ref:`http-method-api`
+        """
         return self._request(hdrs.METH_DELETE, url, data=data, **kwargs)
 
     def ws_connect(
@@ -214,23 +240,30 @@ class Client:
         hdlr_str: WsStrHandler | list[WsStrHandler] | None = None,
         hdlr_bytes: WsBytesHandler | list[WsBytesHandler] | None = None,
         hdlr_json: WsJsonHandler | list[WsJsonHandler] | None = None,
-        backoff: tuple[float, float, float, float] = WebSocketApp.DEFAULT_BACKOFF,
+        backoff: tuple[float, float, float, float] = WebSocketApp._DEFAULT_BACKOFF,
         heartbeat: float = 10.0,
         auth: Auth | None = Auth,
         **kwargs: Any,
     ) -> WebSocketApp:
-        """
-        :param url: WebSocket URL
-        :param send_str: WebSocketで送信する文字列。文字列、または文字列のリスト形式(optional)
-        :param send_json: WebSocketで送信する辞書オブジェクト。辞書、または辞書のリスト形式(optional)
-        :param hdlr_str: WebSocketの受信データをハンドリングする関数。
-            第1引数 msg に _str_型, 第2引数 ws にWebSocketClientResponse 型の変数が渡されます(optional)
-        :param hdlr_json: WebSocketの受信データをハンドリングする関数。
-            第1引数 msg に Any 型(JSON-like), 第2引数 ws に WebSocketClientResponse 型の変数が渡されます
-            (optional)
-        :param headers: リクエストヘッダー(optional)
-        :param auth: API自動認証の機能の有効/無効。デフォルトで有効。auth=Noneを指定することで無効になります(optional)
-        :param ``**kwargs``: aiohttp.ClientSession.ws_connectに渡されるキーワード引数(optional)
+        """WebSocket request.
+
+        Args:
+            url: リクエスト WebSocket URL
+            send_str: 送信する WebSocket メッセージ (文字列)
+            send_bytes: 送信する WebSocket メッセージ (バイト)
+            send_json: 送信する WebSocket メッセージ (JSON)
+            hdlr_str: WebSocket メッセージをハンドリングするコールバック (文字列)
+            hdlr_bytes: WebSocket メッセージをハンドリングするコールバック (バイト)
+            hdlr_json: WebSocket メッセージをハンドリングするコールバック (JSON)
+            backoff: 再接続の指数バックオフ (最小、最大、係数、初期値)
+            heartbeat: WebSocket ハートビート (デフォルト 10.0 秒)
+            auth: 認証オプション (デフォルトで有効、None で無効)
+            **kwargs: aiohttp.ClientSession.ws_connect にバイパスされる引数
+
+        Returns:
+            WebSocketApp
+
+        Usage example: :ref:`websocket-api`
         """
         return WebSocketApp(
             self._session,
@@ -286,6 +319,14 @@ class Client:
 
 @dataclass
 class FetchResult:
+    """Fetch API result.
+
+    Attributes:
+        response: `aiohttp.ClientResponse`
+        text: テキストデータ
+        data: JSON データ (JSON ではない場合は :class:`.NotJSONContent`)
+    """
+
     response: aiohttp.ClientResponse
     text: str
     data: Any | NotJSONContent
@@ -293,6 +334,12 @@ class FetchResult:
 
 @dataclass
 class NotJSONContent:
+    """Result of JSON decoding failure.
+
+    Attributes:
+        error: `JSONDecodeError`
+    """
+
     error: json.JSONDecodeError
 
     def __bool__(self) -> Literal[False]:

@@ -3,6 +3,7 @@ from __future__ import annotations
 __version__ = "0.17.0"
 
 
+from .auth import Auth
 from .client import Client, FetchResult, NotJSONContent
 from .models.binance import (
     BinanceCOINMDataStore,
@@ -19,7 +20,8 @@ from .models.gmocoin import GMOCoinDataStore
 from .models.kucoin import KuCoinDataStore
 from .models.okx import OKXDataStore
 from .models.phemex import PhemexDataStore
-from .ws import WebSocketQueue
+from .store import DataStore, DataStoreCollection, StoreChange, StoreStream
+from .ws import WebSocketApp, WebSocketQueue
 
 __all__: tuple[str, ...] = (
     # client
@@ -27,7 +29,13 @@ __all__: tuple[str, ...] = (
     "FetchResult",
     "NotJSONContent",
     # ws
+    "WebSocketApp",
     "WebSocketQueue",
+    # store
+    "DataStore",
+    "DataStoreCollection",
+    "StoreChange",
+    "StoreStream",
     # models
     "BinanceCOINMDataStore",
     "BinanceSpotDataStore",
@@ -42,4 +50,6 @@ __all__: tuple[str, ...] = (
     "PhemexDataStore",
     "bitFlyerDataStore",
     "bitbankDataStore",
+    # auth
+    "Auth",
 )

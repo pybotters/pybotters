@@ -2,16 +2,18 @@ from __future__ import annotations
 
 import json
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 
-class bitbankDataStore(DataStoreManager):
+class bitbankDataStore(DataStoreCollection):
+    """bitbank の DataStoreCollection クラス"""
+
     def _init(self) -> None:
-        self.create("transactions", datastore_class=Transactions)
-        self.create("depth", datastore_class=Depth)
-        self.create("ticker", datastore_class=Ticker)
+        self._create("transactions", datastore_class=Transactions)
+        self._create("depth", datastore_class=Depth)
+        self._create("ticker", datastore_class=Ticker)
 
     def _onmessage(self, msg: str, ws: ClientWebSocketResponse) -> None:
         if msg.startswith("42"):
@@ -27,15 +29,28 @@ class bitbankDataStore(DataStoreManager):
 
     @property
     def transactions(self) -> "Transactions":
-        return self.get("transactions", Transactions)
+        """transactions channel.
+
+        https://github.com/bitbankinc/bitbank-api-docs/blob/master/public-stream.md#transactions
+        """  # noqa: E501
+        return self._get("transactions", Transactions)
 
     @property
     def depth(self) -> "Depth":
-        return self.get("depth", Depth)
+        """depth channel.
+
+        * https://github.com/bitbankinc/bitbank-api-docs/blob/master/public-stream.md#depth-diff
+        * https://github.com/bitbankinc/bitbank-api-docs/blob/master/public-stream.md#depth-whole
+        """  # noqa: E501
+        return self._get("depth", Depth)
 
     @property
     def ticker(self) -> "Ticker":
-        return self.get("ticker", Ticker)
+        """ticker channel.
+
+        https://github.com/bitbankinc/bitbank-api-docs/blob/master/public-stream.md#ticker
+        """  # noqa: E501
+        return self._get("ticker", Ticker)
 
 
 class Transactions(DataStore):

@@ -150,7 +150,7 @@ async def websocketapp(
     ws = WebSocketApp(
         client_session,
         "wss://example.com",
-        backoff=WebSocketApp.DEFAULT_BACKOFF,
+        backoff=WebSocketApp._DEFAULT_BACKOFF,
     )
 
     mocker.stop(m_run_forever)

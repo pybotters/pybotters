@@ -6,7 +6,7 @@ from typing import Awaitable
 
 import aiohttp
 
-from pybotters.store import DataStore, DataStoreManager
+from pybotters.store import DataStore, DataStoreCollection
 from pybotters.typedefs import Item
 
 from ..auth import Auth
@@ -119,30 +119,29 @@ class PositionSummaryStore(DataStore):
         self._update([mes])
 
 
-class GMOCoinDataStore(DataStoreManager):
-    """
-    GMOコインのデータストアマネージャー
-    """
+class GMOCoinDataStore(DataStoreCollection):
+    """GMO Coin の DataStoreCollection クラス"""
 
     def _init(self) -> None:
-        self.create("ticker", datastore_class=TickerStore)
-        self.create("orderbooks", datastore_class=OrderBookStore)
-        self.create("trades", datastore_class=TradeStore)
-        self.create("orders", datastore_class=OrderStore)
-        self.create("positions", datastore_class=PositionStore)
-        self.create("executions", datastore_class=ExecutionStore)
-        self.create("position_summary", datastore_class=PositionSummaryStore)
+        self._create("ticker", datastore_class=TickerStore)
+        self._create("orderbooks", datastore_class=OrderBookStore)
+        self._create("trades", datastore_class=TradeStore)
+        self._create("orders", datastore_class=OrderStore)
+        self._create("positions", datastore_class=PositionStore)
+        self._create("executions", datastore_class=ExecutionStore)
+        self._create("position_summary", datastore_class=PositionSummaryStore)
         self.token: str | None = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
-        """
+        """Initialize DataStore from HTTP response data.
+
         対応エンドポイント
 
-        - GET /private/v1/latestExecutions (DataStore: executions)
-        - GET /private/v1/activeOrders (DataStore: orders)
-        - GET /private/v1/openPositions (DataStore: positions)
-        - GET /private/v1/positionSummary (DataStore: position_summary)
-        - POST /private/v1/ws-auth (Property: token)
+        - GET /private/v1/latestExecutions (:attr:`.CoincheckDataStore.executions`)
+        - GET /private/v1/activeOrders (:attr:`.CoincheckDataStore.orders`)
+        - GET /private/v1/openPositions (:attr:`.CoincheckDataStore.positions`)
+        - GET /private/v1/positionSummary (:attr:`.CoincheckDataStore.position_summary`)
+        - POST /private/v1/ws-auth (:attr:`.CoincheckDataStore.token`)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -207,31 +206,58 @@ class GMOCoinDataStore(DataStoreManager):
 
     @property
     def ticker(self) -> TickerStore:
-        return self.get("ticker", TickerStore)
+        """ticker channel.
+
+        https://api.coin.z.com/docs/#ws-ticker
+        """
+        return self._get("ticker", TickerStore)
 
     @property
     def orderbooks(self) -> OrderBookStore:
-        return self.get("orderbooks", OrderBookStore)
+        """orderbooks channel.
+
+        https://api.coin.z.com/docs/#ws-orderbooks
+        """
+        return self._get("orderbooks", OrderBookStore)
 
     @property
     def trades(self) -> TradeStore:
-        return self.get("trades", TradeStore)
+        """trades channel.
+
+        https://api.coin.z.com/docs/#ws-trades
+        """
+        return self._get("trades", TradeStore)
 
     @property
     def orders(self) -> OrderStore:
+        """orderEvents channel.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        https://api.coin.z.com/docs/#ws-order-events
         """
-        アクティブオーダーのみ(約定・キャンセル済みは削除される)
-        """
-        return self.get("orders", OrderStore)
+        return self._get("orders", OrderStore)
 
     @property
     def positions(self) -> PositionStore:
-        return self.get("positions", PositionStore)
+        """positionEvents channel.
+
+        https://api.coin.z.com/docs/#ws-position-events
+        """
+        return self._get("positions", PositionStore)
 
     @property
     def executions(self) -> ExecutionStore:
-        return self.get("executions", ExecutionStore)
+        """executionEvents channel.
+
+        https://api.coin.z.com/docs/#ws-execution-events
+        """
+        return self._get("executions", ExecutionStore)
 
     @property
     def position_summary(self) -> PositionSummaryStore:
-        return self.get("position_summary", PositionSummaryStore)
+        """positionSummaryEvents channel.
+
+        https://api.coin.z.com/docs/#ws-position-summary-events
+        """
+        return self._get("position_summary", PositionSummaryStore)

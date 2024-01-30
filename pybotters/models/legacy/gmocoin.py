@@ -9,7 +9,7 @@ from typing import Any, Awaitable, TypedDict, cast
 
 import aiohttp
 
-from pybotters.store import DataStore, DataStoreManager
+from pybotters.store import DataStore, DataStoreCollection
 from pybotters.typedefs import Item
 
 from ...auth import Auth
@@ -567,19 +567,19 @@ class MessageHelper:
         )
 
 
-class GMOCoinDataStore(DataStoreManager):
+class GMOCoinDataStore(DataStoreCollection):
     """
     GMOコインのデータストアマネージャー
     """
 
     def _init(self) -> None:
-        self.create("ticker", datastore_class=TickerStore)
-        self.create("orderbooks", datastore_class=OrderBookStore)
-        self.create("trades", datastore_class=TradeStore)
-        self.create("orders", datastore_class=OrderStore)
-        self.create("positions", datastore_class=PositionStore)
-        self.create("executions", datastore_class=ExecutionStore)
-        self.create("position_summary", datastore_class=PositionSummaryStore)
+        self._create("ticker", datastore_class=TickerStore)
+        self._create("orderbooks", datastore_class=OrderBookStore)
+        self._create("trades", datastore_class=TradeStore)
+        self._create("orders", datastore_class=OrderStore)
+        self._create("positions", datastore_class=PositionStore)
+        self._create("executions", datastore_class=ExecutionStore)
+        self._create("position_summary", datastore_class=PositionSummaryStore)
         self.token: str | None = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
@@ -662,31 +662,31 @@ class GMOCoinDataStore(DataStoreManager):
 
     @property
     def ticker(self) -> TickerStore:
-        return self.get("ticker", TickerStore)
+        return self._get("ticker", TickerStore)
 
     @property
     def orderbooks(self) -> OrderBookStore:
-        return self.get("orderbooks", OrderBookStore)
+        return self._get("orderbooks", OrderBookStore)
 
     @property
     def trades(self) -> TradeStore:
-        return self.get("trades", TradeStore)
+        return self._get("trades", TradeStore)
 
     @property
     def orders(self) -> OrderStore:
         """
         アクティブオーダーのみ(約定・キャンセル済みは削除される)
         """
-        return self.get("orders", OrderStore)
+        return self._get("orders", OrderStore)
 
     @property
     def positions(self) -> PositionStore:
-        return self.get("positions", PositionStore)
+        return self._get("positions", PositionStore)
 
     @property
     def executions(self) -> ExecutionStore:
-        return self.get("executions", ExecutionStore)
+        return self._get("executions", ExecutionStore)
 
     @property
     def position_summary(self) -> PositionSummaryStore:
-        return self.get("position_summary", PositionSummaryStore)
+        return self._get("position_summary", PositionSummaryStore)

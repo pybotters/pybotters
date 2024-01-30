@@ -18,45 +18,48 @@
 
 # pybotters
 
+![pybotters logo](docs/logo_150.png)
+
 An advanced API client for python botters. This project is in Japanese.
 
 ## 📌 Description
 
-`pybotters` は [仮想通貨 botter](https://note.com/hht/n/n61e6ecefd059) 向けの Python ライブラリです。
+`pybotters` is a Python library for [仮想通貨 botter (crypto bot traders)](https://medium.com/perpdex/botter-the-crypto-bot-trader-in-japan-2f5f2a65856f).
 
-このライブラリは **HTTP / WebSocket API クライアント** です。 複数の取引所の認証処理に対応しており、簡単に Private API を利用できるため、素早くトレード bot を構築することができます。また、 WebSocket の接続機能とデータハンドラーにより、リアルタイムでの情報取得が可能です。これにより、高頻度トレード bot の構築に役立ちます。
+This library is an **HTTP and WebSocket API client**.
+It has the following features, making it useful for developing a trading bot.
 
 ## 🚀 Features
 
 - ✨ HTTP / WebSocket Client
-    - HTTP / WebSocket の自動認証
-    - WebSocket の自動再接続、自動ハートビート
-    - [`aiohttp`](https://docs.aiohttp.org/) ライブラリを基盤とした非同期 I/O
+    - **Automatic authentication** for private APIs.
+    - WebSocket **automatic reconnection** and **automatic heartbeat**.
+    - A client based on [`aiohttp`](https://docs.aiohttp.org/).
 - ✨ DataStore
-    - WebSocket メッセージのデータハンドラー
-    - オーダーブックなどの差分データの結合処理
-    - 軽量データモデルによる高速なデータ処理と参照
+    - WebSocket message data handler.
+    - **Processing of differential data** such as order book updates
+    - **High-speed data processing** and querying
 - ✨ Other Experiences
-    - 型ヒントのサポート
-    - `asyncio` を基盤とした非同期プログラミング
-    - Discord コミュニティによるサポート
+    - Support for type hints.
+    - Asynchronous programming using [`asyncio`](https://docs.python.org/ja/3/library/asyncio.html).
+    - Discord community.
 
 ## 🏦 Exchanges
 
-| Name | API auth | DataStore | API docs |
+| Name | API auth | DataStore | Exchange API docs |
 | --- | --- | --- | --- |
-| Bybit | ✅ | ✅ | [Official](https://bybit-exchange.github.io/docs/v5/intro) |
-| Binance | ✅ | ✅ | [Official](https://binance-docs.github.io/apidocs/spot/en/) |
-| OKX | ✅ | ✅ | [Official](https://www.okx.com/docs-v5/en/) |
-| Phemex | ✅ | ✅ | [Official](https://phemex-docs.github.io/) |
-| Bitget | ✅ | ✅ | [Official](https://bitgetlimited.github.io/apidoc/en/mix/) |
-| MEXC | ✅ | No support | [Official](https://mexcdevelop.github.io/apidocs/spot_v3_en/) |
-| KuCoin | ✅ | ✅ | [Official](https://www.kucoin.com/docs/beginners/introduction) |
-| BitMEX | ✅ | ✅ | [Official](https://www.bitmex.com/app/apiOverview) |
-| bitFlyer | ✅ | ✅ | [Official](https://lightning.bitflyer.com/docs) |
-| GMO Coin | ✅ | ✅ | [Official](https://api.coin.z.com/docs/) |
-| bitbank | ✅ | ✅ | [Official](https://github.com/bitbankinc/bitbank-api-docs) |
-| Coincheck | ✅ | ✅ | [Official](https://coincheck.com/ja/documents/exchange/api) |
+| bitFlyer | ✅ | ✅ | [Link](https://lightning.bitflyer.com/docs) |
+| GMO Coin | ✅ | ✅ | [Link](https://api.coin.z.com/docs/) |
+| bitbank | ✅ | ✅ | [Link](https://github.com/bitbankinc/bitbank-api-docs) |
+| Coincheck | ✅ | ✅ | [Link](https://coincheck.com/ja/documents/exchange/api) |
+| Bybit | ✅ | ✅ | [Link](https://bybit-exchange.github.io/docs/v5/intro) |
+| Binance | ✅ | ✅ | [Link](https://binance-docs.github.io/apidocs/spot/en/) |
+| OKX | ✅ | ✅ | [Link](https://www.okx.com/docs-v5/en/) |
+| Phemex | ✅ | ✅ | [Link](https://phemex-docs.github.io/) |
+| Bitget | ✅ | ✅ | [Link](https://bitgetlimited.github.io/apidoc/en/mix/) |
+| MEXC | ✅ | No support | [Link](https://mexcdevelop.github.io/apidocs/spot_v3_en/) |
+| KuCoin | ✅ | ✅ | [Link](https://www.kucoin.com/docs/beginners/introduction) |
+| BitMEX | ✅ | ✅ | [Link](https://www.bitmex.com/app/apiOverview) |
 
 ## 🐍 Requires
 
@@ -64,7 +67,7 @@ Python 3.8+
 
 ## 🔧 Installation
 
-From [PyPI](pybotters) (stable version):
+From [PyPI](https://pypi.org/project/pybotters/) (stable version):
 
 ```sh
 pip install pybotters
@@ -82,52 +85,9 @@ Example of bitFlyer API:
 
 ### HTTP API
 
-```python
-import asyncio
+New interface from version 1.0: **Fetch API**.
 
-import pybotters
-
-apis = {
-    "bitflyer": ["YOUER_BITFLYER_API_KEY", "YOUER_BITFLYER_API_SECRET"],
-}
-
-
-async def main():
-    async with pybotters.Client(
-        apis=apis, base_url="https://api.bitflyer.com"
-    ) as client:
-        # Fetch balance
-        async with client.get("/v1/me/getbalance") as resp:
-            data = await resp.json()
-
-        print(resp.status, resp.reason)
-        print(data)
-
-        # Create order
-        CREATE_ORDER = False  # Set to `True` if you are trying to create an order.
-        if CREATE_ORDER:
-            async with client.post(
-                "/v1/me/sendchildorder",
-                data={
-                    "product_code": "BTC_JPY",
-                    "child_order_type": "MARKET",
-                    "side": "BUY",
-                    "size": 0.001,
-                },
-            ) as resp:
-                data = await resp.json()
-
-            print(data)
-
-
-asyncio.run(main())
-```
-
-#### New interface
-
-pybotters v1.0+ **New interface - `fetch` API**
-
-More simple request/response:
+More simple request/response.
 
 ```py
 import asyncio
@@ -165,6 +125,49 @@ async def main():
 
             print(r.response.status, r.response.reason, r.response.url)
             print(r.data)
+
+
+asyncio.run(main())
+```
+
+aiohttp-based API.
+
+```python
+import asyncio
+
+import pybotters
+
+apis = {
+    "bitflyer": ["YOUER_BITFLYER_API_KEY", "YOUER_BITFLYER_API_SECRET"],
+}
+
+
+async def main():
+    async with pybotters.Client(
+        apis=apis, base_url="https://api.bitflyer.com"
+    ) as client:
+        # Fetch balance
+        async with client.get("/v1/me/getbalance") as resp:
+            data = await resp.json()
+
+        print(resp.status, resp.reason)
+        print(data)
+
+        # Create order
+        CREATE_ORDER = False  # Set to `True` if you are trying to create an order.
+        if CREATE_ORDER:
+            async with client.post(
+                "/v1/me/sendchildorder",
+                data={
+                    "product_code": "BTC_JPY",
+                    "child_order_type": "MARKET",
+                    "side": "BUY",
+                    "size": 0.001,
+                },
+            ) as resp:
+                data = await resp.json()
+
+            print(data)
 
 
 asyncio.run(main())
@@ -236,8 +239,8 @@ async def main():
         # Watch for the best prices on Board. (Ctrl+C to break)
         with store.board.watch() as stream:
             async for change in stream:
-                board = store.board.sorted()
-                print({k: v[:1] for k, v in board.items()})
+                board = store.board.sorted(limit=2)
+                print(board)
 
 
 try:
@@ -248,7 +251,7 @@ except KeyboardInterrupt:
 
 ## 📖 Documentation
 
-🔗 https://pybotters.readthedocs.io/ja/stable/
+🔗 https://pybotters.readthedocs.io/ja/stable/ (Japanese)
 
 ## 🗽 License
 

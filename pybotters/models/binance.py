@@ -8,56 +8,59 @@ from typing import Any, Awaitable
 import aiohttp
 
 from ..auth import Auth
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class BinanceDataStoreBase(DataStoreManager):
+class BinanceDataStoreBase(DataStoreCollection):
+    """Binance の DataStoreCollection ベースクラス"""
+
     _ORDERBOOK_INIT_ENDPOINT = None
     _ORDER_INIT_ENDPOINT = None
     _LISTENKEY_INIT_ENDPOINT = None
     _KLINE_INIT_ENDPOINT = None
 
     def _init(self) -> None:
-        self.create("trade", datastore_class=Trade)
-        self.create("kline", datastore_class=Kline)
-        self.create("ticker", datastore_class=Ticker)
-        self.create("bookticker", datastore_class=BookTicker)
-        self.create("orderbook", datastore_class=OrderBook)
-        self.create("order", datastore_class=Order)
+        self._create("trade", datastore_class=Trade)
+        self._create("kline", datastore_class=Kline)
+        self._create("ticker", datastore_class=Ticker)
+        self._create("bookticker", datastore_class=BookTicker)
+        self._create("orderbook", datastore_class=OrderBook)
+        self._create("order", datastore_class=Order)
         self.listenkey: str | None = None
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
-        """
+        """Initialize DataStore from HTTP response data.
+
         対応エンドポイント
 
         共通
 
-        - GET /api/v3/depth, /fapi/v1/depth, /dapi/v1/depth (DataStore: orderbook)
+        - GET /api/v3/depth, /fapi/v1/depth, /dapi/v1/depth (:attr:`.BinanceDataStoreBase.orderbook`)
 
             - Binance APIドキュメントに従ってWebSocket接続後にinitializeすること。
             - orderbook データストアの initialized がTrueになる。
 
-        - GET /api/v3/openOrders, /fapi/v1/openOrders, /dapi/v1/openOrders (DataStore: order)
-        - POST /api/v3/userDataStream, /fapi/v1/listenKey, /dapi/v1/listenKey (Property: listenkey)
+        - GET /api/v3/openOrders, /fapi/v1/openOrders, /dapi/v1/openOrders (:attr:`.BinanceDataStoreBase.order`)
+        - POST /api/v3/userDataStream, /fapi/v1/listenKey, /dapi/v1/listenKey (:attr:`.BinanceDataStoreBase.listenkey`)
             - プロパティ listenkey にlistenKeyが格納され30分ごとに PUT リクエストがスケジュールされる。
-        - GET /api/v3/klines, /fapi/v1/klines, /dapi/v3/klines, /dapi/v1/indexPriceKlines, /dapi/v1/markPriceKlines (DataStore: kline)
+        - GET /api/v3/klines, /fapi/v1/klines, /dapi/v3/klines, /dapi/v1/indexPriceKlines, /dapi/v1/markPriceKlines (:attr:`.BinanceDataStoreBase.kline`)
 
         現物
 
-        - GET /api/v3/account (DataStore: account)
-        - GET /api/v3/openOrderList (DataStore: ocoorder)
+        - GET /api/v3/account (DataStore: account)(:attr:`.BinanceSpotDataStore.account`)
+        - GET /api/v3/openOrderList (DataStore: ocoorder)(:attr:`.BinanceSpotDataStore.ocoorder`)
 
         先物
 
-        - GET /fapi/v2/balance, /dapi/v1/balance (DataStore: balance)
-        - GET /fapi/v2/positionRisk, /dapi/v1/positionRisk (DataStore: position)
+        - GET /fapi/v2/balance, /dapi/v1/balance (:attr:`.BinanceCOINMDataStore.balance`)
+        - GET /fapi/v2/positionRisk, /dapi/v1/positionRisk (:attr:`.BinanceCOINMDataStore.position`)
 
         USDⓈ-M
-        - GET /fapi/v1/indexInfo (DataStore: compositeindex)
+        - GET /fapi/v1/indexInfo (:attr:`.BinanceUSDSMDataStore.compositeindex`)
 
 
         """  # noqa
@@ -183,43 +186,102 @@ class BinanceDataStoreBase(DataStoreManager):
 
     @property
     def trade(self) -> "Trade":
-        return self.get("trade", Trade)
+        """trade/aggTrade stream.
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+            * https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+        """  # noqa: E501
+        return self._get("trade", Trade)
 
     @property
     def kline(self) -> "Kline":
-        return self.get("kline", Kline)
+        """kline stream.
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-streams
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-streams
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-streams
+        """  # noqa: E501
+        return self._get("kline", Kline)
 
     @property
     def ticker(self) -> "Ticker":
-        return self.get("ticker", Ticker)
+        """24hrMiniTicker/24hrTicker stream.
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+            * https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-mini-ticker-stream
+            * https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-mini-ticker-stream
+            * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
+        """  # noqa: E501
+        return self._get("ticker", Ticker)
 
     @property
     def bookticker(self) -> "BookTicker":
-        return self.get("bookticker", BookTicker)
+        """bookTicker stream.
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-book-ticker-streams
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-book-ticker-streams
+        """  # noqa: E501
+        return self._get("bookticker", BookTicker)
 
     @property
     def orderbook(self) -> "OrderBook":
-        return self.get("orderbook", OrderBook)
+        """depthUpdate stream.
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
+        """  # noqa: E501
+        return self._get("orderbook", OrderBook)
 
     @property
     def order(self) -> "Order":
+        """executionReport/ORDER_TRADE_UPDATE from User Data Streams.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        * Spot
+            * https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+        * USDⓈ-M
+            * https://binance-docs.github.io/apidocs/futures/en/#event-order-update
+        * COIN-M
+            * https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
         """
-        アクティブオーダーのみ(約定・キャンセル済みは削除される)
-        """
-        return self.get("order", Order)
+        return self._get("order", Order)
 
 
 class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
+    """Binance 先物の DataStoreCollection ベースクラス"""
+
     _BALANCE_INIT_ENDPOINT = None
     _POSITION_INIT_ENDPOINT = None
 
     def _init(self) -> None:
         super()._init()
-        self.create("markprice", datastore_class=MarkPrice)
-        self.create("continuouskline", datastore_class=ContinuousKline)
-        self.create("liquidation", datastore_class=Liquidation)
-        self.create("balance", datastore_class=Balance)
-        self.create("position", datastore_class=Position)
+        self._create("markprice", datastore_class=MarkPrice)
+        self._create("continuouskline", datastore_class=ContinuousKline)
+        self._create("liquidation", datastore_class=Liquidation)
+        self._create("balance", datastore_class=Balance)
+        self._create("position", datastore_class=Position)
 
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
         if self._is_target_endpoint(self._BALANCE_INIT_ENDPOINT, endpoint):
@@ -264,26 +326,53 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
     @property
     def markprice(self) -> "MarkPrice":
-        return self.get("markprice", MarkPrice)
+        """markPriceUpdate stream.
+
+        * https://binance-docs.github.io/apidocs/futures/en/#mark-price-stream
+        * https://binance-docs.github.io/apidocs/delivery/en/#mark-price-stream
+        """
+        return self._get("markprice", MarkPrice)
 
     @property
     def continuouskline(self) -> "ContinuousKline":
-        return self.get("continuouskline", ContinuousKline)
+        """continuous_kline stream.
+
+        * https://binance-docs.github.io/apidocs/futures/en/#continuous-contract-kline-candlestick-data
+        * https://binance-docs.github.io/apidocs/delivery/en/#continuous-contract-kline-candlestick-data
+        """  # noqa: E501
+        return self._get("continuouskline", ContinuousKline)
 
     @property
     def liquidation(self) -> "Liquidation":
-        return self.get("liquidation", Liquidation)
+        """forceOrder stream.
+
+        * https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
+        * https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
+        """  # noqa: E501
+        return self._get("liquidation", Liquidation)
 
     @property
     def balance(self) -> "Balance":
-        return self.get("balance", Balance)
+        """ACCOUNT_UPDATE from User Data Streams.
+
+        * https://binance-docs.github.io/apidocs/futures/en/#event-balance-and-position-update
+        * https://binance-docs.github.io/apidocs/delivery/en/#event-balance-and-position-update
+        """  # noqa: E501
+        return self._get("balance", Balance)
 
     @property
     def position(self) -> "Position":
-        return self.get("position", Position)
+        """ACCOUNT_UPDATE from User Data Streams.
+
+        * https://binance-docs.github.io/apidocs/futures/en/#event-balance-and-position-update
+        * https://binance-docs.github.io/apidocs/delivery/en/#event-balance-and-position-update
+        """  # noqa: E501
+        return self._get("position", Position)
 
 
 class BinanceSpotDataStore(BinanceDataStoreBase):
+    """Binance Spot の DataStoreCollection クラス"""
+
     _ORDERBOOK_INIT_ENDPOINT = "/api/v3/depth"
     _ORDER_INIT_ENDPOINT = "/api/v3/openOrders"
     _LISTENKEY_INIT_ENDPOINT = "/api/v3/userDataStream"
@@ -293,8 +382,8 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
 
     def _init(self):
         super()._init()
-        self.create("account", datastore_class=Account)
-        self.create("ocoorder", datastore_class=OCOOrder)
+        self._create("account", datastore_class=Account)
+        self._create("ocoorder", datastore_class=OCOOrder)
 
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
         if self._is_target_endpoint(self._ACCOUNT_INIT_ENDPOINT, endpoint):
@@ -321,14 +410,24 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
 
     @property
     def account(self):
-        return self.get("account", Account)
+        """outboundAccountPosition from User Data Streams.
+
+        https://binance-docs.github.io/apidocs/spot/en/#payload-account-update
+        """
+        return self._get("account", Account)
 
     @property
     def ocoorder(self):
-        return self.get("ocoorder", OCOOrder)
+        """listStatus from User Data Streams.
+
+        https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+        """
+        return self._get("ocoorder", OCOOrder)
 
 
 class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
+    """Binance USDⓈ-M の DataStoreCollection クラス"""
+
     _ORDERBOOK_INIT_ENDPOINT = "/fapi/v1/depth"
     _BALANCE_INIT_ENDPOINT = "/fapi/v2/balance"
     _ORDER_INIT_ENDPOINT = "/fapi/v1/openOrders"
@@ -339,7 +438,7 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
 
     def _init(self):
         super()._init()
-        self.create("compositeindex", datastore_class=CompositeIndex)
+        self._create("compositeindex", datastore_class=CompositeIndex)
 
     def _initialize_hook(self, resp: aiohttp.ClientResponse, data: Any, endpoint: str):
         super()._initialize_hook(resp, data, endpoint)
@@ -356,10 +455,16 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
 
     @property
     def compositeindex(self) -> "CompositeIndex":
-        return self.get("compositeindex", CompositeIndex)
+        """compositeindex stream.
+
+        https://binance-docs.github.io/apidocs/futures/en/#composite-index-symbol-information-streams
+        """
+        return self._get("compositeindex", CompositeIndex)
 
 
 class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
+    """Binance COIN-M の DataStoreCollection クラス"""
+
     _ORDERBOOK_INIT_ENDPOINT = "/dapi/v1/depth"
     _BALANCE_INIT_ENDPOINT = "/dapi/v1/balance"
     _ORDER_INIT_ENDPOINT = "/dapi/v1/openOrders"
@@ -373,9 +478,9 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
 
     def _init(self):
         super()._init()
-        self.create("indexprice", datastore_class=IndexPrice)
-        self.create("indexpricekline", datastore_class=Kline)
-        self.create("markpricekline", datastore_class=Kline)
+        self._create("indexprice", datastore_class=IndexPrice)
+        self._create("indexpricekline", datastore_class=Kline)
+        self._create("markpricekline", datastore_class=Kline)
 
     def _onmessage_hook(self, msg: Any, event: str, data: Any):
         super()._onmessage_hook(msg, event, data)
@@ -414,15 +519,27 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
 
     @property
     def indexprice(self) -> "IndexPrice":
-        return self.get("indexprice", IndexPrice)
+        """indexprice stream.
+
+        https://binance-docs.github.io/apidocs/delivery/en/#index-price-stream
+        """
+        return self._get("indexprice", IndexPrice)
 
     @property
     def indexpricekline(self) -> "Kline":
-        return self.get("indexpricekline", Kline)
+        """indexpricekline stream.
+
+        https://binance-docs.github.io/apidocs/delivery/en/#index-kline-candlestick-streams
+        """
+        return self._get("indexpricekline", Kline)
 
     @property
     def markpricekline(self) -> "Kline":
-        return self.get("markpricekline", Kline)
+        """markpricekline stream.
+
+        https://binance-docs.github.io/apidocs/delivery/en/#mark-price-kline-candlestick-streams
+        """
+        return self._get("markpricekline", Kline)
 
 
 class Trade(DataStore):

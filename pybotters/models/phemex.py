@@ -6,37 +6,35 @@ from typing import Awaitable
 
 import aiohttp
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
 
-class PhemexDataStore(DataStoreManager):
-    """
-    Phemexのデータストアマネージャー
-    https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
-    """
+class PhemexDataStore(DataStoreCollection):
+    """Phemex の DataStoreCollection クラス"""
 
     def _init(self) -> None:
-        self.create("trade", datastore_class=Trade)
-        self.create("orderbook", datastore_class=OrderBook)
-        self.create("ticker", datastore_class=Ticker)
-        self.create("market24h", datastore_class=Market24h)
-        self.create("kline", datastore_class=Kline)
-        self.create("accounts", datastore_class=Accounts)
-        self.create("orders", datastore_class=Orders)
-        self.create("positions", datastore_class=Positions)
+        self._create("trade", datastore_class=Trade)
+        self._create("orderbook", datastore_class=OrderBook)
+        self._create("ticker", datastore_class=Ticker)
+        self._create("market24h", datastore_class=Market24h)
+        self._create("kline", datastore_class=Kline)
+        self._create("accounts", datastore_class=Accounts)
+        self._create("orders", datastore_class=Orders)
+        self._create("positions", datastore_class=Positions)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
-        """
+        """Initialize DataStore from HTTP response data.
+
         対応エンドポイント
 
-        - GET /exchange/public/md/v2/kline (DataStore: kline)
-        - GET /exchange/public/md/kline (DataStore: kline)
-        - GET /exchange/public/md/v2/kline/last (DataStore: kline)
-        - GET /exchange/public/md/v2/kline/list (DataStore: kline)
+        - GET /exchange/public/md/v2/kline (:attr:`.PhemexDataStore.kline`)
+        - GET /exchange/public/md/kline (:attr:`.PhemexDataStore.kline`)
+        - GET /exchange/public/md/v2/kline/last (:attr:`.PhemexDataStore.kline`)
+        - GET /exchange/public/md/v2/kline/list (:attr:`.PhemexDataStore.kline`)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -76,35 +74,99 @@ class PhemexDataStore(DataStoreManager):
 
     @property
     def trade(self) -> "Trade":
-        return self.get("trade", Trade)
+        """trades/trades_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#trade-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#trade-message-format
+        * Spot Websocket API
+            * https://phemex-docs.github.io/#trade-message-2
+        """
+        return self._get("trade", Trade)
 
     @property
     def orderbook(self) -> "OrderBook":
-        return self.get("orderbook", OrderBook)
+        """book/orderbook_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#orderbook-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#orderbook-message-2
+        * Spot Websocket API
+            * https://phemex-docs.github.io/#orderbook-message-3
+        """
+        return self._get("orderbook", OrderBook)
 
     @property
     def ticker(self):
-        return self.get("ticker", Ticker)
+        """tick/tick_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#tick-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#push-event
+        """
+        return self._get("ticker", Ticker)
 
     @property
     def market24h(self) -> "Market24h":
-        return self.get("market24h", Market24h)
+        """market24h/market24h_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#24-hours-ticker-message
+        * Hedged Contract Websocket API
+            * httpshttps://phemex-docs.github.io/#hours-ticker-message-format
+        """
+        return self._get("market24h", Market24h)
 
     @property
     def kline(self) -> "Kline":
-        return self.get("kline", Kline)
+        """kline/kline_pkline_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#kline-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#kline-message-format
+        * Spot Websocket API
+            * https://phemex-docs.github.io/#kline-message-2
+        """
+        return self._get("kline", Kline)
 
     @property
     def accounts(self) -> "Accounts":
-        return self.get("accounts", Accounts)
+        """accounts/accounts_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message-sample
+        """
+        return self._get("accounts", Accounts)
 
     @property
     def orders(self) -> "Orders":
-        return self.get("orders", Orders)
+        """orders/orders_p channel.
+
+        アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message-sample
+        """
+        return self._get("orders", Orders)
 
     @property
     def positions(self) -> "Positions":
-        return self.get("positions", Positions)
+        """positions/positions_p channel.
+
+        * Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message
+        * Hedged Contract Websocket API
+            * https://phemex-docs.github.io/#account-order-position-aop-message-sample
+        """
+        return self._get("positions", Positions)
 
 
 class Trade(DataStore):

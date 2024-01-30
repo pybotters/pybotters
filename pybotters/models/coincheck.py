@@ -5,17 +5,25 @@ from typing import Any, Awaitable
 
 import aiohttp
 
-from ..store import DataStore, DataStoreManager
+from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
 from ..ws import ClientWebSocketResponse
 
 
-class CoincheckDataStore(DataStoreManager):
+class CoincheckDataStore(DataStoreCollection):
+    """Coincheck の DataStoreCollection クラス"""
+
     def _init(self) -> None:
-        self.create("trades", datastore_class=Trades)
-        self.create("orderbook", datastore_class=Orderbook)
+        self._create("trades", datastore_class=Trades)
+        self._create("orderbook", datastore_class=Orderbook)
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
+        """Initialize DataStore from HTTP response data.
+
+        対応エンドポイント
+
+        - GET /api/order_books (:attr:`.CoincheckDataStore.orderbook`)
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -32,11 +40,19 @@ class CoincheckDataStore(DataStoreManager):
 
     @property
     def trades(self) -> "Trades":
-        return self.get("trades", Trades)
+        """trades channel.
+
+        https://coincheck.com/ja/documents/exchange/api#websocket-trades
+        """
+        return self._get("trades", Trades)
 
     @property
     def orderbook(self) -> "Orderbook":
-        return self.get("orderbook", Orderbook)
+        """orderbook channel.
+
+        https://coincheck.com/ja/documents/exchange/api#websocket-order-book
+        """
+        return self._get("orderbook", Orderbook)
 
 
 class Trades(DataStore):

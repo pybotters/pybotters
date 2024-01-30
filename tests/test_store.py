@@ -8,34 +8,34 @@ import pybotters.store
 
 
 def test_dsm_construct():
-    dsm = pybotters.store.DataStoreManager()
-    dsm.create("example")
+    dsm = pybotters.store.DataStoreCollection()
+    dsm._create("example")
     assert isinstance(dsm._stores, dict)
     assert isinstance(dsm._events, list)
     assert isinstance(dsm._iscorofunc, bool)
     assert "example" in dsm
     assert isinstance(dsm["example"], pybotters.store.DataStore)
     assert isinstance(
-        dsm.get("example", pybotters.store.DataStore), pybotters.store.DataStore
+        dsm._get("example", pybotters.store.DataStore), pybotters.store.DataStore
     )
 
 
 def test_dsm_subcls_construct():
     called = False
 
-    class SubDataStoreManager(pybotters.store.DataStoreManager):
+    class SubDataStoreCollection(pybotters.store.DataStoreCollection):
         def _init(self):
             nonlocal called
             called = True
 
-    SubDataStoreManager()
+    SubDataStoreCollection()
 
     assert called
 
 
 @pytest.mark.asyncio
 async def test_dsm_construct_onmessage(mocker: pytest_mock.MockerFixture):
-    dsm = pybotters.store.DataStoreManager()
+    dsm = pybotters.store.DataStoreCollection()
     assert not dsm._iscorofunc
     dsm._events.append(asyncio.Event())
     dsm.onmessage({"foo": "bar"}, mocker.MagicMock())
@@ -44,7 +44,7 @@ async def test_dsm_construct_onmessage(mocker: pytest_mock.MockerFixture):
 
 @pytest.mark.asyncio
 async def test_dsm_wait():
-    dsm = pybotters.store.DataStoreManager()
+    dsm = pybotters.store.DataStoreCollection()
     loop = asyncio.get_running_loop()
 
     def set_events():
