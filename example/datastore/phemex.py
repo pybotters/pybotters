@@ -1,7 +1,8 @@
 import asyncio
 
-import pybotters
 from rich import print
+
+import pybotters
 
 
 async def main():
