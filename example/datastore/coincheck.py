@@ -1,8 +1,11 @@
 import asyncio
 
-from rich import print
-
 import pybotters
+
+try:
+    from rich import print
+except ImportError:
+    pass
 
 
 async def main():

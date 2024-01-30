@@ -38,7 +38,7 @@ class bitFlyerDataStore(DataStoreCollection):
         対応エンドポイント
 
         - GET /v1/me/getchildorders (:attr:`.bitFlyerDataStore.childorders`)
-        - GET /v1/me/getchildorders (:attr:`.bitFlyerDataStore.parentorders`)
+        - GET /v1/me/getparentorders (:attr:`.bitFlyerDataStore.parentorders`)
         - GET /v1/me/getpositions (:attr:`.bitFlyerDataStore.positions`)
         - GET /v1/me/getbalance (:attr:`.bitFlyerDataStore.balance`)
         """
