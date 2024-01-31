@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybotters"
-version = "0.17.0"
+version = "1.0.0"
 description = "An advanced API client for python botters."
 license = "MIT"
 authors = ["MtkN1 <51289448+MtkN1@users.noreply.github.com>"]
@@ -33,7 +33,6 @@ pytest-asyncio = "^0.23.3"
 pytest-aiohttp = "^1.0.5"
 pytest-freezer = "^0.4.8"
 pytest-cov = "^4.1.0"
-toml = "^0.10.2"
 black = "^23.10.1"
 flake8 = [ { version = "^6.1.0", python = "^3.8.1" }, { version = "<6.1.0", python = "<3.8.1" } ]
 isort = "^5.11.5"
