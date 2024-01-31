@@ -14,7 +14,7 @@ TL;DR
 **ワークフロー**
 
 0. マシンをセットアップする (Python 3.8, Poetry, venv, dependencies ...)
-1. (Optional) メンテナと議論が必要な場合 `Discussion <https://github.com/MtkN1/pybotters/discussions>`_ または `Issue <https://github.com/MtkN1/pybotters/pulls>`_ を作成する
+1. (Optional) メンテナと議論が必要な場合 `Discussion <https://github.com/pybotters/pybotters/discussions>`_ または `Issue <https://github.com/pybotters/pybotters/pulls>`_ を作成する
 2. リポジトリを Fork する
 3. main ブランチを元に、変更する内容を表す名称のブランチ (トピックブランチ) を作成する
 4. あなたのアイディアをソースコードに反映する 💎💎
@@ -88,7 +88,7 @@ Poetry
     # Activate venv.
     . ~/.venv/pybotters/bin/activate
     # Clone pybotters
-    git clone https://github.com/MtkN1/pybotters
+    git clone https://github.com/pybotters/pybotters
     cd pybotters
     # Install.
     poetry install
@@ -171,10 +171,10 @@ Discussion and Issue
 
 **Discussion 👉 Issue 👉 Pull request 👉 Merge!!**
 
-バグの疑いがある動作を発見したり、追加の機能リクエスト、質問などがある場合は `GitHub Discussion <https://github.com/MtkN1/pybotters/discussions>`_ から始めましょう。
+バグの疑いがある動作を発見したり、追加の機能リクエスト、質問などがある場合は `GitHub Discussion <https://github.com/pybotters/pybotters/discussions>`_ から始めましょう。
 その内容についてメンテナと議論して明確な回答を得ることができます。
 
-Discussion によってバグの修正や追加機能などの課題が明確化した場合は、その内容を `GitHub Issue <https://github.com/MtkN1/pybotters/pulls>`_ にエスカレーションします。
+Discussion によってバグの修正や追加機能などの課題が明確化した場合は、その内容を `GitHub Issue <https://github.com/pybotters/pybotters/pulls>`_ にエスカレーションします。
 Issue はやるべきことのトラッカーとして利用します。
 メンテナまたはコントリビューターはこの Issue リストを元に Pull request をします。
 
