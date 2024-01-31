@@ -21,8 +21,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 # -- Project information -----------------------------------------------------
 
 project = "pybotters"
-copyright = f"2021-{datetime.date.today().year}, MtkN1XBt"
-author = "MtkN1XBt"
+copyright = f"2021-{datetime.date.today().year}, MtkN1"
+author = "MtkN1"
 
 
 # -- General configuration ---------------------------------------------------

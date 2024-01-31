@@ -34,11 +34,11 @@ From `PyPI <https://pypi.org/project/pybotters/>`_ (リリースバージョン)
 
     $ pip install pybotters
 
-From `GitHub <https://github.com/MtkN1/pybotters>`_ (開発バージョン):
+From `GitHub <https://github.com/pybotters/pybotters>`_ (開発バージョン):
 
 .. code-block:: console
 
-    $ pip install git+https://github.com/MtkN1/pybotters.git
+    $ pip install git+https://github.com/pybotters/pybotters.git
 
 
 Quickstart

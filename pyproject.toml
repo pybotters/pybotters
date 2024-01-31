@@ -5,7 +5,7 @@ description = "An advanced API client for python botters."
 license = "MIT"
 authors = ["MtkN1 <51289448+MtkN1@users.noreply.github.com>"]
 readme = "README.md"
-repository = "https://github.com/MtkN1/pybotters"
+repository = "https://github.com/pybotters/pybotters"
 documentation = "https://pybotters.readthedocs.io/ja/stable/"
 classifiers = [
     "Framework :: AsyncIO",

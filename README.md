@@ -5,14 +5,14 @@
 ](https://pypi.org/project/pybotters/)
 [![Downloads](https://static.pepy.tech/badge/pybotters)](https://pepy.tech/project/pybotters)
 
-[![pytest](https://github.com/MtkN1/pybotters/actions/workflows/pytest.yml/badge.svg)](https://github.com/MtkN1/pybotters/actions/workflows/pytest.yml)
-[![publish](https://github.com/MtkN1/pybotters/actions/workflows/publish.yml/badge.svg)](https://github.com/MtkN1/pybotters/actions/workflows/publish.yml)
-[![codecov](https://codecov.io/gh/MtkN1/pybotters/graph/badge.svg?token=ARR29R726W)](https://codecov.io/gh/MtkN1/pybotters)
+[![pytest](https://github.com/pybotters/pybotters/actions/workflows/pytest.yml/badge.svg)](https://github.com/pybotters/pybotters/actions/workflows/pytest.yml)
+[![publish](https://github.com/pybotters/pybotters/actions/workflows/publish.yml/badge.svg)](https://github.com/pybotters/pybotters/actions/workflows/publish.yml)
+[![codecov](https://codecov.io/gh/pybotters/pybotters/graph/badge.svg?token=ARR29R726W)](https://codecov.io/gh/pybotters/pybotters)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Documentation Status](https://readthedocs.org/projects/pybotters/badge/?version=latest)](https://pybotters.readthedocs.io/ja/latest/?badge=latest)
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/MtkN1/pybotters?style=social)](https://github.com/MtkN1/pybotters/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/MtkN1/pybotters?style=social)](https://github.com/MtkN1/pybotters/network/members)
+[![GitHub Repo stars](https://img.shields.io/github/stars/pybotters/pybotters?style=social)](https://github.com/pybotters/pybotters/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/pybotters/pybotters?style=social)](https://github.com/pybotters/pybotters/network/members)
 [![Discord](https://img.shields.io/discord/832651305155297331?label=Discord&logo=discord&style=social)](https://discord.com/invite/CxuWSX9U69)
 
 
@@ -73,10 +73,10 @@ From [PyPI](https://pypi.org/project/pybotters/) (stable version):
 pip install pybotters
 ```
 
-From [GitHub](https://github.com/MtkN1/pybotters) (latest version):
+From [GitHub](https://github.com/pybotters/pybotters) (latest version):
 
 ```sh
-pip install git+https://github.com/MtkN1/pybotters.git
+pip install git+https://github.com/pybotters/pybotters.git
 ```
 
 ## 📝 Usage
