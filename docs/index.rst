@@ -118,6 +118,22 @@ What's next
 まずは :doc:`user-guide` ページで pybotters の利用方法を学習しましょう。
 
 
+💖 Sponsor
+-----------
+
+Please sponsor me!
+
+このプロジェクトはオープンソースで運営されています。
+pybotters のソフトウェアとコミュニティの継続していく為に、是非 GitHub スポンサーによるサポートをお願いします 🙏
+
+GitHub スポンサーになっていただくと、開発者がより多くの時間とリソースをプロジェクトに費やすことができ、新しい機能の開発やバグの修正、コミュニティのサポートなど、より良いプロダクトを提供できるようになります。
+
+GitHub Sponsors:
+
+.. image:: https://github.githubassets.com/images/modules/profile/achievements/public-sponsor-default.png 
+    :target: https://github.com/sponsors/MtkN1
+    :height: 150px
+
 Indices and tables
 ------------------
 
