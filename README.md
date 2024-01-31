@@ -14,6 +14,7 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/pybotters/pybotters?style=social)](https://github.com/pybotters/pybotters/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/pybotters/pybotters?style=social)](https://github.com/pybotters/pybotters/network/members)
 [![Discord](https://img.shields.io/discord/832651305155297331?label=Discord&logo=discord&style=social)](https://discord.com/invite/CxuWSX9U69)
+[![GitHub Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-%23db61a2.svg?&logo=github&logoColor=181717&&style=flat-square&labelColor=white)](https://github.com/sponsors/MtkN1)
 
 
 # pybotters
@@ -258,6 +259,10 @@ except KeyboardInterrupt:
 MIT
 
 ## 💖 Author
+
+Please sponsor me!:
+
+[![GitHub Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-%23db61a2.svg?&logo=github&logoColor=181717&&style=flat-square&labelColor=white)](https://github.com/sponsors/MtkN1)
 
 X:
 
