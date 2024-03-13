@@ -161,7 +161,7 @@ class DataStore:
             item: DataStore のキー (:attr:`.DataStore._KES`) を指定する辞書
 
         Returns:
-            キーに一致するアイテムがアイテムがあればそのアイテムを返します。
+            キーに一致するアイテムがあればそのアイテムを返します。
             なければ None を返します
         """
         if self._keys:
