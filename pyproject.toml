@@ -26,17 +26,15 @@ classifiers = [
 python = "^3.8"
 aiohttp = "^3.9.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^7.4.4"
 pytest-mock = "^3.12.0"
 pytest-asyncio = "^0.23.3"
 pytest-aiohttp = "^1.0.5"
 pytest-freezer = "^0.4.8"
 pytest-cov = "^4.1.0"
-black = "^23.10.1"
-flake8 = [ { version = "^6.1.0", python = "^3.8.1" }, { version = "<6.1.0", python = "<3.8.1" } ]
-isort = "^5.11.5"
 rich = "^13.0.0"
+ruff = "^0.3.3"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "<=7.1.2"
@@ -44,6 +42,13 @@ furo = "^2023.9.10"
 sphinx-copybutton = "^0.5.2"
 sphinx-new-tab-link = "^0.2.1"
 sphinx-autobuild = "^2021.3.14"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "I"]
+ignore = ["E501"]
+
+[tool.coverage.run]
+omit = ["pybotters/models/*"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

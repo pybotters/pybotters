@@ -32,7 +32,7 @@ class bitbankDataStore(DataStoreCollection):
         """transactions channel.
 
         https://github.com/bitbankinc/bitbank-api-docs/blob/master/public-stream.md#transactions
-        """  # noqa: E501
+        """
         return self._get("transactions", Transactions)
 
     @property
@@ -41,7 +41,7 @@ class bitbankDataStore(DataStoreCollection):
 
         * https://github.com/bitbankinc/bitbank-api-docs/blob/master/public-stream.md#depth-diff
         * https://github.com/bitbankinc/bitbank-api-docs/blob/master/public-stream.md#depth-whole
-        """  # noqa: E501
+        """
         return self._get("depth", Depth)
 
     @property
@@ -49,7 +49,7 @@ class bitbankDataStore(DataStoreCollection):
         """ticker channel.
 
         https://github.com/bitbankinc/bitbank-api-docs/blob/master/public-stream.md#ticker
-        """  # noqa: E501
+        """
         return self._get("ticker", Ticker)
 
 

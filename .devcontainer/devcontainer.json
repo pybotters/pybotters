@@ -18,51 +18,26 @@
 			"extensions": [
 				"GitHub.vscode-pull-request-github",
 				"eamodio.gitlens",
-				"be5invis.toml"
+				"be5invis.toml",
+				"charliermarsh.ruff"
 			],
 			"settings": {
-				// overwrite
 				"python.defaultInterpreterPath": "${workspaceFolder}/.venv",
-				"python.formatting.autopep8Path": "autopep8",
-				"python.formatting.blackPath": "black",
-				"python.formatting.yapfPath": "yapf",
-				"python.linting.banditPath": "bandit",
-				"python.linting.flake8Path": "flake8",
-				"python.linting.mypyPath": "mypy",
-				"python.linting.pycodestylePath": "pycodestyle",
-				"python.linting.pydocstylePath": "pydocstyle",
-				"python.linting.pylintPath": "pylint",
-				"python.linting.enabled": true,
-				"python.linting.pylintEnabled": false,
-				// formatting
-				"python.formatting.provider": "black",
 				"[python]": {
+					"editor.defaultFormatter": "charliermarsh.ruff",
 					"editor.formatOnSave": true,
 					"editor.codeActionsOnSave": {
-						"source.organizeImports": true
+						"source.fixAll": "explicit",
+						"source.organizeImports": "explicit"
 					},
 					"editor.rulers": [
 						88
 					]
 				},
-				"isort.path": [
-					"isort"
-				],
-				"isort.args": [
-					"--profile=black"
-				],
-				// linting
-				"python.linting.flake8Enabled": true,
-				"python.linting.flake8Args": [
-					"--max-line-length=88",
-					"--extend-ignore=E203"
-				],
-				// testing
 				"python.testing.pytestEnabled": true,
 				"python.testing.pytestArgs": [
 					"tests"
 				],
-				// other
 				"python.interpreter.infoVisibility": "always",
 				"files.exclude": {
 					"**/.venv": true

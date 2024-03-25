@@ -32,7 +32,7 @@ class DataStore:
             data = []
         self._insert(data)
         if hasattr(self, "_init"):
-            getattr(self, "_init")()
+            self._init()
 
     def __len__(self) -> int:
         return len(self._data)
@@ -354,7 +354,7 @@ class DataStoreCollection:
         self._events: list[asyncio.Event] = []
         self._iscorofunc = asyncio.iscoroutinefunction(self._onmessage)
         if hasattr(self, "_init"):
-            getattr(self, "_init")()
+            self._init()
 
     def __getitem__(self, name: str) -> DataStore | None:
         return self._stores[name]

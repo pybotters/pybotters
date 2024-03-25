@@ -48,7 +48,7 @@ class OKXDataStore(DataStoreCollection):
 
         - GET /api/v5/trade/orders-pending (:attr:`.OKXDataStore.orders`)
         - GET /api/v5/trade/orders-algo-pending (:attr:`.OKXDataStore.ordersalgo` :attr:`.OKXDataStore.algoadvance`)
-        """  # noqa: E501
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -279,40 +279,32 @@ class _CandleStore(DataStore):
             self._update([{**msg["arg"], **dict(zip(self._LIST_KEYS, item))}])
 
 
-class Instruments(_UpdateStore):
-    ...
+class Instruments(_UpdateStore): ...
 
 
-class Tickers(_UpdateStore):
-    ...
+class Tickers(_UpdateStore): ...
 
 
-class OpenInterest(_UpdateStore):
-    ...
+class OpenInterest(_UpdateStore): ...
 
 
 class Candle(_CandleStore):
     _LIST_KEYS = ["ts", "o", "h", "l", "c", "vol", "volCcy"]
 
 
-class Trades(_InsertStore):
-    ...
+class Trades(_InsertStore): ...
 
 
-class EstimatedPrice(_UpdateStore):
-    ...
+class EstimatedPrice(_UpdateStore): ...
 
 
-class MarkPrice(_UpdateStore):
-    ...
+class MarkPrice(_UpdateStore): ...
 
 
-class MarkPriceCandle(_CandleStore):
-    ...
+class MarkPriceCandle(_CandleStore): ...
 
 
-class PriceLimit(_UpdateStore):
-    ...
+class PriceLimit(_UpdateStore): ...
 
 
 class Books(DataStore):
@@ -357,24 +349,19 @@ class Books(DataStore):
             self.ts = book["ts"]
 
 
-class OptSummary(_UpdateStore):
-    ...
+class OptSummary(_UpdateStore): ...
 
 
-class FundingRate(_UpdateStore):
-    ...
+class FundingRate(_UpdateStore): ...
 
 
-class IndexCandle(_CandleStore):
-    ...
+class IndexCandle(_CandleStore): ...
 
 
-class IndexTickers(_UpdateStore):
-    ...
+class IndexTickers(_UpdateStore): ...
 
 
-class Status(_InsertStore):
-    ...
+class Status(_InsertStore): ...
 
 
 class Account(DataStore):
@@ -467,8 +454,7 @@ class AlgoAdvance(_UpdateStore):
                 self._delete([item])
 
 
-class LiquidationWarning(_UpdateStore):
-    ...
+class LiquidationWarning(_UpdateStore): ...
 
 
 class AccountGreeks(_UpdateStore):
