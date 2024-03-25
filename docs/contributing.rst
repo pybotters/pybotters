@@ -18,7 +18,7 @@ TL;DR
 2. リポジトリを Fork する
 3. main ブランチを元に、変更する内容を表す名称のブランチ (トピックブランチ) を作成する
 4. あなたのアイディアをソースコードに反映する 💎💎
-5. pytest, black, flake8 を実行して正しいコードかチェックする
+5. pytest, ruff を実行して正しいコードかチェックする
 6. Pull request を作成して、変更内容を記載する
 7. レビューを受け、必要なら修正を行う
 8. あなたのソースコードがマージされます 🚀🚀
@@ -96,41 +96,19 @@ Poetry
 Formatter, Linter
 -----------------
 
-当プロジェクトではフォーマッターは
-`black <https://black.readthedocs.io/en/stable/>`__, リンターは
-`flake8 <https://flake8.pycqa.org/en/latest/>`__ を採用しています。
-(これらは Poetry によってインストールされます。)
+当プロジェクトではリンターとフォーマッターとして
+`Ruff <https://docs.astral.sh/ruff/>`__ を採用しています。
+(Poetry によってインストールされます。)
 
 コードをコミットする際にはこれらを適用してください。
 
-**参考 blackの適用方法**
+**参考 Ruff の適用方法**
 
 .. code:: bash
 
-    # 手動で適用する場合
-    balck .
+    ruff check --fix
+    ruff format
 
-    # VS Codeで自動適用を利用する場合
-    # .vscode/settings.json を編集
-    # {
-    #     "python.formatting.provider": "black",
-    #     "editor.formatOnSave": true
-    # }
-
-**参考 flake8 の適用方法**
-
-.. code:: bash
-
-    # 手動でチェックする場合(確認後、コードを修正してください)
-    flake8 .
-
-    # VS Codeで自動チェックする場合
-    # .vscode/settings.json を編集
-    # {
-    #     "python.linting.flake8Enabled": true,
-    #     "python.linting.enabled": true,
-    #     "python.linting.pylintEnabled": false
-    # }
 
 Testing
 -------
