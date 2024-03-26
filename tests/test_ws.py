@@ -794,7 +794,7 @@ async def test_heartbeat_frame(mocker: pytest_mock.MockerFixture, test_input):
                         "args": [
                             "77SQfUG7X33JhYZ3Jswpx5To",
                             2085848901000,
-                            "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",  # noqa: E501
+                            "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",
                         ],
                     },
                     _itself=True,
@@ -828,7 +828,7 @@ async def test_heartbeat_frame(mocker: pytest_mock.MockerFixture, test_input):
                         "args": [
                             "77SQfUG7X33JhYZ3Jswpx5To",
                             2085848901000,
-                            "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",  # noqa: E501
+                            "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",
                         ],
                     },
                     _itself=True,
@@ -862,7 +862,7 @@ async def test_heartbeat_frame(mocker: pytest_mock.MockerFixture, test_input):
                         "args": [
                             "77SQfUG7X33JhYZ3Jswpx5To",
                             2085848901000,
-                            "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",  # noqa: E501
+                            "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",
                         ],
                     },
                     _itself=True,
@@ -987,7 +987,7 @@ async def test_auth_bitflyer_ws(
                 "timestamp": 2085848896000,
                 "nonce": "d73b41172d6deca2285e8e58533db082",
                 "signature": (
-                    "f47526dec80c4773815fb1121058c2e3bcc531d1224b683e8babf76e52b0ba9c"  # noqa: E501
+                    "f47526dec80c4773815fb1121058c2e3bcc531d1224b683e8babf76e52b0ba9c"
                 ),
             },
             "id": "auth",
@@ -1349,7 +1349,7 @@ async def test_auth_mexc_ws(mocker: pytest_mock.MockerFixture):
             "param": {
                 "apiKey": "0uVJRVNmR2ZHiCXtf6yEwrwy",
                 "reqTime": "2085848896",
-                "signature": "cd92edf98d52d973e96ffdce6f845c930f9900c5e4aa47ca4ef81d80533ab882",  # noqa: E501
+                "signature": "cd92edf98d52d973e96ffdce6f845c930f9900c5e4aa47ca4ef81d80533ab882",
             },
         },
         _itself=True,
@@ -1434,7 +1434,7 @@ async def test_ratelimit_binance(mocker: pytest_mock.MockerFixture):
                     "method": "session.logon",
                     "params": {
                         "apiKey": "9qm1u2s4GoHt9ryIm1D2fHV8",
-                        "signature": "b8e612f5ae4bfe8ca85fd6e6f0305dc17bed58b05ae26e33f73b4690b9daa490",  # noqa: E501
+                        "signature": "b8e612f5ae4bfe8ca85fd6e6f0305dc17bed58b05ae26e33f73b4690b9daa490",
                         "timestamp": 2085848896000,
                     },
                 }
@@ -1453,7 +1453,7 @@ async def test_ratelimit_binance(mocker: pytest_mock.MockerFixture):
                     "method": "session.logon",
                     "params": {
                         "apiKey": "9qm1u2s4GoHt9ryIm1D2fHV8",
-                        "signature": "b8e612f5ae4bfe8ca85fd6e6f0305dc17bed58b05ae26e33f73b4690b9daa490",  # noqa: E501
+                        "signature": "b8e612f5ae4bfe8ca85fd6e6f0305dc17bed58b05ae26e33f73b4690b9daa490",
                         "timestamp": 2085848896000,
                     },
                 }
@@ -1486,7 +1486,7 @@ async def test_ratelimit_binance(mocker: pytest_mock.MockerFixture):
                         "price": "23416.10000000",
                         "quantity": "0.00847000",
                         "apiKey": "9qm1u2s4GoHt9ryIm1D2fHV8",
-                        "signature": "c119b5309bb35cf7a72d34812dbcd3895f4ce9bdda06001b7bb3a50a43fc74d6",  # noqa: E501
+                        "signature": "c119b5309bb35cf7a72d34812dbcd3895f4ce9bdda06001b7bb3a50a43fc74d6",
                         "timestamp": 2085848896000,
                     },
                 },

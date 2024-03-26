@@ -63,7 +63,7 @@ class BinanceDataStoreBase(DataStoreCollection):
         - GET /fapi/v1/indexInfo (:attr:`.BinanceUSDSMDataStore.compositeindex`)
 
 
-        """  # noqa
+        """
         for f in asyncio.as_completed(aws):
             resp = await f
             data = await resp.json()
@@ -195,7 +195,7 @@ class BinanceDataStoreBase(DataStoreCollection):
             * https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
         * COIN-M
             * https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
-        """  # noqa: E501
+        """
         return self._get("trade", Trade)
 
     @property
@@ -208,7 +208,7 @@ class BinanceDataStoreBase(DataStoreCollection):
             * https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-streams
         * COIN-M
             * https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-streams
-        """  # noqa: E501
+        """
         return self._get("kline", Kline)
 
     @property
@@ -224,7 +224,7 @@ class BinanceDataStoreBase(DataStoreCollection):
         * COIN-M
             * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-mini-ticker-stream
             * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
-        """  # noqa: E501
+        """
         return self._get("ticker", Ticker)
 
     @property
@@ -237,7 +237,7 @@ class BinanceDataStoreBase(DataStoreCollection):
             * https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-book-ticker-streams
         * COIN-M
             * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-book-ticker-streams
-        """  # noqa: E501
+        """
         return self._get("bookticker", BookTicker)
 
     @property
@@ -250,7 +250,7 @@ class BinanceDataStoreBase(DataStoreCollection):
             * https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
         * COIN-M
             * https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
-        """  # noqa: E501
+        """
         return self._get("orderbook", OrderBook)
 
     @property
@@ -339,7 +339,7 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
         * https://binance-docs.github.io/apidocs/futures/en/#continuous-contract-kline-candlestick-data
         * https://binance-docs.github.io/apidocs/delivery/en/#continuous-contract-kline-candlestick-data
-        """  # noqa: E501
+        """
         return self._get("continuouskline", ContinuousKline)
 
     @property
@@ -348,7 +348,7 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
         * https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
         * https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
-        """  # noqa: E501
+        """
         return self._get("liquidation", Liquidation)
 
     @property
@@ -357,7 +357,7 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
         * https://binance-docs.github.io/apidocs/futures/en/#event-balance-and-position-update
         * https://binance-docs.github.io/apidocs/delivery/en/#event-balance-and-position-update
-        """  # noqa: E501
+        """
         return self._get("balance", Balance)
 
     @property
@@ -366,7 +366,7 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
 
         * https://binance-docs.github.io/apidocs/futures/en/#event-balance-and-position-update
         * https://binance-docs.github.io/apidocs/delivery/en/#event-balance-and-position-update
-        """  # noqa: E501
+        """
         return self._get("position", Position)
 
 

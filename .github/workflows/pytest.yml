@@ -31,9 +31,10 @@ jobs:
     - name: Install dependencies
       run: |
         poetry install
-    - name: Lint with flake8
+    - name: Lint with ruff
       run: |
-        poetry run flake8
+        poetry run ruff check
+        poetry run ruff format --check
     - name: Test with pytest
       run: |
         poetry run pytest --cov-report term --cov-report=xml --cov pybotters tests/

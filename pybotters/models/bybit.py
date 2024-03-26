@@ -61,7 +61,7 @@ class BybitDataStore(DataStoreCollection):
             if resp.url.path in self._MAP_PATH_TOPIC:
                 topic = self._MAP_PATH_TOPIC[resp.url.path]
                 if topic in self:
-                    getattr(self[topic], "_onresponse")(resp.url, data)
+                    self[topic]._onresponse(resp.url, data)
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if "success" in msg:
@@ -73,7 +73,7 @@ class BybitDataStore(DataStoreCollection):
             topic, *topic_ext = dot_topic.split(".")
 
             if topic in self:
-                getattr(self[topic], "_onmessage")(msg, topic_ext)
+                self[topic]._onmessage(msg, topic_ext)
 
     @property
     def orderbook(self) -> "OrderBook":
@@ -253,16 +253,13 @@ class Liquidation(DataStore):
         self._insert([msg["data"]])
 
 
-class LTKline(Kline):
-    ...
+class LTKline(Kline): ...
 
 
-class LTTicker(Ticker):
-    ...
+class LTTicker(Ticker): ...
 
 
-class LTNav(Ticker):
-    ...
+class LTNav(Ticker): ...
 
 
 class Position(DataStore):

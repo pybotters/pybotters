@@ -11,7 +11,7 @@ from yarl import URL
 import pybotters.auth
 
 
-def util_api_generater():
+def util_api_generater():  # pragma: no cover
     """
     $ python
     >>> from tests.test_auth import util_api_generater
@@ -125,8 +125,7 @@ def test_hosts():
 def test_item():
     name = "example"
 
-    def func(*args, **kwargs):
-        return args
+    def func(*args, **kwargs): ...
 
     item = pybotters.auth.Item(name, func)
     assert item.name == name

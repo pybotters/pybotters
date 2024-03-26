@@ -152,7 +152,7 @@ class KuCoinDataStore(DataStoreCollection):
         * https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
         * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker-v2
         * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker
-        """  # noqa: E501
+        """
         return self._get("ticker", Ticker)
 
     @property
@@ -168,7 +168,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/market/snapshot topic.
 
         * https://www.kucoin.com/docs/websocket/spot-trading/public-channels/symbol-snapshot
-        """  # noqa: E501
+        """
         return self._get("symbolsnapshot", SymbolSnapshot)
 
     @property
@@ -177,7 +177,7 @@ class KuCoinDataStore(DataStoreCollection):
 
         * https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
         * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/level2-5-best-ask-bid-orders
-        """  # noqa: E501
+        """
         return self._get("orderbook5", TopKOrderBook)
 
     @property
@@ -186,7 +186,7 @@ class KuCoinDataStore(DataStoreCollection):
 
         * https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
         * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/level2-50-best-ask-bid-orders
-        """  # noqa: E501
+        """
         return self._get("orderbook50", TopKOrderBook)
 
     @property
@@ -195,7 +195,7 @@ class KuCoinDataStore(DataStoreCollection):
 
         * https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
         * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/match-execution-data
-        """  # noqa: E501
+        """
         return self._get("execution", Execution)
 
     @property
@@ -203,7 +203,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/indicator/index topic.
 
         * https://www.kucoin.com/docs/websocket/margin-trading/public-channels/index-price
-        """  # noqa: E501
+        """
         return self._get("indexprice", IndexPrice)
 
     @property
@@ -211,7 +211,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/indicator/markPrice topic.
 
         * https://www.kucoin.com/docs/websocket/margin-trading/public-channels/mark-price
-        """  # noqa: E501
+        """
         return self._get("markprice", MarkPrice)
 
     @property
@@ -222,7 +222,7 @@ class KuCoinDataStore(DataStoreCollection):
         * https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
         * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/trade-orders
         * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/stop-order-lifecycle-event
-        """  # noqa: E501
+        """
         return self._get("orderevents", OrderEvents)
 
     @property
@@ -235,7 +235,7 @@ class KuCoinDataStore(DataStoreCollection):
         * https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
         * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/trade-orders
         * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/stop-order-lifecycle-event
-        """  # noqa: E501
+        """
         return self._get("orders", Orders)
 
     @property
@@ -243,7 +243,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/account/balance topic.
 
         * https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
-        """  # noqa: E501
+        """
         return self._get("balance", Balance)
 
     @property
@@ -251,7 +251,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/margin/fundingBook topic.
 
         * https://www.kucoin.com/docs/websocket/margin-trading/public-channels/margin-funding-order-book-change
-        """  # noqa: E501
+        """
         return self._get("marginfundingbook", MarginFundingBook)
 
     @property
@@ -259,7 +259,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/margin/position topic.
 
         * https://www.kucoin.com/docs/websocket/margin-trading/private-channels/cross-margin-position-event
-        """  # noqa: E501
+        """
         return self._get("marginpositions", MarginPositions)
 
     @property
@@ -267,7 +267,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/margin/position topic.
 
         * https://www.kucoin.com/docs/websocket/margin-trading/private-channels/cross-margin-position-event
-        """  # noqa: E501
+        """
         return self._get("marginpositionevents", MarginPositionEvents)
 
     @property
@@ -275,7 +275,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/margin/loan topic.
 
         * https://www.kucoin.com/docs/websocket/margin-trading/private-channels/margin-trade-order-event
-        """  # noqa: E501
+        """
         return self._get("marginorderevents", MarginOrderEvents)
 
     @property
@@ -285,7 +285,7 @@ class KuCoinDataStore(DataStoreCollection):
         アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
 
         * https://www.kucoin.com/docs/websocket/margin-trading/private-channels/margin-trade-order-event
-        """  # noqa: E501
+        """
         return self._get("marginorders", MarginOrders)
 
     @property
@@ -293,7 +293,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/contract/instrument topic.
 
         * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/contract-market-data
-        """  # noqa: E501
+        """
         return self._get("instrument", Instrument)
 
     @property
@@ -301,7 +301,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/contract/announcement topic.
 
         * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/funding-fee-settlement
-        """  # noqa: E501
+        """
         return self._get("announcements", Announcements)
 
     @property
@@ -309,7 +309,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/contractMarket/snapshot topic.
 
         * https://www.kucoin.com/docs/websocket/futures-trading/public-channels/transaction-statistics-timer-event
-        """  # noqa: E501
+        """
         return self._get("transactionstats", TransactionStats)
 
     @property
@@ -317,7 +317,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/contractAccount/wallet topic.
 
         * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/account-balance-events
-        """  # noqa: E501
+        """
         return self._get("balanceevents", BalanceEvents)
 
     @property
@@ -325,7 +325,7 @@ class KuCoinDataStore(DataStoreCollection):
         """/contract/position topic.
 
         * https://www.kucoin.com/docs/websocket/futures-trading/private-channels/position-change-events
-        """  # noqa: E501
+        """
         return self._get("positions", Positions)
 
     @property
@@ -431,8 +431,8 @@ class TopKOrderBook(DataStore):
     - https://docs.kucoin.com/#level2-50-best-ask-bid-orders
 
     # Future
-    - https://docs.kucoin.com/futures/message-channel-for-the-5-best-ask-bid-full-data-of-level-2  # noqa: E501
-    - https://docs.kucoin.com/futures/message-channel-for-the-50-best-ask-bid-full-data-of-level-2 # noqa: E501
+    - https://docs.kucoin.com/futures/message-channel-for-the-5-best-ask-bid-full-data-of-level-2
+    - https://docs.kucoin.com/futures/message-channel-for-the-50-best-ask-bid-full-data-of-level-2
     """
 
     _KEYS = ["symbol", "side", "price"]
