@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from importlib.metadata import version
-
-__version__ = version(__package__)
-
+from .__version__ import __version__
 from .auth import Auth
 from .client import Client, FetchResult, NotJSONContent
 from .models.binance import (
@@ -25,6 +22,8 @@ from .store import DataStore, DataStoreCollection, StoreChange, StoreStream
 from .ws import WebSocketApp, WebSocketQueue
 
 __all__: tuple[str, ...] = (
+    # version
+    "__version__",
     # client
     "Client",
     "FetchResult",

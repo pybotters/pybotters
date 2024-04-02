@@ -1,55 +1,126 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling", "hatch-fancy-pypi-readme"]
+build-backend = "hatchling.build"
+
+[project]
 name = "pybotters"
-version = "1.0.0"
-description = "An advanced API client for python botters."
+dynamic = ["version", "readme"]
+description = "An advanced API client for python crypto bot traders"
+requires-python = ">=3.8"
 license = "MIT"
-authors = ["MtkN1 <51289448+MtkN1@users.noreply.github.com>"]
-readme = "README.md"
-repository = "https://github.com/pybotters/pybotters"
-documentation = "https://pybotters.readthedocs.io/ja/stable/"
+keywords = ["aiohttp", "crypto", "exchange", "trading"]
+authors = [
+  { name = "MtkN1", email = "51289448+MtkN1@users.noreply.github.com" },
+]
 classifiers = [
-    "Framework :: AsyncIO",
-    "Framework :: aiohttp",
-    "Topic :: Internet :: WWW/HTTP",
-    "Topic :: Office/Business :: Financial :: Investment",
-    "Development Status :: 4 - Beta",
-    "Operating System :: OS Independent",
-    "Environment :: Web Environment",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Financial and Insurance Industry",
-    "Natural Language :: Japanese",
-    "Typing :: Typed"
+  "Development Status :: 5 - Production/Stable",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Framework :: AsyncIO",
+  "Framework :: aiohttp",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Financial and Insurance Industry",
+  "Operating System :: POSIX",
+  "Operating System :: MacOS :: MacOS X",
+  "Operating System :: Microsoft :: Windows",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Office/Business :: Financial :: Investment",
+  "Natural Language :: Japanese",
+  "Typing :: Typed",
+]
+dependencies = [
+  "aiohttp>=3.7.0",
 ]
 
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "pytest-mock",
+  "pytest-asyncio",
+  "pytest-aiohttp",
+  "pytest-freezer",
+  "pytest-cov",
+]
+lint = [
+  "ruff",
+]
+dev = [
+  "pybotters[test]",
+  "pybotters[lint]",
+  "rich",
+]
+docs = [
+  "Sphinx",
+  "furo",
+  "sphinx-copybutton",
+  "sphinx-new-tab-link",
+  "sphinx-autobuild",
+]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-aiohttp = "^3.9.0"
+[project.urls]
+Documentation = "https://pybotters.readthedocs.io/ja/stable/"
+Repository = "https://github.com/pybotters/pybotters"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.4"
-pytest-mock = "^3.12.0"
-pytest-asyncio = "^0.23.3"
-pytest-aiohttp = "^1.0.5"
-pytest-freezer = "^0.4.8"
-pytest-cov = "^4.1.0"
-rich = "^13.0.0"
-ruff = "^0.3.3"
+[tool.hatch.version]
+path = "pybotters/__version__.py"
 
-[tool.poetry.group.docs.dependencies]
-sphinx = "<=7.1.2"
-furo = "^2023.9.10"
-sphinx-copybutton = "^0.5.2"
-sphinx-new-tab-link = "^0.2.1"
-sphinx-autobuild = "^2021.3.14"
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = [
+  "- coverage combine",
+  "coverage report",
+]
+cov = [
+  "test-cov",
+  "cov-report",
+]
+fmt = [
+    "ruff format",
+    "ruff check --fix-only",
+]
+lint = [
+    "ruff format --check",
+    "ruff check",
+]
+
+[tool.hatch.envs.default]
+features = ["dev"]
+python = "3.8"
+path = ".venv"
+
+[tool.hatch.envs.all]
+features = ["test"]
+path = ""  # NOTE: unset path = ".venv", but scripts will inherit
+[[tool.hatch.envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.lint]
+features = ["lint"]
+skip-install = true
+
+[tool.hatch.envs.docs]
+features = ["docs"]
+template = "docs"
+[tool.hatch.envs.docs.scripts]
+autobuild = "sphinx-autobuild docs docs/_build/html"
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+
+[tool.coverage.run]
+omit = [
+  "pybotters/models/*",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "B", "I"]
 ignore = ["E501"]
-
-[tool.coverage.run]
-omit = ["pybotters/models/*"]
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"

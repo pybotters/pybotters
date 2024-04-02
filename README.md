@@ -8,8 +8,9 @@
 [![pytest](https://github.com/pybotters/pybotters/actions/workflows/pytest.yml/badge.svg)](https://github.com/pybotters/pybotters/actions/workflows/pytest.yml)
 [![publish](https://github.com/pybotters/pybotters/actions/workflows/publish.yml/badge.svg)](https://github.com/pybotters/pybotters/actions/workflows/publish.yml)
 [![codecov](https://codecov.io/gh/pybotters/pybotters/graph/badge.svg?token=ARR29R726W)](https://codecov.io/gh/pybotters/pybotters)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Documentation Status](https://readthedocs.org/projects/pybotters/badge/?version=latest)](https://pybotters.readthedocs.io/ja/latest/?badge=latest)
+[![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/pybotters/pybotters?style=social)](https://github.com/pybotters/pybotters/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/pybotters/pybotters?style=social)](https://github.com/pybotters/pybotters/network/members)
@@ -19,7 +20,7 @@
 
 # pybotters
 
-![pybotters logo](docs/logo_150.png)
+![pybotters logo](https://raw.githubusercontent.com/pybotters/pybotters/main/docs/logo_150.png)
 
 An advanced API client for python botters. This project is in Japanese.
 

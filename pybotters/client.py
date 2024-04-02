@@ -11,7 +11,7 @@ import aiohttp
 from aiohttp import hdrs
 from aiohttp.client import _RequestContextManager
 
-from . import __version__
+from .__version__ import __version__
 from .auth import Auth
 from .request import ClientRequest
 from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
