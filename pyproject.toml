@@ -76,11 +76,13 @@ test-cov = "coverage run -m pytest {args:tests}"
 cov-report = [
   "- coverage combine",
   "coverage report",
+  "coverage html",
 ]
 cov = [
   "test-cov",
   "cov-report",
 ]
+cov-serve = "python -m http.server -d htmlcov"
 fmt = [
     "ruff format",
     "ruff check --fix-only",
