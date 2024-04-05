@@ -38,7 +38,8 @@ jobs:
         pipx run --spec build pyproject-build
     - uses: actions/upload-artifact@v4
       with:
-        path: dist/*
+        name: dist
+        path: dist
 
   test:
     runs-on: ubuntu-latest
