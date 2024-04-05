@@ -21,6 +21,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
   "Framework :: AsyncIO",
   "Framework :: aiohttp",
   "Intended Audience :: Developers",
@@ -92,11 +93,9 @@ lint = [
 [tool.hatch.envs.default]
 features = ["dev"]
 python = "3.8"
-path = ".venv"
 
 [tool.hatch.envs.all]
 features = ["test"]
-path = ""  # NOTE: unset path = ".venv", but scripts will inherit
 [[tool.hatch.envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
@@ -108,6 +107,7 @@ skip-install = true
 features = ["docs"]
 template = "docs"
 [tool.hatch.envs.docs.scripts]
+build = "sphinx-build -M html docs docs/_build"
 autobuild = "sphinx-autobuild docs docs/_build/html"
 
 [tool.hatch.metadata.hooks.fancy-pypi-readme]
