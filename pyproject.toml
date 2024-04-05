@@ -70,19 +70,21 @@ Repository = "https://github.com/pybotters/pybotters"
 [tool.hatch.version]
 path = "pybotters/__version__.py"
 
+[tool.hatch.envs.default]
+features = ["dev"]
+python = "3.8"
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
 cov-report = [
   "- coverage combine",
-  "coverage report",
-  "coverage html",
+  "coverage report -m",
 ]
-cov = [
-  "test-cov",
-  "cov-report",
+htmlcov = [
+  "- coverage combine",
+  "- coverage html",
+  "python -m http.server -d htmlcov",
 ]
-cov-serve = "python -m http.server -d htmlcov"
 fmt = [
     "ruff format",
     "ruff check --fix-only",
@@ -91,10 +93,6 @@ lint = [
     "ruff format --check",
     "ruff check",
 ]
-
-[tool.hatch.envs.default]
-features = ["dev"]
-python = "3.8"
 
 [tool.hatch.envs.all]
 features = ["test"]
@@ -119,9 +117,20 @@ content-type = "text/markdown"
 path = "README.md"
 
 [tool.coverage.run]
+source_pkgs = ["pybotters", "tests"]
+# branch = true  # TODO: Branch coverage measurement
+parallel = true
 omit = [
   "pybotters/models/*",
 ]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+fail_under = 100.0
 
 [tool.ruff.lint]
 select = ["E", "F", "B", "I"]
