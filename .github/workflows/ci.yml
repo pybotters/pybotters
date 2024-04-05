@@ -92,7 +92,8 @@ jobs:
       run: |
         hatch run coverage combine
         hatch run coverage html --fail-under=0
-        hatch run coverage report --format=markdown -m >> $GITHUB_STEP_SUMMARY 
+        hatch run coverage report --fail-under=0 --format=markdown -m >> $GITHUB_STEP_SUMMARY 
+        hatch run coverage report
     - name: Upload htmlcov
       uses: actions/upload-artifact@v4
       if: ${{ always() }}
