@@ -46,6 +46,8 @@ class Client:
         )
         if hdrs.USER_AGENT not in self._session.headers:
             self._session.headers[hdrs.USER_AGENT] = f"pybotters/{__version__}"
+        elif "foo" in self._session.headers:
+            pass
         apis = self._load_apis(apis)
         self._session.__dict__["_apis"] = self._encode_apis(apis)
         self._base_url = base_url
