@@ -5,7 +5,7 @@
 ](https://pypi.org/project/pybotters/)
 [![Downloads](https://static.pepy.tech/badge/pybotters)](https://pepy.tech/project/pybotters)
 
-[![pytest](https://github.com/pybotters/pybotters/actions/workflows/pytest.yml/badge.svg)](https://github.com/pybotters/pybotters/actions/workflows/pytest.yml)
+[![CI](https://github.com/pybotters/pybotters/actions/workflows/ci.yml/badge.svg)](https://github.com/pybotters/pybotters/actions/workflows/ci.yml)
 [![publish](https://github.com/pybotters/pybotters/actions/workflows/publish.yml/badge.svg)](https://github.com/pybotters/pybotters/actions/workflows/publish.yml)
 [![codecov](https://codecov.io/gh/pybotters/pybotters/graph/badge.svg?token=ARR29R726W)](https://codecov.io/gh/pybotters/pybotters)
 [![Documentation Status](https://readthedocs.org/projects/pybotters/badge/?version=latest)](https://pybotters.readthedocs.io/ja/latest/?badge=latest)

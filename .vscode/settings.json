@@ -1,0 +1,31 @@
+{
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.rulers": [
+            88
+        ]
+    },
+    "files.exclude": {
+        "**/.hatch": true
+    },
+    "python.defaultInterpreterPath": "${workspaceFolder}/.hatch/pybotters/bin/python",
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "terminal.integrated.env.linux": {
+        "HATCH_CONFIG": ".vscode/hatch_config.toml"
+    },
+    "terminal.integrated.env.osx": {
+        "HATCH_CONFIG": ".vscode/hatch_config.toml"
+    },
+    "terminal.integrated.env.windows": {
+        "HATCH_CONFIG": ".vscode\\hatch_config.toml"
+    }
+}
