@@ -8,6 +8,7 @@ import hmac
 import inspect
 import logging
 import random
+import struct
 import time
 import uuid
 from dataclasses import dataclass
@@ -50,6 +51,7 @@ class WebSocketApp:
         hdlr_bytes: WsBytesHandler | list[WsBytesHandler] | None = None,
         hdlr_json: WsJsonHandler | list[WsJsonHandler] | None = None,
         backoff: tuple[float, float, float, float] = _DEFAULT_BACKOFF,
+        autoping: bool = True,
         **kwargs: Any,
     ) -> None:
         """WebSocket Application.
@@ -64,6 +66,9 @@ class WebSocketApp:
         self._loop = session._loop
         self._current_ws: aiohttp.ClientWebSocketResponse | None = None
         self._event = asyncio.Event()
+
+        self._autoping = autoping
+        self._pings: dict[bytes, asyncio.Event] = {}
 
         if send_str is None:
             send_str = []
@@ -95,7 +100,7 @@ class WebSocketApp:
         elif callable(hdlr_json):
             hdlr_json = [hdlr_json]
 
-        self._task = asyncio.create_task(
+        self._task = self._loop.create_task(
             self._run_forever(
                 send_str=send_str,
                 send_bytes=send_bytes,
@@ -186,7 +191,7 @@ class WebSocketApp:
         hdlr_json: list[WsJsonHandler],
         **kwargs: Any,
     ) -> None:
-        async with self._session.ws_connect(self._url, **kwargs) as ws:
+        async with self._session.ws_connect(self._url, autoping=False, **kwargs) as ws:
             self._current_ws = ws
             self._event.set()
 
@@ -230,8 +235,7 @@ class WebSocketApp:
         if msg.type == aiohttp.WSMsgType.TEXT:
             for hdlr in hdlr_str:
                 self._loop.call_soon(hdlr, msg.data, ws)
-
-        if msg.type == aiohttp.WSMsgType.BINARY:
+        elif msg.type == aiohttp.WSMsgType.BINARY:
             for hdlr in hdlr_bytes:
                 self._loop.call_soon(hdlr, msg.data, ws)
 
@@ -244,6 +248,46 @@ class WebSocketApp:
             else:
                 for hdlr in hdlr_json:
                     self._loop.call_soon(hdlr, data, ws)
+
+        if msg.type == aiohttp.WSMsgType.PING and self._autoping:
+            self._loop.create_task(ws.pong(bytes(msg.data)))
+        elif msg.type == aiohttp.WSMsgType.PONG:
+            data = bytes(msg.data)
+            if data in self._pings:
+                self._pings[data].set()
+
+    async def heartbeat(self, timeout: float = 10.0) -> None:
+        """Ensure WebSocket connection is open with Ping-Pong.
+
+        WebSocket の Ping-Pong で接続の疎通を確認します。
+        ユーザーコード内で WebSocket のデータを利用する前にこのコルーチンを待機することで、
+        WebSocket の接続性を保証するのに役に立ちます。
+
+        一定時間 Pong が返ってこない場合は再接続を試みます。
+        このメソッドは疎通が確認されるまで待機します。
+
+        Args:
+            timeout: WebSocket Ping-Pong ハートビート (デフォルト 10.0 秒)
+        """
+        while True:
+            await self._wait_handshake()
+
+            ping = struct.pack("!I", random.getrandbits(32))
+            self._pings[ping] = asyncio.Event()
+            if self._current_ws:
+                await self._current_ws.ping(ping)
+
+            try:
+                await asyncio.wait_for(self._pings[ping].wait(), timeout=timeout)
+            except asyncio.TimeoutError:
+                if self._current_ws:
+                    self._current_ws._pong_not_received()
+                    self._current_ws = None
+                    self._event.clear()
+            else:
+                return
+            finally:
+                del self._pings[ping]
 
     async def wait(self) -> None:
         """Wait WebSocketApp.

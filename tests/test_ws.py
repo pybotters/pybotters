@@ -248,7 +248,7 @@ async def test_ws_connect(
 
     assert list(m_ws_connect.call_args) == [
         tuple([websocketapp._url]),
-        dict(heartbeat=10.0),
+        dict(autoping=False, heartbeat=10.0),
     ]
     assert websocketapp._event.is_set()
 
@@ -378,6 +378,64 @@ async def test_websocketapp_functional(
         call(20),
         call(30),
     ]
+
+
+@pytest_asyncio.fixture
+async def test_ping_pong_server():
+    call_count = 0
+
+    async def echo_json(request: web.Request):
+        nonlocal call_count
+        call_count += 1
+
+        ws = web.WebSocketResponse(autoping=False)
+        await ws.prepare(request)
+        await ws.ping()
+
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.PING:
+                if call_count == 1:
+                    pass
+                else:
+                    await ws.pong(msg.data)
+                    await ws.send_str("pong")
+            elif msg.type == aiohttp.WSMsgType.PONG:
+                continue
+
+        await ws.close()
+        return ws
+
+    app = web.Application()
+    app.add_routes([web.get("/ws", echo_json)])
+
+    async with TestServer(app) as server:
+        yield server
+
+
+@pytest.mark.asyncio
+async def test_websocketapp_ensure_open(test_ping_pong_server: TestServer):
+    wsq = pybotters.WebSocketQueue()
+
+    async def message_ping_pong():
+        async with pybotters.Client() as client:
+            ws = await client.ws_connect(
+                f"ws://localhost:{test_ping_pong_server.port}/ws",
+                hdlr_str=wsq.onmessage,
+                heartbeat=None,
+                autoping=True,
+            )
+            await ws.heartbeat(0.1)
+            await ws.wait()
+
+    wstask = asyncio.create_task(message_ping_pong())
+    received_messages = [
+        (await asyncio.wait_for(wsq.get(), timeout=5.0)),
+    ]
+    wstask.cancel()
+    await asyncio.wait([wstask], timeout=5.0)
+
+    assert received_messages == ["pong"]
+    assert wstask.cancelled()
 
 
 def test_heartbeathosts():
