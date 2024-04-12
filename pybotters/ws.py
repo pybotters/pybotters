@@ -51,7 +51,6 @@ class WebSocketApp:
         hdlr_bytes: WsBytesHandler | list[WsBytesHandler] | None = None,
         hdlr_json: WsJsonHandler | list[WsJsonHandler] | None = None,
         backoff: tuple[float, float, float, float] = _DEFAULT_BACKOFF,
-        autoping: bool = True,
         **kwargs: Any,
     ) -> None:
         """WebSocket Application.
@@ -67,7 +66,7 @@ class WebSocketApp:
         self._current_ws: aiohttp.ClientWebSocketResponse | None = None
         self._event = asyncio.Event()
 
-        self._autoping = autoping
+        self._autoping = kwargs.pop("autoping", True)
         self._pings: dict[bytes, asyncio.Event] = {}
 
         if send_str is None:
@@ -250,7 +249,7 @@ class WebSocketApp:
                     self._loop.call_soon(hdlr, data, ws)
 
         if msg.type == aiohttp.WSMsgType.PING and self._autoping:
-            self._loop.create_task(ws.pong(bytes(msg.data)))
+            self._loop.create_task(ws.pong(msg.data))
         elif msg.type == aiohttp.WSMsgType.PONG:
             data = bytes(msg.data)
             if data in self._pings:
