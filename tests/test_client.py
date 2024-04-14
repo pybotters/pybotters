@@ -253,6 +253,7 @@ async def test_client_ws_connect(mocker: pytest_mock.MockerFixture):
             hdlr_bytes=hdlr_bytes,
             hdlr_json=hdlr_json,
             backoff=(1.92, 60.0, 1.618, 5.0),
+            autoping=True,
             heartbeat=42.0,
             auth=None,
         )
@@ -267,6 +268,7 @@ async def test_client_ws_connect(mocker: pytest_mock.MockerFixture):
             "hdlr_bytes": hdlr_bytes,
             "hdlr_json": hdlr_json,
             "backoff": (1.92, 60.0, 1.618, 5.0),
+            "autoping": True,
             "heartbeat": 42.0,
             "auth": None,
         },

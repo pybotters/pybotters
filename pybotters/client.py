@@ -241,6 +241,7 @@ class Client:
         hdlr_bytes: WsBytesHandler | list[WsBytesHandler] | None = None,
         hdlr_json: WsJsonHandler | list[WsJsonHandler] | None = None,
         backoff: tuple[float, float, float, float] = WebSocketApp._DEFAULT_BACKOFF,
+        autoping: bool = True,
         heartbeat: float = 10.0,
         auth: Auth | None = Auth,
         **kwargs: Any,
@@ -256,6 +257,7 @@ class Client:
             hdlr_bytes: WebSocket メッセージをハンドリングするコールバック (バイト)
             hdlr_json: WebSocket メッセージをハンドリングするコールバック (JSON)
             backoff: 再接続の指数バックオフ (最小、最大、係数、初期値)
+            autoping: Ping に対する自動 Pong 応答 (デフォルト True)
             heartbeat: WebSocket ハートビート (デフォルト 10.0 秒)
             auth: 認証オプション (デフォルトで有効、None で無効)
             **kwargs: aiohttp.ClientSession.ws_connect にバイパスされる引数
@@ -275,6 +277,7 @@ class Client:
             hdlr_bytes=hdlr_bytes,
             hdlr_json=hdlr_json,
             backoff=backoff,
+            autoping=autoping,
             heartbeat=heartbeat,
             auth=auth,
             **kwargs,

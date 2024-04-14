@@ -213,6 +213,78 @@ WebSocket Handshake
 1. WebSocket 接続がない (初回または切断中) 場合、 WebSocket ハンドシェイクが行われるまで ``await`` によって待機します。
 2. WebSocket 接続がある場合、 ``await`` による待機は即時完了します。
 
+
+Automatic WebSocket heartbeat
+-----------------------------
+
+:class:`.WebSocketApp` はデフォルトで自動 WebSocket ハートビートが有効になっています。
+
+この動作は :class:`.Client.ws_connect` の引数 ``heartbeat`` によって変更できます。
+``heartbeat`` には ``float`` の秒数を指定します。 引数を指定しない場合デフォルトでは 10 秒です。
+
+.. code:: python
+
+    async def main():
+        async with pybotters.Client() as client:
+            ws = await client.ws_connect("ws://...", heartbeat=10.0)  # default value
+
+``heartbeat`` を設定するとバックグラウンドタスクが起動し、一定間隔で対象の WebSocket サーバーに Ping フレームを送信します。
+その後 ``heartbeat`` 秒数間のタイムアウトを待ち、 Pong フレームを受信した場合はタイムアウトをリセットして次の Ping フレームを送信するまで待機します。
+タイムアウトが発生した場合は現在の WebSocket 接続を切断して再接続を試みます。
+
+``heartbeat`` に ``None`` を指定すると Ping-Pong メッセージの送信を無効にします。
+
+.. note::
+    WebSocket ハートビートは、 WebSocket の接続を保証する為の重要な機能です。
+
+    「お行儀のよい」 WebSocket サーバーは、切断時にクライアントに対して明示的な切断メッセージを送信します。
+    しかし一部の WebSocket サーバーは切断時に何もメッセージを送信しないため、クライアントは接続が切断されたかどうかを検知できません。
+    クライアントは接続が確立していると認識しているので pybotters に組み込まれている自動再接続も試行されません。
+
+    そういった状態に陥ると結果的に bot コードでは WebSocket データを受信せずにループ動作し続けることになります。
+    つまり、WebSocket 経由でポジションや注文や板情報などのデータを受信している場合はデータの状態が古いままになり、取引に支障をきたす可能性があります。
+
+    そこで WebSocket ハートビートを利用することでこの状態に陥ることを防ぎます。
+    Ping 及び Pong フレームは `WebSocket の仕様 <https://datatracker.ietf.org/doc/html/rfc6455#section-5.5.2>`_ で定義されており、アプリケーションのメッセージ受信には影響されません。
+    これを送受信することで相手方のサービスが機能しているかを確認します。
+
+    前述の通りハートビートはデフォルトで有効になっており、トレード bot のユースケースでこれを無効にすることは推奨されません。
+
+    なお、このハートビート機能は `aiohttp の実装 <https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.ws_connect>`_ によるものです。
+
+
+.. _manual-websocket-heartbeat:
+
+Manual WebSocket heartbeat
+--------------------------
+
+:class:`.WebSocketApp` は自動で WebSocket ハートビートを実行しますが、:meth:`.WebSocketApp.heartbeat` メソッドを呼び出すことで手動でハートビートを実行できます。
+
+.. code:: python
+
+    async def main():
+        async with pybotters.Client() as client:
+            ws = await client.ws_connect("ws://...")
+
+            while True:
+                await ws.heartbeat()
+
+                ... # Trading strategy
+
+自動ハートビートによってある程度接続は保証されますが、手動ハートビートを実行することで任意のタイミングで接続を保証を確認できます。
+
+:meth:`.WebSocketApp.heartbeat` を ``await`` することで、Ping フレームを送信して対応する Pong フレームの受信を待機します。
+Pong フレームが引数 ``timeout`` の秒数受信できない場合は、現在の WebSocket 接続を切断して再接続を試みます。
+その後、再度 Ping フレームを送信して Pong フレームの受信を試みます。
+これらのハートビートシーケンスが終了するまで ``await`` によって待機します。
+
+ハートビートのタイムアウトは引数 ``timeout`` で設定できます。
+デフォルトは 10 秒です。
+
+このメソッドは接続を保証したいステップで呼び出すべきでしょう。
+例えば、WebSocket 経由でデータを受信して利用している場合はそれを利用する前が最適です。
+
+
 WebSocket reconnection backoff
 ------------------------------
 
