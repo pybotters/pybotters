@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-fancy-pypi-readme"]
+requires = ["hatchling", "hatch-fancy-pypi-readme", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -68,7 +68,11 @@ Documentation = "https://pybotters.readthedocs.io/ja/stable/"
 Repository = "https://github.com/pybotters/pybotters"
 
 [tool.hatch.version]
-path = "pybotters/__version__.py"
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+version_scheme = "python-simplified-semver"
+local_scheme = "no-local-version"
 
 [tool.hatch.envs.default]
 features = ["dev"]
