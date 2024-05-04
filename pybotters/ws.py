@@ -238,7 +238,7 @@ class WebSocketApp:
             for hdlr in hdlr_bytes:
                 self._loop.call_soon(hdlr, msg.data, ws)
 
-        if hdlr_json:
+        if hdlr_json and msg.type in {aiohttp.WSMsgType.TEXT, aiohttp.WSMsgType.BINARY}:
             try:
                 data = msg.json()
             except json.JSONDecodeError as e:
