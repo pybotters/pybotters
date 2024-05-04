@@ -398,7 +398,7 @@ async def test_ping_pong_server():
                     pass
                 else:
                     await ws.pong(msg.data)
-                    await ws.send_str("pong")
+                    await ws.send_json({"data": "spam"})
             elif msg.type == aiohttp.WSMsgType.PONG:
                 continue
 
@@ -413,14 +413,16 @@ async def test_ping_pong_server():
 
 
 @pytest.mark.asyncio
-async def test_websocketapp_ensure_open(test_ping_pong_server: TestServer):
+async def test_websocketapp_ensure_open_hdlr(
+    test_ping_pong_server: TestServer, caplog: pytest.LogCaptureFixture
+):
     wsq = pybotters.WebSocketQueue()
 
     async def message_ping_pong():
         async with pybotters.Client() as client:
             ws = await client.ws_connect(
                 f"ws://localhost:{test_ping_pong_server.port}/ws",
-                hdlr_str=wsq.onmessage,
+                hdlr_json=wsq.onmessage,
                 heartbeat=None,
                 autoping=True,
             )
@@ -434,8 +436,10 @@ async def test_websocketapp_ensure_open(test_ping_pong_server: TestServer):
     wstask.cancel()
     await asyncio.wait([wstask], timeout=5.0)
 
-    assert received_messages == ["pong"]
+    assert received_messages == [{"data": "spam"}]
     assert wstask.cancelled()
+
+    assert caplog.records == []  # No handler errors
 
 
 def test_heartbeathosts():
