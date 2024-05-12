@@ -50,14 +50,6 @@ async def pybotters_client(
         await clients.pop().close()
 
 
-@pytest.fixture
-def sleep_cancel(monkeypatch):
-    async def sleep_canceller(delay):
-        raise asyncio.CancelledError()
-
-    monkeypatch.setattr(asyncio, asyncio.sleep.__name__, sleep_canceller)
-
-
 async def create_access_token(request: web.Request):
     return web.json_response(
         {
@@ -137,13 +129,16 @@ async def extend_access_token_error(request: web.Request):
     ],
 )
 async def test_gmo_manage_ws_token(
-    pybotters_client: Callable[..., Awaitable[pybotters.Client]],
-    base_url: str,
     extend_access_handler: Callable[..., Awaitable[web.Response]],
     create_access_handler: Callable[..., Awaitable[web.Response]],
+    pybotters_client: Callable[..., Awaitable[pybotters.Client]],
+    base_url: str,
     expected_token: str,
-    sleep_cancel: None,
+    monkeypatch: pytest.MonkeyPatch,
 ):
+    async def sleep_canceller(delay):
+        raise asyncio.CancelledError()
+
     app = web.Application()
     app.router.add_put("/private/v1/ws-auth", extend_access_handler)
     app.router.add_post("/private/v1/ws-auth", create_access_handler)
@@ -155,7 +150,8 @@ async def test_gmo_manage_ws_token(
     m_ws.url = url
 
     helper = GMOCoinHelper(client)
-    with suppress(asyncio.CancelledError):
+    with monkeypatch.context() as m, suppress(asyncio.CancelledError):
+        m.setattr(asyncio, asyncio.sleep.__name__, sleep_canceller)
         await helper.manage_ws_token(
             m_ws,
             token,
