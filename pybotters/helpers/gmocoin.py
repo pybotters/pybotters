@@ -13,12 +13,25 @@ class GMOCoinHelper:
         self,
         client: Client,
     ) -> None:
+        """Post-maintenance reconnection helper for GMO Coin.
+
+        Args:
+            client (Client): pybotters.Client
+        """
         self._client = client
         self._url = removeprefix(
             "https://api.coin.z.com/private/v1/ws-auth", self._client._base_url
         )
 
     async def create_access_token(self) -> str:
+        """Helper for ``POST /private/v1/ws-auth``.
+
+        Raises:
+            GMOCoinResponseError: Response error.
+
+        Returns:
+            str: Created access token.
+        """
         r = await self._client.fetch(
             "POST",
             self._url,
@@ -31,6 +44,14 @@ class GMOCoinHelper:
             raise GMOCoinResponseError(r.text)
 
     async def extend_access_token(self, token: str) -> None:
+        """Helper for ``PUT /private/v1/ws-auth``.
+
+        Args:
+            token (str): Access token to extend
+
+        Raises:
+            GMOCoinResponseError: Response error.
+        """
         r = await self._client.fetch(
             "PUT",
             self._url,
@@ -46,8 +67,18 @@ class GMOCoinHelper:
         self,
         ws: WebSocketApp,
         token: str,
-        delay: float = 1800.0,  # 30 minutes
+        delay: float = 300.0,  # 5 minutes
     ) -> NoReturn:
+        """Manage the access token for the WebSocket connection.
+
+        This method is a coroutine for an infinite loop.
+        It should be executed by :meth:`asyncio.create_task`.
+
+        Args:
+            ws (WebSocketApp): WebSocketApp instance.
+            token (str): Access token.
+            delay (float, optional): Sleep time. Defaults to 300.0 (5 minutes).
+        """
         while True:
             try:
                 await self.extend_access_token(token)

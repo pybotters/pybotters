@@ -58,7 +58,7 @@ Authentication
 
     https://api.coin.z.com/docs/#authentication-private-ws
 
-    ただし :class:`.GMOCoinDataStore` に「アクセストークン」を管理する機能があります。
+    ただし :class:`.GMOCoinDataStore` 及び :class:`.helpers.GMOCoinHelper` に「アクセストークン」を管理する機能があります。
 
     :meth:`.GMOCoinDataStore.initialize` は「アクセストークンを取得」の POST リクエストに対応しています。
     これにより「アクセストークン」が属性 :attr:`.GMOCoinDataStore.token` に格納されます。
