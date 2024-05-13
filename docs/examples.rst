@@ -134,6 +134,8 @@ KuCoin
 Helpers
 -------
 
+.. _GMOCoinHelper:
+
 GMO Coin
 ~~~~~~~~
 
