@@ -79,3 +79,12 @@ Store changes
 
    pybotters.StoreChange
    pybotters.StoreStream
+
+
+Helpers
+-------
+
+.. autosummary::
+   :toctree: generated
+
+   pybotters.helpers.GMOCoinHelper
