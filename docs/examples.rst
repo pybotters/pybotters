@@ -141,10 +141,10 @@ GMO Coin
 
 :class:`.helpers.GMOCoinHelper` を利用したサンプルコードです。
 
-:meth:`.helpers.GMOCoinHelper.manage_ws_token` を利用することで、`Private WebSocket のアクセストークン <https://api.coin.z.com/docs/#ws-auth-post>`_ を管理します。
-デフォルトでは 5 分ごとにアクセストークンを延長します。 延長が失敗した場合は、アクセストークンを作成します。
-このメソッドは無限ループとなっているので、 :meth:`asyncio.create_task` でタスクスケジュールしてください。
+:meth:`~.helpers.GMOCoinHelper.manage_ws_token` を利用することで、`Private WebSocket のアクセストークン <https://api.coin.z.com/docs/#ws-auth-post>`_ を管理します。
+デフォルトでは 5 分ごとにアクセストークンを延長します。 延長が失敗した場合は、アクセストークンを新しく作成します。
+このメソッドは無限ループとなっているので、 :meth:`asyncio.create_task` でタスクとしてスケジュールしてください。
 
-以下は適当なチャンネルを購読して、アクセストークンの管理タスクスケジュールするサンプルコードです。
+以下は適当なチャンネルを購読して、アクセストークン管理ヘルパーのタスクをスケジュールするサンプルコードです。
 
 .. literalinclude:: ../example/helpers/gmocoin.py

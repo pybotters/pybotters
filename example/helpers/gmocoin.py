@@ -20,11 +20,15 @@ async def main():
 
     async with pybotters.Client(apis=apis) as client:
         store = pybotters.GMOCoinDataStore()
+
+        # Create a helper instance for GMOCoin.
         gmohelper = GMOCoinHelper(client)
 
+        # Alias for POST /private/v1/ws-auth .
         token = await gmohelper.create_access_token()
 
         ws = client.ws_connect(
+            # Build the Private WebSocket URL.
             f"wss://api.coin.z.com/ws/private/v1/{token}",
             send_json={
                 "command": "subscribe",
