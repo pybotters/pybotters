@@ -616,20 +616,14 @@ async def test_wsresponse_send_str(
 
 
 @pytest.mark.asyncio
-async def test_wsresponse_send_json(mocker: pytest_mock.MockerFixture):
-    m_auth = AsyncMock()
-    items = {
-        "example.com": pybotters.ws.Item("example", m_auth),
-    }
-    mocker.patch.object(pybotters.ws.AuthHosts, "items", items)
+async def test_wsresponse_send_json():
     m_resp = MagicMock()
-    m_resp.__dict__["_auth"] = pybotters.auth.Auth
-    m_resp.url = URL("ws://example.com")
-    m_resp._session.__dict__["_apis"] = {"example": ["KEY", b"SECRET"]}
+    m_resp._auth = None
+    m_writer = AsyncMock()
 
     wsresp = pybotters.ws.ClientWebSocketResponse(
         reader=AsyncMock(),
-        writer=AsyncMock(),
+        writer=m_writer,
         protocol=None,
         response=m_resp,
         timeout=10.0,
@@ -639,9 +633,7 @@ async def test_wsresponse_send_json(mocker: pytest_mock.MockerFixture):
     )
     await asyncio.wait_for(wsresp.send_json({"foo": "bar"}), timeout=5.0)
 
-    assert m_auth.called
-    assert m_auth.call_args == call(wsresp)
-    assert wsresp.__dict__["_authtask"].done()
+    assert m_writer.send.call_args == call('{"foo": "bar"}', binary=ANY, compress=ANY)
 
 
 @pytest.mark.asyncio
