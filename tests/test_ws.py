@@ -954,8 +954,7 @@ async def test_auth_bybit_ws(
     }
     m_wsresp.__aiter__.return_value = test_input["messages"]
 
-    with caplog.filtering(logging.Filter(name="pybotters.ws")):
-        await asyncio.wait_for(pybotters.ws.Auth.bybit(m_wsresp), timeout=5.0)
+    await asyncio.wait_for(pybotters.ws.Auth.bybit(m_wsresp), timeout=5.0)
 
     assert m_wsresp.send_json.call_args == expected["call_args"]
     assert caplog.record_tuples == expected["records"]
@@ -1030,8 +1029,7 @@ async def test_auth_bitflyer_ws(
     }
     m_wsresp.__aiter__.return_value = test_input["messages"]
 
-    with caplog.filtering(logging.Filter(name="pybotters.ws")):
-        await asyncio.wait_for(pybotters.ws.Auth.bitflyer(m_wsresp), timeout=5.0)
+    await asyncio.wait_for(pybotters.ws.Auth.bitflyer(m_wsresp), timeout=5.0)
 
     assert m_wsresp.send_json.call_args == call(
         {
@@ -1150,8 +1148,7 @@ async def test_auth_phemex_ws(
     }
     m_wsresp.__aiter__.return_value = test_input["messages"]
 
-    with caplog.filtering(logging.Filter(name="pybotters.ws")):
-        await asyncio.wait_for(pybotters.ws.Auth.phemex(m_wsresp), timeout=5.0)
+    await asyncio.wait_for(pybotters.ws.Auth.phemex(m_wsresp), timeout=5.0)
 
     assert m_wsresp.send_json.call_args == call(
         {
@@ -1165,7 +1162,6 @@ async def test_auth_phemex_ws(
             "id": 123,
         }
     )
-
     assert caplog.record_tuples == expected["records"]
 
 
@@ -1281,8 +1277,7 @@ async def test_auth_okx_ws(
     }
     m_wsresp.__aiter__.return_value = test_input["messages"]
 
-    with caplog.filtering(logging.Filter(name="pybotters.ws")):
-        await asyncio.wait_for(pybotters.ws.Auth.okx(m_wsresp), timeout=5.0)
+    await asyncio.wait_for(pybotters.ws.Auth.okx(m_wsresp), timeout=5.0)
 
     assert m_wsresp.send_json.call_args == call(
         {
@@ -1363,8 +1358,7 @@ async def test_auth_bitget_ws(
     }
     m_wsresp.__aiter__.return_value = test_input["messages"]
 
-    with caplog.filtering(logging.Filter(name="pybotters.ws")):
-        await asyncio.wait_for(pybotters.ws.Auth.bitget(m_wsresp), timeout=5.0)
+    await asyncio.wait_for(pybotters.ws.Auth.bitget(m_wsresp), timeout=5.0)
 
     assert m_wsresp.send_json.call_args == call(
         {
