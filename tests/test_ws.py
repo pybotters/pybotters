@@ -252,6 +252,7 @@ async def test_ws_connect(
     ]
     assert websocketapp._event.is_set()
 
+    assert m_wsresp._wait_authtask.call_args == call()
     assert m_wsresp.send_str.call_args == call("spam")
     assert m_wsresp.send_bytes.call_args == call(b"egg")
     assert m_wsresp.send_json.call_args == call({"bacon": "tomato"})
@@ -568,7 +569,7 @@ async def test_wsresponse_auth(mocker: pytest_mock.MockerFixture, test_input, ex
     assert m_auth.called is expected["called"]
     if expected["called"]:
         assert m_auth.call_args == call(wsresp)
-        await asyncio.wait_for(wsresp.__dict__["_authtask"], timeout=5.0)
+        await asyncio.wait_for(wsresp._wait_authtask(), timeout=5.0)
         assert wsresp.__dict__["_authtask"].done()
 
 
@@ -615,7 +616,7 @@ async def test_wsresponse_send_str(
 
 
 @pytest.mark.asyncio
-async def test_wsresponse_send_json_itself(mocker: pytest_mock.MockerFixture):
+async def test_wsresponse_send_json(mocker: pytest_mock.MockerFixture):
     m_auth = AsyncMock()
     items = {
         "example.com": pybotters.ws.Item("example", m_auth),
@@ -636,7 +637,7 @@ async def test_wsresponse_send_json_itself(mocker: pytest_mock.MockerFixture):
         autoping=True,
         loop=asyncio.get_running_loop(),
     )
-    await asyncio.wait_for(wsresp.send_json({"foo": "bar"}, _itself=False), timeout=5.0)
+    await asyncio.wait_for(wsresp.send_json({"foo": "bar"}), timeout=5.0)
 
     assert m_auth.called
     assert m_auth.call_args == call(wsresp)
@@ -858,8 +859,7 @@ async def test_heartbeat_frame(mocker: pytest_mock.MockerFixture, test_input):
                             2085848901000,
                             "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",
                         ],
-                    },
-                    _itself=True,
+                    }
                 ),
                 "records": [],
             },
@@ -892,8 +892,7 @@ async def test_heartbeat_frame(mocker: pytest_mock.MockerFixture, test_input):
                             2085848901000,
                             "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",
                         ],
-                    },
-                    _itself=True,
+                    }
                 ),
                 "records": [],
             },
@@ -926,8 +925,7 @@ async def test_heartbeat_frame(mocker: pytest_mock.MockerFixture, test_input):
                             2085848901000,
                             "a8bcd91ad5f8efdaefaf4ca6f38e551d739d6b42c2b54c85667fb181ecbc29a4",
                         ],
-                    },
-                    _itself=True,
+                    }
                 ),
                 "records": [("pybotters.ws", logging.WARNING, ANY)],
             },
@@ -1053,8 +1051,7 @@ async def test_auth_bitflyer_ws(
                 ),
             },
             "id": "auth",
-        },
-        _itself=True,
+        }
     )
     assert caplog.record_tuples == expected["records"]
 
@@ -1171,8 +1168,7 @@ async def test_auth_phemex_ws(
                 2085848956,
             ],
             "id": 123,
-        },
-        _itself=True,
+        }
     )
     assert caplog.record_tuples == expected["records"]
 
@@ -1302,8 +1298,7 @@ async def test_auth_okx_ws(
                     "sign": "6QVd7Mgd70We2/oDJr0+KnqxXZ+Gf1zIIl3qJk/Pqx8=",
                 }
             ],
-        },
-        _itself=True,
+        }
     )
     assert caplog.record_tuples == expected["records"]
 
@@ -1384,8 +1379,7 @@ async def test_auth_bitget_ws(
                     "sign": "RmRhCixsMce8H7j2uyvR6sk11tCRbYenohbd87nchH8=",
                 }
             ],
-        },
-        _itself=True,
+        }
     )
     assert caplog.record_tuples == expected["records"]
 
@@ -1413,8 +1407,7 @@ async def test_auth_mexc_ws(mocker: pytest_mock.MockerFixture):
                 "reqTime": "2085848896",
                 "signature": "cd92edf98d52d973e96ffdce6f845c930f9900c5e4aa47ca4ef81d80533ab882",
             },
-        },
-        _itself=True,
+        }
     )
 
 
@@ -1573,5 +1566,109 @@ def test_msgsign_binance(mocker: pytest_mock.MockerFixture, test_input, expected
     m_wsresp._response.url = test_input["url"]
 
     pybotters.ws.MessageSign.binance(m_wsresp, test_input["data"])
+
+    assert test_input["data"] == expected["data"]
+
+
+@pytest.mark.parametrize(
+    ("test_input", "expected"),
+    [
+        # testnet
+        (
+            {
+                "url": URL("wss://stream-testnet.bybit.com/v5/trade"),
+                "data": {
+                    "op": "order.create",
+                    "args": [
+                        {
+                            "symbol": "ETHUSDT",
+                            "side": "Buy",
+                            "orderType": "Limit",
+                            "qty": "0.2",
+                            "price": "2800",
+                            "category": "linear",
+                            "timeInForce": "PostOnly",
+                        }
+                    ],
+                },
+            },
+            {
+                "data": {
+                    "op": "order.create",
+                    "args": [
+                        {
+                            "symbol": "ETHUSDT",
+                            "side": "Buy",
+                            "orderType": "Limit",
+                            "qty": "0.2",
+                            "price": "2800",
+                            "category": "linear",
+                            "timeInForce": "PostOnly",
+                        }
+                    ],
+                    "header": {
+                        "X-BAPI-TIMESTAMP": "2085848896000",
+                    },
+                }
+            },
+        ),
+        # mainnet
+        (
+            {
+                "url": URL("wss://stream.bybit.com/v5/trade"),
+                "data": {
+                    "op": "order.create",
+                    "args": [
+                        {
+                            "symbol": "ETHUSDT",
+                            "side": "Buy",
+                            "orderType": "Limit",
+                            "qty": "0.2",
+                            "price": "2800",
+                            "category": "linear",
+                            "timeInForce": "PostOnly",
+                        }
+                    ],
+                },
+            },
+            {
+                "data": {
+                    "op": "order.create",
+                    "args": [
+                        {
+                            "symbol": "ETHUSDT",
+                            "side": "Buy",
+                            "orderType": "Limit",
+                            "qty": "0.2",
+                            "price": "2800",
+                            "category": "linear",
+                            "timeInForce": "PostOnly",
+                        }
+                    ],
+                    "header": {
+                        "X-BAPI-TIMESTAMP": "2085848896000",
+                    },
+                }
+            },
+        ),
+        # not /v5/trade
+        (
+            {
+                "url": URL("wss://stream.bybit.com/v5/private"),
+                "data": {"op": "ping"},
+            },
+            {
+                "data": {"op": "ping"},
+            },
+        ),
+    ],
+)
+def test_msgsign_bybit(mocker: pytest_mock.MockerFixture, test_input, expected):
+    mocker.patch("time.time", return_value=2085848896.0)
+
+    m_wsresp = AsyncMock()
+    m_wsresp._response.url = test_input["url"]
+
+    pybotters.ws.MessageSign.bybit(m_wsresp, test_input["data"])
 
     assert test_input["data"] == expected["data"]

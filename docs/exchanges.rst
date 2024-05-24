@@ -174,6 +174,10 @@ Authentication
 
     https://bybit-exchange.github.io/docs/v5/ws/connect#authentication
 
+    また Websocket Trade API におけるメッセージ送信では ``header`` オブジェクトにタイムスタンプ ``X-BAPI-TIMESTAMP`` が自動付与されます。
+
+    https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline
+
 WebSocket
 ~~~~~~~~~
 

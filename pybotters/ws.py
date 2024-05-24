@@ -194,6 +194,8 @@ class WebSocketApp:
             self._current_ws = ws
             self._event.set()
 
+            await ws._wait_authtask()
+
             await self._ws_send(ws, send_str, send_bytes, send_json)
 
             await self._ws_receive(ws, hdlr_str, hdlr_bytes, hdlr_json)
@@ -389,10 +391,7 @@ class Auth:
             secret, path.encode(), digestmod=hashlib.sha256
         ).hexdigest()
 
-        await ws.send_json(
-            {"op": "auth", "args": [key, expires, signature]},
-            _itself=True,
-        )
+        await ws.send_json({"op": "auth", "args": [key, expires, signature]})
         async for msg in ws:
             data = msg.json()
             if data.get("op") == "auth":
@@ -424,8 +423,7 @@ class Auth:
                     "signature": sign,
                 },
                 "id": "auth",
-            },
-            _itself=True,
+            }
         )
         async for msg in ws:
             data = msg.json()
@@ -452,7 +450,7 @@ class Auth:
             "params": ["API", key, signature, expiry],
             "id": 123,
         }
-        await ws.send_json(msg, _itself=True)
+        await ws.send_json(msg)
         async for msg in ws:
             data = msg.json()
             if data.get("id") == 123:
@@ -488,7 +486,7 @@ class Auth:
                 }
             ],
         }
-        await ws.send_json(msg, _itself=True)
+        await ws.send_json(msg)
         async for msg in ws:
             try:
                 data = msg.json()
@@ -531,7 +529,7 @@ class Auth:
                 }
             ],
         }
-        await ws.send_json(msg, _itself=True)
+        await ws.send_json(msg)
         async for msg in ws:
             try:
                 data = msg.json()
@@ -567,7 +565,7 @@ class Auth:
                 "signature": sign,
             },
         }
-        await ws.send_json(msg, _itself=True)
+        await ws.send_json(msg)
 
 
 @dataclass
@@ -654,10 +652,6 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
             await RequestLimitHosts.items[self._response.url.host](self, super_send_str)
 
     async def send_json(self, *args, **kwargs) -> None:
-        _itself = kwargs.pop("_itself", False)
-        if not _itself:
-            await self._wait_authtask()
-
         if (
             (kwargs.pop("auth", _Auth) is _Auth)
             and (self._response.url.host in MessageSignHosts.items)
@@ -744,9 +738,19 @@ class MessageSign:
         signature = hmac.new(secret, payload.encode(), hashlib.sha256).hexdigest()
         params["signature"] = signature
 
+    @staticmethod
+    def bybit(ws: aiohttp.ClientWebSocketResponse, data: dict[str, Any]):
+        if "trade" not in ws._response.url.parts:
+            return
+
+        if "header" not in data:
+            data["header"] = {"X-BAPI-TIMESTAMP": str(int(time.time() * 1000))}
+
 
 class MessageSignHosts:
     items = {
         "ws-api.binance.com": Item("binance", MessageSign.binance),
         "testnet.binance.vision": Item("binancespot_testnet", MessageSign.binance),
+        "stream.bybit.com": Item("bybit", MessageSign.bybit),
+        "stream-testnet.bybit.com": Item("bybit_testnet", MessageSign.bybit),
     }
