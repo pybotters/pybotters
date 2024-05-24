@@ -54,17 +54,11 @@ Authentication
 
     https://api.coin.z.com/docs/#authentication-private
 * WebSocket 認証
-    GMO Coin はトークン認証方式の為、ユーザーコードで「アクセストークン」を取得して、それを含めた Private WebSocket URL を構築する必要があります。
+    GMO Coin はトークン認証方式です。
 
     https://api.coin.z.com/docs/#authentication-private-ws
 
-    ただし :class:`.GMOCoinDataStore` 及び :class:`.helpers.GMOCoinHelper` に「アクセストークン」を管理する機能があります。
-
-    :meth:`.GMOCoinDataStore.initialize` は「アクセストークンを取得」の POST リクエストに対応しています。
-    これにより「アクセストークン」が属性 :attr:`.GMOCoinDataStore.token` に格納されます。
-    この属性を利用するとトークン付き URL を構築するのに便利です。
-
-    また DataStore 側で「アクセストークンを延長」の定期リクエストが有効になる為、ユーザーコードでの延長処理は不要です。
+    :class:`.helpers.GMOCoinHelper` には「アクセストークン」を管理する機能があります。
 
     :class:`.helpers.GMOCoinHelper` を利用すると「アクセストークンを延長」と「アクセストークンを取得」を自動で実行します。
     さらに取得したアクセストークンから Private WebSocket URL を構築して :attr:`.WebSocketApp.url` を自動で更新します。

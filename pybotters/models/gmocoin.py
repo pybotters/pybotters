@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import warnings
 from typing import Awaitable
 
 import aiohttp
@@ -130,7 +131,7 @@ class GMOCoinDataStore(DataStoreCollection):
         self._create("positions", datastore_class=PositionStore)
         self._create("executions", datastore_class=ExecutionStore)
         self._create("position_summary", datastore_class=PositionSummaryStore)
-        self.token: str | None = None
+        self.token: str | None = None  # DeprecationWarning
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """Initialize DataStore from HTTP response data.
@@ -141,7 +142,6 @@ class GMOCoinDataStore(DataStoreCollection):
         - GET /private/v1/activeOrders (:attr:`.CoincheckDataStore.orders`)
         - GET /private/v1/openPositions (:attr:`.CoincheckDataStore.positions`)
         - GET /private/v1/positionSummary (:attr:`.CoincheckDataStore.position_summary`)
-        - POST /private/v1/ws-auth (:attr:`.CoincheckDataStore.token`)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -168,7 +168,14 @@ class GMOCoinDataStore(DataStoreCollection):
                 and "list" in data["data"]
             ):
                 self.position_summary._onresponse(data["data"]["list"])
-            if resp.url.path == "/private/v1/ws-auth":
+            if resp.url.path == "/private/v1/ws-auth":  # DeprecationWarning
+                warnings.warn(
+                    "Initializing `POST /private/v1/ws-auth` with this method is deprecated. "
+                    "Please migrate to helpers.GMOCoinHelper.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+
                 self.token = data["data"]
                 asyncio.create_task(self._token(resp.__dict__["_raw_session"]))
 
@@ -195,7 +202,7 @@ class GMOCoinDataStore(DataStoreCollection):
             elif channel == "positionSummaryEvents":
                 self.position_summary._onmessage(msg)
 
-    async def _token(self, session: aiohttp.ClientSession):
+    async def _token(self, session: aiohttp.ClientSession):  # DeprecationWarning
         while not session.closed:
             await session.put(
                 "https://api.coin.z.com/private/v1/ws-auth",
