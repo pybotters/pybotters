@@ -421,6 +421,7 @@ class Hosts:
     items = {
         "api.bybit.com": Item("bybit", Auth.bybit),
         "api.bytick.com": Item("bybit", Auth.bybit),
+        "api-demo.bybit.com": Item("bybit_demo", Auth.bybit),
         "api-testnet.bybit.com": Item("bybit_testnet", Auth.bybit),
         "api.binance.com": Item("binance", Auth.binance),
         "api-gcp.binance.com": Item("binance", Auth.binance),
