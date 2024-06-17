@@ -361,6 +361,7 @@ Bitget                    ``bitget``
 BitMEX                    ``bitmex``
 BitMEX Testnet            ``bitmex_testnet``
 Bybit                     ``bybit``
+Bybit Demo trading        ``bybit_demo``
 Bybit Testnet             ``bybit_testnet``
 Coincheck                 ``coincheck``
 GMO Coin                  ``gmocoin``
