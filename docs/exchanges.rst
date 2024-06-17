@@ -164,6 +164,7 @@ Authentication
 
 * API 認証情報
     * ``{"bybit": ["API_KEY", "API_SERCRET"]}``
+    * ``{"bybit_demo": ["API_KEY", "API_SERCRET"]}``
     * ``{"bybit_testnet": ["API_KEY", "API_SERCRET"]}``
 * HTTP 認証
     HTTP リクエスト時に取引所が定める認証情報が自動設定されます。

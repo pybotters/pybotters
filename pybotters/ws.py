@@ -579,6 +579,7 @@ class HeartbeatHosts:
         "stream.bitbank.cc": Heartbeat.bitbank,
         "stream.bybit.com": Heartbeat.bybit,
         "stream.bytick.com": Heartbeat.bybit,
+        "stream-demo.bybit.com": Heartbeat.bybit,
         "stream-testnet.bybit.com": Heartbeat.bybit,
         "stream.binance.com": Heartbeat.binance,
         "fstream.binance.com": Heartbeat.binance,
@@ -607,6 +608,7 @@ class AuthHosts:
     items = {
         "stream.bybit.com": Item("bybit", Auth.bybit),
         "stream.bytick.com": Item("bybit", Auth.bybit),
+        "stream-demo.bybit.com": Item("bybit_demo", Auth.bybit),
         "stream-testnet.bybit.com": Item("bybit_testnet", Auth.bybit),
         "ws.lightstream.bitflyer.com": Item("bitflyer", Auth.bitflyer),
         "phemex.com": Item("phemex", Auth.phemex),
@@ -752,5 +754,6 @@ class MessageSignHosts:
         "ws-api.binance.com": Item("binance", MessageSign.binance),
         "testnet.binance.vision": Item("binancespot_testnet", MessageSign.binance),
         "stream.bybit.com": Item("bybit", MessageSign.bybit),
+        "stream-demo.bybit.com": Item("bybit_demo", MessageSign.bybit),
         "stream-testnet.bybit.com": Item("bybit_testnet", MessageSign.bybit),
     }

@@ -41,6 +41,10 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             "vDGsldGGevgVkG3ATH1PzBYd",
             b"fVp9Y9iZbkCb4JXyprq2ZbbDXupWz5V3H06REf2eJ53DyQju",
         ),
+        "bybit_demo": (
+            "ZpfuTHcfmsWX1kLWpSIUdtsu",
+            b"7wq6s78RI6xHfPRIIt4Dvii2hO7BtFcavs5S2VlKrnGTOnMf",
+        ),
         "binance": (
             "9qm1u2s4GoHt9ryIm1D2fHV8",
             b"7pDOQJ49zyyDjrNGAvB31RcnAada8nkxkl2IWKop6b0E3tXh",
