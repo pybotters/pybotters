@@ -16,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.8"
+        python-version: "3.x"
     - name: Install Hatch
       uses: pypa/hatch@install
     - name: Run static analysis
@@ -26,10 +26,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.8"
+        python-version: "3.x"
     - name: Install Hatch
       uses: pypa/hatch@install
     - name: Build package
@@ -37,7 +39,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: dist
-        path: dist/
+        path: dist
 
   test:
     runs-on: ubuntu-latest
@@ -71,7 +73,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.8"
+        python-version: "3.x"
     - name: Install Hatch
       uses: pypa/hatch@install
     - name: Download coverage data
