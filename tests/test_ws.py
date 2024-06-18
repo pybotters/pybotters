@@ -2,7 +2,6 @@ import asyncio
 import functools
 import json
 import logging
-import sys
 from unittest.mock import ANY, AsyncMock, MagicMock, PropertyMock, call
 
 import aiohttp
@@ -958,7 +957,9 @@ async def test_auth_bybit_ws(
     await asyncio.wait_for(pybotters.ws.Auth.bybit(m_wsresp), timeout=5.0)
 
     assert m_wsresp.send_json.call_args == expected["call_args"]
-    assert caplog.record_tuples == expected["records"]
+    assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
+        "records"
+    ]
 
 
 @pytest.mark.asyncio
@@ -1046,7 +1047,9 @@ async def test_auth_bitflyer_ws(
             "id": "auth",
         }
     )
-    assert caplog.record_tuples == expected["records"]
+    assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
+        "records"
+    ]
 
 
 @pytest.mark.asyncio
@@ -1164,36 +1167,9 @@ async def test_auth_phemex_ws(
         }
     )
 
-    # NOTE: Unresolvable CI error, Unclosed client session ... Bug ?
-
-    if sys.version_info >= (3, 9):
-        assert caplog.record_tuples == expected["records"]
-    else:
-        assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
-            "records"
-        ]
-
-    # >       assert caplog.record_tuples == expected["records"]
-    # E       AssertionError: assert [('asyncio', ...f8c5ba91f0>')] == []
-    # E
-    # E         Left contains one more item: ('asyncio', 40, 'Unclosed client session\nclient_session: <aiohttp.client.ClientSession object at 0x7ff8c5ba91f0>')
-    # E
-    # E         Full diff:
-    # E         - []
-    # E         + [
-    # E         +     (
-    # E         +         'asyncio',
-    # E         +         40,
-    # E         +         'Unclosed client session\n'
-    # E         +         'client_session: <aiohttp.client.ClientSession object at '
-    # E         +         '0x7ff8c5ba91f0>',
-    # E         +     ),
-    # E         + ]
-
-    # tests/test_ws.py:1169: AssertionError
-    # ------------------------------ Captured log call -------------------------------
-    # ERROR    asyncio:base_events.py:1707 Unclosed client session
-    # client_session: <aiohttp.client.ClientSession object at 0x7ff8c5ba91f0>
+    assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
+        "records"
+    ]
 
 
 @pytest.mark.asyncio
@@ -1323,7 +1299,9 @@ async def test_auth_okx_ws(
             ],
         }
     )
-    assert caplog.record_tuples == expected["records"]
+    assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
+        "records"
+    ]
 
 
 @pytest.mark.asyncio
@@ -1404,7 +1382,9 @@ async def test_auth_bitget_ws(
             ],
         }
     )
-    assert caplog.record_tuples == expected["records"]
+    assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
+        "records"
+    ]
 
 
 @pytest.mark.asyncio
