@@ -80,12 +80,8 @@ Python 3.8 の最新マイナーバージョンをインストールしてコー
 Python のインストール方法は多岐にわたります。
 `こちらの記事 (python.jp) <https://www.python.jp/install/install.html>`__ を参考にするか、または次に紹介する **Hatch** を利用してください。
 
-.. NOTE::
-    当プロジェクトは標準の ``pyproject.toml`` に則っているので通常の pip のみでもインストール可能です。
-    Hatch の利用は必須ではありません。
-
 Hatch
-~~~~~
+-----
 
 **Hatch** は PyPA より配布されているモダンで高機能なプロジェクト管理ツールです。
 
@@ -109,7 +105,9 @@ pipx をインストールしてからその上で Hatch をインストール�
 Git
 ---
 
-ローカル環境を利用している場合はまず Git でコードをチェックアウトします。
+まずは `pybotters の GitHub リポジトリ <https://github.com/pybotters/pybotters>`_ を Fork してください。
+
+ローカル環境を利用している場合は Git でコードをチェックアウトします。
 Git がローカルにない場合はインストールしてください。
 
 .. code:: sh
@@ -124,27 +122,6 @@ Dependencies
 ------------
 
 プロジェクトとその依存関係をインストールします。
-**pip** または **Hatch** を利用する方法があります。
-
-pip
-~~~
-
-仮想環境を作成して `dev` エクストラで Editable インストールします。
-
-.. code:: sh
-
-    python3.8 -m venv .venv
-
-.. code:: sh
-
-    source .venv/bin/activate
-
-.. code:: sh
-
-    pip install -e .[dev]
-
-Hatch
-~~~~~
 
 Hatch の ``default`` 環境を作成すると、依存関係をインストールできます。
 
@@ -153,10 +130,20 @@ Hatch の ``default`` 環境を作成すると、依存関係をインストー�
     hatch env create
 
 
-Linter
-------
+CI
+--
 
-当プロジェクトでは Linter / Formatter として **Ruff** を採用しています。
+コードをリモートブランチにプッシュすると **GitHub Actions** によって定義されている CI が実行されます。
+
+CI は **Static analysis** と **Test** についてのチェックが実施されます。
+これらのチェックがエラーになる場合は、コードを修正してから再度プッシュしてください。
+またはローカルでチェックを実施する場合は、以下の手順を参考にしてください。
+
+
+Static analysis
+---------------
+
+当プロジェクトではコード静的解析として **Ruff** を採用しています。
 上記プロジェクトセットアップ時に依存関係としてインストールされます。
 
 https://docs.astral.sh/ruff/
@@ -168,29 +155,16 @@ Format
 
 .. code:: bash
 
-    ruff format; ruff check --fix-only
-
-Hatch を利用している場合は、以下のコマンドで実行できます。
-
-.. code:: bash
-
-    hatch run fmt
+    hatch fmt
 
 Lint
 ~~~~
 
 静的解析機能を利用してコードの品質をチェックできます。
-エラー箇所を修正してからコードをコミットしてください。
 
 .. code:: bash
 
-    ruff format --check; ruff check
-
-Hatch を利用している場合は、以下のコマンドで実行できます。
-
-.. code:: bash
-
-    hatch run lint
+    hatch fmt --check
 
 
 Testing
@@ -204,27 +178,15 @@ https://docs.pytest.org
 実装したコードに対するテストコードを作成してください。
 テストコードは ``tests/`` 配下にあります。
 
-pytest コマンドでテストを実行できます。
-
 .. code:: sh
 
-    pytest tests
-
-Hatch を利用している場合は、以下のコマンドで実行できます。
-
-.. code:: sh
-
-    hatch run test
+    hatch test
 
 全ての Python バージョンに対してテストカバレッジを実行するには、以下のコマンドを実行してください。
 
 .. code:: sh
 
-    hatch run all:cov
-
-.. NOTE::
-    Hatch を利用していない場合はローカルでテストマトリクスを実行するのは難しいです。
-    その場合は CI でテストを実行してください。
+    hatch test --all --cover
 
 **テストの基準**
 
@@ -232,15 +194,6 @@ Hatch を利用している場合は、以下のコマンドで実行できま�
 * 例外として :ref:`DataStore <datastore>` に関する単体テストコードは、テスト方法を確立するまで省略しています。
 * ただし DataStore の動作確認ができる実環境用の機能テストコードを Pull request のコメントに張り付けてください。
 * 外部との通信部分はモック化してください。
-
-
-CI
---
-
-コードをリモートブランチにプッシュすると **GitHub Actions** によって定義されている CI が実行されます。
-
-CI は **Lint** と **Test** についてのチェックが実施されます。
-これらのチェックがエラーになる場合は、コードを修正してから再度プッシュしてください。
 
 
 Branch Strategy
