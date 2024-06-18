@@ -47,14 +47,6 @@ test = [
   "pytest-freezer",
   "pytest-cov",
 ]
-lint = [
-  "ruff",
-]
-dev = [
-  "pybotters[test]",
-  "pybotters[lint]",
-  "rich",
-]
 docs = [
   "Sphinx",
   "furo",
@@ -74,38 +66,24 @@ source = "vcs"
 version_scheme = "python-simplified-semver"
 local_scheme = "no-local-version"
 
+[tool.hatch.envs.hatch-test]
+extra-dependencies = [
+  "coverage[toml]",
+  "pytest",
+  "pytest-mock",
+  "pytest-asyncio",
+  "pytest-aiohttp",
+  "pytest-freezer",
+]
+
 [tool.hatch.envs.default]
-features = ["dev"]
+template = "hatch-test"
 python = "3.8"
-[tool.hatch.envs.default.scripts]
-test = "pytest {args:tests}"
-test-cov = "coverage run -m pytest {args:tests}"
-cov-report = [
-  "- coverage combine",
-  "coverage report -m",
-]
-htmlcov = [
-  "- coverage combine",
-  "- coverage html",
-  "python -m http.server -d htmlcov",
-]
-fmt = [
-    "ruff format",
-    "ruff check --fix-only",
-]
-lint = [
-    "ruff format --check",
-    "ruff check",
-]
 
-[tool.hatch.envs.all]
-features = ["test"]
-[[tool.hatch.envs.all.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
-
-[tool.hatch.envs.lint]
-features = ["lint"]
-skip-install = true
+[tool.hatch.envs.coverage.extra-scripts]
+combine = "coverage combine {args}"
+report = "coverage report {args}"
+html = "coverage html {args}"
 
 [tool.hatch.envs.docs]
 features = ["docs"]
@@ -122,7 +100,6 @@ path = "README.md"
 
 [tool.coverage.run]
 source_pkgs = ["pybotters", "tests"]
-# branch = true  # TODO: Branch coverage measurement
 parallel = true
 omit = [
   "pybotters/models/*",
@@ -135,6 +112,9 @@ exclude_lines = [
   "if TYPE_CHECKING:",
 ]
 fail_under = 100.0
+
+[tool.ruff]
+line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "B", "I"]
