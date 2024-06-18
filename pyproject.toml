@@ -39,14 +39,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
-  "pytest",
-  "pytest-mock",
-  "pytest-asyncio",
-  "pytest-aiohttp",
-  "pytest-freezer",
-  "pytest-cov",
-]
 docs = [
   "Sphinx",
   "furo",
