@@ -158,7 +158,7 @@ class DataStore:
         """DataStore から Item を取得します。
 
         Args:
-            item: DataStore のキー (:attr:`.DataStore._KES`) を指定する辞書
+            item: DataStore のキー (:attr:`.DataStore._KEYS`) を指定する辞書
 
         Returns:
             キーに一致するアイテムがあればそのアイテムを返します。
