@@ -189,12 +189,12 @@ class BinanceDataStoreBase(DataStoreCollection):
         """trade/aggTrade stream.
 
         * Spot
-            * https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-            * https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+            * https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#aggregate-trade-streams
+            * https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#trade-streams
         * USDⓈ-M
-            * https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+            * https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
         * COIN-M
-            * https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+            * https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
         """
         return self._get("trade", Trade)
 
@@ -203,11 +203,11 @@ class BinanceDataStoreBase(DataStoreCollection):
         """kline stream.
 
         * Spot
-            * https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-streams
+            * https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#klinecandlestick-streams-for-utc
         * USDⓈ-M
-            * https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-streams
+            * https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
         * COIN-M
-            * https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-streams
+            * https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
         """
         return self._get("kline", Kline)
 
@@ -216,14 +216,14 @@ class BinanceDataStoreBase(DataStoreCollection):
         """24hrMiniTicker/24hrTicker stream.
 
         * Spot
-            * https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
-            * https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+            * https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
+            * https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-ticker-streams
         * USDⓈ-M
-            * https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-mini-ticker-stream
-            * https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+            * https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Mini-Ticker-Stream
+            * https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
         * COIN-M
-            * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-mini-ticker-stream
-            * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
+            * https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Mini-Ticker-Stream
+            * https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
         """
         return self._get("ticker", Ticker)
 
@@ -232,11 +232,11 @@ class BinanceDataStoreBase(DataStoreCollection):
         """bookTicker stream.
 
         * Spot
-            * https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams
+            * https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-book-ticker-streams
         * USDⓈ-M
-            * https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-book-ticker-streams
+            * https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Book-Ticker-Streams
         * COIN-M
-            * https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-book-ticker-streams
+            * https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Book-Ticker-Streams
         """
         return self._get("bookticker", BookTicker)
 
@@ -245,11 +245,11 @@ class BinanceDataStoreBase(DataStoreCollection):
         """depthUpdate stream.
 
         * Spot
-            * https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+            * https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
         * USDⓈ-M
-            * https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+            * https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
         * COIN-M
-            * https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
+            * https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
         """
         return self._get("orderbook", OrderBook)
 
@@ -260,11 +260,11 @@ class BinanceDataStoreBase(DataStoreCollection):
         アクティブオーダーのみデータが格納されます。 キャンセル、約定済みなどは削除されます。
 
         * Spot
-            * https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+            * https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update
         * USDⓈ-M
-            * https://binance-docs.github.io/apidocs/futures/en/#event-order-update
+            * https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
         * COIN-M
-            * https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+            * https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
         """
         return self._get("order", Order)
 
@@ -328,8 +328,8 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
     def markprice(self) -> "MarkPrice":
         """markPriceUpdate stream.
 
-        * https://binance-docs.github.io/apidocs/futures/en/#mark-price-stream
-        * https://binance-docs.github.io/apidocs/delivery/en/#mark-price-stream
+        * https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+        * https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Mark-Price-Stream
         """
         return self._get("markprice", MarkPrice)
 
@@ -337,8 +337,8 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
     def continuouskline(self) -> "ContinuousKline":
         """continuous_kline stream.
 
-        * https://binance-docs.github.io/apidocs/futures/en/#continuous-contract-kline-candlestick-data
-        * https://binance-docs.github.io/apidocs/delivery/en/#continuous-contract-kline-candlestick-data
+        * https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Continuous-Contract-Kline-Candlestick-Streams
+        * https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Continuous-Contract-Kline-Candlestick-Streams
         """
         return self._get("continuouskline", ContinuousKline)
 
@@ -346,8 +346,8 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
     def liquidation(self) -> "Liquidation":
         """forceOrder stream.
 
-        * https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
-        * https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
+        * https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams
+        * https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams
         """
         return self._get("liquidation", Liquidation)
 
@@ -355,8 +355,8 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
     def balance(self) -> "Balance":
         """ACCOUNT_UPDATE from User Data Streams.
 
-        * https://binance-docs.github.io/apidocs/futures/en/#event-balance-and-position-update
-        * https://binance-docs.github.io/apidocs/delivery/en/#event-balance-and-position-update
+        * https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Balance-and-Position-Update
+        * https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Balance-and-Position-Update
         """
         return self._get("balance", Balance)
 
@@ -364,8 +364,8 @@ class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
     def position(self) -> "Position":
         """ACCOUNT_UPDATE from User Data Streams.
 
-        * https://binance-docs.github.io/apidocs/futures/en/#event-balance-and-position-update
-        * https://binance-docs.github.io/apidocs/delivery/en/#event-balance-and-position-update
+        * https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Balance-and-Position-Update
+        * https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Balance-and-Position-Update
         """
         return self._get("position", Position)
 
@@ -412,7 +412,7 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
     def account(self):
         """outboundAccountPosition from User Data Streams.
 
-        https://binance-docs.github.io/apidocs/spot/en/#payload-account-update
+        https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#account-update
         """
         return self._get("account", Account)
 
@@ -420,7 +420,7 @@ class BinanceSpotDataStore(BinanceDataStoreBase):
     def ocoorder(self):
         """listStatus from User Data Streams.
 
-        https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+        https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#conditional-fields-in-execution-report
         """
         return self._get("ocoorder", OCOOrder)
 
@@ -457,7 +457,7 @@ class BinanceUSDSMDataStore(BinanceFuturesDataStoreBase):
     def compositeindex(self) -> "CompositeIndex":
         """compositeindex stream.
 
-        https://binance-docs.github.io/apidocs/futures/en/#composite-index-symbol-information-streams
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Composite-Index-Symbol-Information-Streams
         """
         return self._get("compositeindex", CompositeIndex)
 
@@ -521,7 +521,7 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
     def indexprice(self) -> "IndexPrice":
         """indexprice stream.
 
-        https://binance-docs.github.io/apidocs/delivery/en/#index-price-stream
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Index-Price-Stream
         """
         return self._get("indexprice", IndexPrice)
 
@@ -529,7 +529,7 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
     def indexpricekline(self) -> "Kline":
         """indexpricekline stream.
 
-        https://binance-docs.github.io/apidocs/delivery/en/#index-kline-candlestick-streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Index-Kline-Candlestick-Streams
         """
         return self._get("indexpricekline", Kline)
 
@@ -537,7 +537,7 @@ class BinanceCOINMDataStore(BinanceFuturesDataStoreBase):
     def markpricekline(self) -> "Kline":
         """markpricekline stream.
 
-        https://binance-docs.github.io/apidocs/delivery/en/#mark-price-kline-candlestick-streams
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Mark-Price-Kline-Candlestick-Streams
         """
         return self._get("markpricekline", Kline)
 

@@ -198,7 +198,7 @@ DataStore
 Binance
 -------
 
-https://binance-docs.github.io/apidocs/spot/en/
+https://developers.binance.com/docs/binance-spot-api-docs/CHANGELOG
 
 pybotters は Binance API において Spot /USDⓈ-M / COIN-M / WebSocket API (Spot) で動作確認をしています。
 
@@ -212,15 +212,15 @@ Authentication
 * HTTP 認証
     HTTP リクエスト時に取引所が定める認証情報が自動設定されます。
 
-    * https://binance-docs.github.io/apidocs/spot/en/#signed-trade-user_data-and-margin-endpoint-security
-    * https://binance-docs.github.io/apidocs/futures/en/#signed-trade-and-user_data-endpoint-security
-    * https://binance-docs.github.io/apidocs/delivery/en/#signed-trade-and-user_data-endpoint-security
+    * https://developers.binance.com/docs/binance-spot-api-docs/rest-api#signed-endpoint-examples-for-post-apiv3order
+    * https://developers.binance.com/docs/derivatives/usds-margined-futures/general-info#signed-trade-and-user_data-endpoint-security
+    * https://developers.binance.com/docs/derivatives/coin-margined-futures/general-info#signed-trade-and-user_data-endpoint-security
 * WebSocket 認証
     Binance はトークン認証方式の為、ユーザーコードで URL に ``listenKey`` 含める必要があります。
 
-    * https://binance-docs.github.io/apidocs/spot/en/#user-data-streams
-    * https://binance-docs.github.io/apidocs/futures/en/#user-data-streams
-    * https://binance-docs.github.io/apidocs/delivery/en/#user-data-streams
+    * https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream
+    * https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Connect
+    * https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Connect
 
     ただし Binance 系 DataStore に ``listenKey`` を管理する機能があります。
 
@@ -233,11 +233,11 @@ Authentication
     pybotters では Binance で *WebSocket API* と表されるタイプの API 認証に対応しています。
     これは WebSocket メッセージで注文の作成などを可能にするもので、現時点では Spot のみ対応しています。
 
-    https://binance-docs.github.io/apidocs/websocket_api/en/
+    https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api
 
     送信する WebSocket メッセージに対して、取引所が定める認証情報が自動設定されます。
 
-    https://binance-docs.github.io/apidocs/websocket_api/en/#signed-trade-and-user_data-request-security
+    https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#signed-trade-and-user_data-request-security
 
     これを利用するには、 :attr:`.WebSocketApp.current_ws` から ``send_json()`` メソッドを利用して引数 ``auth=pybotters.Auth`` を設定します。
 
@@ -247,7 +247,7 @@ WebSocket
 * レート制限
     pybotters は Binance Spot のみにある WebSocket API の購読レート制限に対応しています。
 
-    https://binance-docs.github.io/apidocs/spot/en/#limits
+    https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#websocket-limits
 
     :meth:`.Client.ws_connect` でメッセージを送信する際、レート制限が自動適用されます。
 

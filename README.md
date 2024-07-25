@@ -7,7 +7,6 @@
 
 [![CI](https://github.com/pybotters/pybotters/actions/workflows/ci.yml/badge.svg)](https://github.com/pybotters/pybotters/actions/workflows/ci.yml)
 [![publish](https://github.com/pybotters/pybotters/actions/workflows/publish.yml/badge.svg)](https://github.com/pybotters/pybotters/actions/workflows/publish.yml)
-[![codecov](https://codecov.io/gh/pybotters/pybotters/graph/badge.svg?token=ARR29R726W)](https://codecov.io/gh/pybotters/pybotters)
 [![Documentation Status](https://readthedocs.org/projects/pybotters/badge/?version=latest)](https://pybotters.readthedocs.io/ja/latest/?badge=latest)
 [![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -55,7 +54,7 @@ It has the following features, making it useful for developing a trading bot.
 | bitbank | ✅ | ✅ | [Link](https://github.com/bitbankinc/bitbank-api-docs) |
 | Coincheck | ✅ | ✅ | [Link](https://coincheck.com/ja/documents/exchange/api) |
 | Bybit | ✅ | ✅ | [Link](https://bybit-exchange.github.io/docs/v5/intro) |
-| Binance | ✅ | ✅ | [Link](https://binance-docs.github.io/apidocs/spot/en/) |
+| Binance | ✅ | ✅ | [Link](https://developers.binance.com/docs/binance-spot-api-docs/CHANGELOG) |
 | OKX | ✅ | ✅ | [Link](https://www.okx.com/docs-v5/en/) |
 | Phemex | ✅ | ✅ | [Link](https://phemex-docs.github.io/) |
 | Bitget | ✅ | ✅ | [Link](https://bitgetlimited.github.io/apidoc/en/mix/) |
