@@ -47,6 +47,18 @@ async def test_client_warn(mocker: pytest_mock.MockerFixture):
     assert client._session.__dict__["_apis"] == {}
 
 
+@pytest.mark.asyncio
+async def test_client_with_missing_passphrase_apis():
+    passphrase_required_exchanges = sorted(
+        pybotters.auth.PassphraseRequiredExchanges.items
+    )
+    apis = {x: ["key", "secret"] for x in passphrase_required_exchanges}
+    async with pybotters.Client(apis=apis) as client:
+        assert isinstance(client._session, aiohttp.ClientSession)
+        assert not client._session.closed
+    assert client._session.__dict__["_apis"] == {}
+
+
 def test_client_load_apis_current(mocker: pytest_mock.MockerFixture):
     mocker.patch("os.path.isfile", return_value=True)
     mocker.patch("builtins.open", mock_open(read_data='{"foo":"bar"}'))
