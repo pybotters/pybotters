@@ -12,7 +12,7 @@ from aiohttp import hdrs
 from aiohttp.client import _RequestContextManager
 
 from .__version__ import __version__
-from .auth import Auth
+from .auth import Auth, PassphraseRequiredExchanges
 from .request import ClientRequest
 from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
 from .ws import ClientWebSocketResponse, WebSocketApp
@@ -314,6 +314,9 @@ class Client:
     def _encode_apis(apis: dict[str, list[str]]) -> dict[str, tuple[str | bytes, ...]]:
         encoded = {}
         for name in apis:
+            if name in PassphraseRequiredExchanges.items and len(apis[name]) < 3:
+                logger.warning(f"Missing passphrase for {name}")
+                continue
             if len(apis[name]) >= 2:
                 apis[name][1] = apis[name][1].encode()
             encoded[name] = tuple(apis[name])

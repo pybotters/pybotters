@@ -451,3 +451,7 @@ class Hosts:
         "api.kucoin.com": Item("kucoin", Auth.kucoin),
         "api-futures.kucoin.com": Item("kucoin", Auth.kucoin),
     }
+
+
+class PassphraseRequiredExchanges:
+    items = {"bitget", "kucoin"}
