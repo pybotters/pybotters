@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import aiohttp
 from multidict import MultiDict
 from yarl import URL
@@ -6,7 +10,7 @@ from .auth import Auth, Hosts
 
 
 class ClientRequest(aiohttp.ClientRequest):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         method: str = args[0]
         url: URL = args[1]
 
@@ -25,10 +29,11 @@ class ClientRequest(aiohttp.ClientRequest):
         if kwargs["auth"] is Auth:
             kwargs["auth"] = None
             if url.host in Hosts.items:
-                if isinstance(Hosts.items[url.host].name, str):
-                    api_name = Hosts.items[url.host].name
-                elif callable(Hosts.items[url.host].name):
-                    api_name = Hosts.items[url.host].name(args, kwargs)
+                name_or_dynamic_selector = Hosts.items[url.host].name
+                if isinstance(name_or_dynamic_selector, str):
+                    api_name = name_or_dynamic_selector
+                elif callable(name_or_dynamic_selector):
+                    api_name = name_or_dynamic_selector(args, kwargs)
                 if api_name in kwargs["session"].__dict__["_apis"]:
                     args = Hosts.items[url.host].func(args, kwargs)
 

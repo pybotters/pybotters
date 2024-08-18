@@ -13,6 +13,7 @@
     "files.exclude": {
         "**/.hatch": true
     },
+    "mypy-type-checker.importStrategy": "fromEnvironment",
     "python.defaultInterpreterPath": "${workspaceFolder}/.hatch/pybotters/bin/python",
     "python.testing.pytestArgs": [
         "tests"

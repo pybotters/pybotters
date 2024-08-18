@@ -13,13 +13,28 @@ import time
 import uuid
 from dataclasses import dataclass
 from secrets import token_hex
-from typing import Any, AsyncIterator, Generator
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncIterator,
+    Awaitable,
+    Generator,
+    cast,
+)
 
 import aiohttp
 from aiohttp.http_websocket import json
 
 from .auth import Auth as _Auth
-from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
+
+if TYPE_CHECKING:
+    from .typedefs import (
+        WsBytesHandler,
+        WsHeartBeatHandler,
+        WsJsonHandler,
+        WsRateLimitHandler,
+        WsStrHandler,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +141,7 @@ class WebSocketApp:
         self._url = url
 
     @property
-    def current_ws(self) -> ClientWebSocketResponse | None:
+    def current_ws(self) -> aiohttp.ClientWebSocketResponse | None:
         """Current WebSocket connection.
 
         現在の WebSocket コネクションです。
@@ -194,7 +209,7 @@ class WebSocketApp:
             self._current_ws = ws
             self._event.set()
 
-            await ws._wait_authtask()
+            await cast(ClientWebSocketResponse, ws)._wait_authtask()
 
             await self._ws_send(ws, send_str, send_bytes, send_json)
 
@@ -202,7 +217,7 @@ class WebSocketApp:
 
     async def _ws_send(
         self,
-        ws: ClientWebSocketResponse,
+        ws: aiohttp.ClientWebSocketResponse,
         send_str: list[str],
         send_bytes: list[bytes],
         send_json: list[dict],
@@ -215,7 +230,7 @@ class WebSocketApp:
 
     async def _ws_receive(
         self,
-        ws: ClientWebSocketResponse,
+        ws: aiohttp.ClientWebSocketResponse,
         hdlr_str: list[WsStrHandler],
         hdlr_bytes: list[WsBytesHandler],
         hdlr_json: list[WsJsonHandler],
@@ -228,11 +243,12 @@ class WebSocketApp:
     def _onmessage(
         self,
         msg: aiohttp.WSMessage,
-        ws: ClientWebSocketResponse,
+        ws: aiohttp.ClientWebSocketResponse,
         hdlr_str: list[WsStrHandler],
         hdlr_bytes: list[WsBytesHandler],
         hdlr_json: list[WsJsonHandler],
     ) -> None:
+        hdlr: WsStrHandler | WsJsonHandler | WsJsonHandler
         if msg.type == aiohttp.WSMsgType.TEXT:
             for hdlr in hdlr_str:
                 self._loop.call_soon(hdlr, msg.data, ws)
@@ -445,12 +461,12 @@ class Auth:
         signature = hmac.new(
             secret, f"{key}{expiry}".encode(), digestmod=hashlib.sha256
         ).hexdigest()
-        msg = {
+        msg_to_send = {
             "method": "user.auth",
             "params": ["API", key, signature, expiry],
             "id": 123,
         }
-        await ws.send_json(msg)
+        await ws.send_json(msg_to_send)
         async for msg in ws:
             data = msg.json()
             if data.get("id") == 123:
@@ -475,7 +491,7 @@ class Auth:
         sign = base64.b64encode(
             hmac.new(secret, text.encode(), digestmod=hashlib.sha256).digest()
         ).decode()
-        msg = {
+        msg_to_send = {
             "op": "login",
             "args": [
                 {
@@ -486,7 +502,7 @@ class Auth:
                 }
             ],
         }
-        await ws.send_json(msg)
+        await ws.send_json(msg_to_send)
         async for msg in ws:
             try:
                 data = msg.json()
@@ -518,7 +534,7 @@ class Auth:
                 secret, f"{timestamp}GET/user/verify".encode(), digestmod=hashlib.sha256
             ).digest()
         ).decode()
-        msg = {
+        msg_to_send = {
             "op": "login",
             "args": [
                 {
@@ -529,7 +545,7 @@ class Auth:
                 }
             ],
         }
-        await ws.send_json(msg)
+        await ws.send_json(msg_to_send)
         async for msg in ws:
             try:
                 data = msg.json()
@@ -575,7 +591,8 @@ class Item:
 
 
 class HeartbeatHosts:
-    items = {
+    # NOTE: yarl.URL.host is also allowed to be None. So, for brevity, relax the type check on the `items` key.
+    items: dict[str | None, WsHeartBeatHandler] = {
         "stream.bitbank.cc": Heartbeat.bitbank,
         "stream.bybit.com": Heartbeat.bybit,
         "stream.bytick.com": Heartbeat.bybit,
@@ -605,7 +622,8 @@ class HeartbeatHosts:
 
 
 class AuthHosts:
-    items = {
+    # NOTE: yarl.URL.host is also allowed to be None. So, for brevity, relax the type check on the `items` key.
+    items: dict[str | None, Item] = {
         "stream.bybit.com": Item("bybit", Auth.bybit),
         "stream.bytick.com": Item("bybit", Auth.bybit),
         "stream-demo.bybit.com": Item("bybit_demo", Auth.bybit),
@@ -671,17 +689,16 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
 
 class RequestLimit:
     @staticmethod
-    async def gmocoin(ws: ClientWebSocketResponse, send_str):
-        async with ws._lock:
+    async def gmocoin(ws: aiohttp.ClientWebSocketResponse, send_str: Awaitable[None]):
+        session = cast(aiohttp.ClientSession, ws._response._session)
+        async with cast(ClientWebSocketResponse, ws)._lock:
             await send_str
-            r = await ws._response._session.get(
-                "https://api.coin.z.com/public/v1/status", auth=_Auth
-            )
+            r = await session.get("https://api.coin.z.com/public/v1/status", auth=_Auth)
             data = await r.json()
             before = datetime.datetime.fromisoformat(data["responsetime"][:-1])
             while True:
                 await asyncio.sleep(1.0)
-                r = await ws._response._session.get(
+                r = await session.get(
                     "https://api.coin.z.com/public/v1/status", auth=_Auth
                 )
                 data = await r.json()
@@ -691,19 +708,18 @@ class RequestLimit:
                     break
 
     @staticmethod
-    async def binance(ws: ClientWebSocketResponse, send_str):
-        async with ws._lock:
+    async def binance(
+        ws: aiohttp.ClientWebSocketResponse, send_str: Awaitable[None]
+    ) -> None:
+        session = cast(aiohttp.ClientSession, ws._response._session)
+        async with cast(ClientWebSocketResponse, ws)._lock:
             await send_str
-            r = await ws._response._session.get(
-                "https://api.binance.com/api/v3/time", auth=None
-            )
+            r = await session.get("https://api.binance.com/api/v3/time", auth=None)
             data = await r.json()
             before = datetime.datetime.fromtimestamp(data["serverTime"] / 1000)
             while True:
                 await asyncio.sleep(0.25)  # limit of 5 incoming messages per second
-                r = await ws._response._session.get(
-                    "https://api.binance.com/api/v3/time", auth=None
-                )
+                r = await session.get("https://api.binance.com/api/v3/time", auth=None)
                 data = await r.json()
                 after = datetime.datetime.fromtimestamp(data["serverTime"] / 1000)
                 delta = after - before
@@ -712,7 +728,7 @@ class RequestLimit:
 
 
 class RequestLimitHosts:
-    items = {
+    items: dict[str | None, WsRateLimitHandler] = {
         "api.coin.z.com": RequestLimit.gmocoin,
         "stream.binance.com": RequestLimit.binance,
     }
@@ -750,7 +766,8 @@ class MessageSign:
 
 
 class MessageSignHosts:
-    items = {
+    # NOTE: yarl.URL.host is also allowed to be None. So, for brevity, relax the type check on the `items` key.
+    items: dict[str | None, Item] = {
         "ws-api.binance.com": Item("binance", MessageSign.binance),
         "testnet.binance.vision": Item("binancespot_testnet", MessageSign.binance),
         "stream.bybit.com": Item("bybit", MessageSign.bybit),
