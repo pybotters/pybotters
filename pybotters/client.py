@@ -13,16 +13,18 @@ from aiohttp import hdrs
 from .__version__ import __version__
 from .auth import Auth, PassphraseRequiredExchanges
 from .request import ClientRequest
-from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
+from .typedefs import (
+    APICredentialsDict,
+    EncodedAPICredentialsDict,
+    RequestContextManager,
+    WsBytesHandler,
+    WsJsonHandler,
+    WsStrHandler,
+)
 from .ws import ClientWebSocketResponse, WebSocketApp
 
 if TYPE_CHECKING:
-    from .typedefs import (
-        APICredentialsDict,
-        EncodedAPICredentialsDict,
-        RequestContextManager,
-        StrOrBytesPath,
-    )
+    from .typedefs import StrOrBytesPath
 
 logger = logging.getLogger(__name__)
 
