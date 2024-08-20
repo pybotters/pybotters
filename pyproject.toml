@@ -75,7 +75,7 @@ dependencies = [
   "mypy>=1.0.0",
 ]
 [tool.hatch.envs.default.extra-scripts]
-types = "mypy"
+type-check = "mypy"
 
 [tool.hatch.envs.coverage.extra-scripts]
 combine = "coverage combine {args}"
