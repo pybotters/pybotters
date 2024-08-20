@@ -52,7 +52,7 @@ jobs:
     - name: Install Hatch
       uses: pypa/hatch@install
     - name: Run type checking
-      run: hatch run types
+      run: hatch run type-check
 
   test:
     runs-on: ubuntu-latest
