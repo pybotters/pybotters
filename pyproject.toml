@@ -118,4 +118,4 @@ select = ["E", "F", "B", "I"]
 ignore = ["E501"]
 
 [tool.mypy]
-packages = ["pybotters"]
+packages = ["pybotters", "tests"]
