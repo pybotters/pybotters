@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Awaitable
+from typing import Any, Awaitable, cast
 
 import aiohttp
 
@@ -79,7 +79,7 @@ class Trades(DataStore):
 class Orderbook(DataStore):
     _KEYS = ["pair", "side", "rate"]
 
-    def _init(self):
+    def _init(self) -> None:
         self.last_update_at: str | None = None
 
     def sorted(
@@ -94,7 +94,7 @@ class Orderbook(DataStore):
             limit=limit,
         )
 
-    def _onresponse(self, pair: str | None, data: dict[list[str]]) -> None:
+    def _onresponse(self, pair: str | None, data: dict[str, list[list[str]]]) -> None:
         if pair is None:
             pair = "btc_jpy"
         self._find_and_delete({"pair": pair})
@@ -104,10 +104,10 @@ class Orderbook(DataStore):
                     [{"pair": pair, "side": side, "rate": rate, "amount": amount}]
                 )
 
-    def _onmessage(self, pair: str, data: dict[str, list[list[str]]]) -> None:
-        self.last_update_at = data.pop("last_update_at")
-        for side in data:
-            for rate, amount in data[side]:
+    def _onmessage(self, pair: str, data: dict[str, list[list[str]] | str]) -> None:
+        self.last_update_at = cast(dict[str, str], data).pop("last_update_at")
+        for side in cast(list[list[str]], data):
+            for rate, amount in cast(list[list[str]], data):
                 if amount == "0":
                     self._delete([{"pair": pair, "side": side, "rate": rate}])
                 else:

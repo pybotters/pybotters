@@ -71,6 +71,11 @@ extra-dependencies = [
 [tool.hatch.envs.default]
 template = "hatch-test"
 python = "3.8"
+dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.default.extra-scripts]
+type-check = "mypy"
 
 [tool.hatch.envs.coverage.extra-scripts]
 combine = "coverage combine {args}"
@@ -111,3 +116,6 @@ line-length = 88
 [tool.ruff.lint]
 select = ["E", "F", "B", "I"]
 ignore = ["E501"]
+
+[tool.mypy]
+packages = ["pybotters", "tests"]

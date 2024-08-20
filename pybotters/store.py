@@ -4,7 +4,7 @@ import asyncio
 import copy
 import uuid
 from dataclasses import dataclass
-from typing import Any, Hashable, Iterator, Literal, Type, TypeVar, cast
+from typing import Any, Hashable, Iterator, Literal, TypeVar, overload
 
 from .typedefs import Item
 from .ws import ClientWebSocketResponse
@@ -13,7 +13,7 @@ from .ws import ClientWebSocketResponse
 class DataStore:
     """Abstract DataStore class."""
 
-    _KEYS = []
+    _KEYS: list[str] = []
     _MAXLEN = 9999
 
     def __init__(
@@ -22,7 +22,7 @@ class DataStore:
         keys: list[str] | None = None,
         data: list[Item] | None = None,
     ) -> None:
-        self.name: str = name
+        self.name: str | None = name
         self._data: dict[uuid.UUID, Item] = {}
         self._index: dict[int, uuid.UUID] = {}
         self._keys: tuple[str, ...] = tuple(keys if keys else self._KEYS)
@@ -173,6 +173,7 @@ class DataStore:
                 keyhash = self._hash(keyitem)
                 if keyhash in self._index:
                     return self._data[self._index[keyhash]]
+        return None
 
     def _pop(self, item: Item) -> Item | None:
         if self._keys:
@@ -187,6 +188,7 @@ class DataStore:
                     del self._data[self._index[keyhash]]
                     del self._index[keyhash]
                     return ret
+        return None
 
     def find(self, query: Item | None = None) -> list[Item]:
         """DataStore から Item のリストを取得します。
@@ -243,11 +245,11 @@ class DataStore:
         sort_key: str,
         query: Item | None = None,
         limit: int | None = None,
-    ) -> dict[str, list[float]]:
+    ) -> dict[str, list[Item]]:
         if query is None:
             query = {}
 
-        result = {item_asc_key: [], item_desc_key: []}
+        result: dict[str, list[Item]] = {item_asc_key: [], item_desc_key: []}
 
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
@@ -276,7 +278,12 @@ class DataStore:
         self._events.append(event)
         await event.wait()
 
-    def _put(self, operation: str, source: Item | None, item: Item) -> None:
+    def _put(
+        self,
+        operation: Literal["insert", "update", "delete"],
+        source: Item | None,
+        item: Item,
+    ) -> None:
         for queue in self._queues:
             queue.put_nowait(
                 StoreChange(self, operation, copy.deepcopy(source), copy.deepcopy(item))
@@ -319,7 +326,7 @@ class StoreStream:
     """
 
     def __init__(self, store: "DataStore") -> None:
-        self._queue = asyncio.Queue()
+        self._queue: asyncio.Queue[StoreChange] = asyncio.Queue()
         store._queues.append(self._queue)
         self._store = store
 
@@ -368,7 +375,7 @@ class DataStoreCollection:
         *,
         keys: list[str] | None = None,
         data: list[Item] | None = None,
-        datastore_class: Type[DataStore] = DataStore,
+        datastore_class: type[DataStore] = DataStore,
     ) -> None:
         if keys is None:
             keys = []
@@ -376,8 +383,16 @@ class DataStoreCollection:
             data = []
         self._stores[name] = datastore_class(name, keys, data)
 
-    def _get(self, name: str, type: Type[TDataStore]) -> TDataStore:
-        return cast(type, self._stores.get(name))
+    @overload
+    def _get(self, name: str, type_: type[TDataStore]) -> TDataStore: ...
+
+    @overload
+    def _get(
+        self, name: str, type_: type[DataStore] | None = ...
+    ) -> DataStore | None: ...
+
+    def _get(self, name: str, type_: type[DataStore] | None = None) -> DataStore | None:
+        return self._stores.get(name)
 
     def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
         print(msg)

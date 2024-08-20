@@ -60,8 +60,8 @@ class BybitDataStore(DataStoreCollection):
 
             if resp.url.path in self._MAP_PATH_TOPIC:
                 topic = self._MAP_PATH_TOPIC[resp.url.path]
-                if topic in self:
-                    self[topic]._onresponse(resp.url, data)
+                if target_onresponse := getattr(self[topic], "_onresponse", None):
+                    target_onresponse(resp.url, data)
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if "success" in msg:
@@ -72,8 +72,8 @@ class BybitDataStore(DataStoreCollection):
             dot_topic: str = msg["topic"]
             topic, *topic_ext = dot_topic.split(".")
 
-            if topic in self:
-                self[topic]._onmessage(msg, topic_ext)
+            if target_onmessage := getattr(self[topic], "_onmessage", None):
+                target_onmessage(msg, topic_ext)
 
     @property
     def orderbook(self) -> "OrderBook":
@@ -198,7 +198,7 @@ class OrderBook(DataStore):
         )
 
     def _onmessage(self, msg: Item, topic_ext: list[str]) -> None:
-        operation = {"delete": [], "update": [], "insert": []}
+        operation: dict[str, list[Item]] = {"delete": [], "update": [], "insert": []}
 
         is_snapshot = msg["type"] == "snapshot"
         if is_snapshot:

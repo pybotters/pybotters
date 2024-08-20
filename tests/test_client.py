@@ -1,4 +1,5 @@
 import json
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, mock_open
 
 import aiohttp
@@ -15,7 +16,7 @@ async def test_client():
     apis = {
         "name1": ["key1", "secret1"],
         "name2": ["key2", "secret2"],
-        "name3": ["key3", "secret3"],
+        "name3": ["key3", "secret3", "passphrase3"],
     }
     base_url = "http://example.com"
     async with pybotters.Client(apis=apis, base_url=base_url) as client:
@@ -24,9 +25,9 @@ async def test_client():
     assert client._base_url == base_url
     assert client._session.closed
     assert client._session.__dict__["_apis"] == {
-        "name1": tuple(["key1", "secret1".encode()]),
-        "name2": tuple(["key2", "secret2".encode()]),
-        "name3": tuple(["key3", "secret3".encode()]),
+        "name1": tuple(["key1", "secret1".encode(), ""]),
+        "name2": tuple(["key2", "secret2".encode(), ""]),
+        "name3": tuple(["key3", "secret3".encode(), "passphrase3"]),
     }
     assert [tuple(x) for x in apis.values()] != [
         x for x in client._session.__dict__["_apis"].values()
@@ -102,7 +103,8 @@ def test_client_load_apis_deepcopy(mocker: pytest_mock.MockerFixture):
 
 
 def test_client_load_apis_invalid(mocker: pytest_mock.MockerFixture):
-    assert pybotters.Client._load_apis(["foo", "bar"]) == {}
+    invalid_apis: Any = ["foo", "bar"]
+    assert pybotters.Client._load_apis(invalid_apis) == {}
 
 
 @pytest_asyncio.fixture

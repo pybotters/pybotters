@@ -135,7 +135,7 @@ CI
 
 コードをリモートブランチにプッシュすると **GitHub Actions** によって定義されている CI が実行されます。
 
-CI は **Static analysis** と **Test** についてのチェックが実施されます。
+CI は **Static analysis** と **Type check** 及び **Test** についてのチェックが実施されます。
 これらのチェックがエラーになる場合は、コードを修正してから再度プッシュしてください。
 またはローカルでチェックを実施する場合は、以下の手順を参考にしてください。
 
@@ -165,6 +165,21 @@ Lint
 .. code:: bash
 
     hatch fmt --check
+
+
+Type check
+----------
+
+当プロジェクトではタイプチェッカーとして **mypy** を採用しています。
+上記プロジェクトセットアップ時に依存関係としてインストールされます。
+
+https://mypy.readthedocs.io/
+
+型チェックのコマンドは以下の通りです。
+
+.. code:: bash
+
+    hatch run type-check
 
 
 Testing

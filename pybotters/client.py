@@ -5,28 +5,34 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Literal, Mapping
+from typing import TYPE_CHECKING, Any, Literal, Mapping
 
 import aiohttp
 from aiohttp import hdrs
-from aiohttp.client import _RequestContextManager
 
 from .__version__ import __version__
 from .auth import Auth, PassphraseRequiredExchanges
 from .request import ClientRequest
-from .typedefs import WsBytesHandler, WsJsonHandler, WsStrHandler
+from .typedefs import (
+    APICredentialsDict,
+    EncodedAPICredentialsDict,
+    RequestContextManager,
+    WsBytesHandler,
+    WsJsonHandler,
+    WsStrHandler,
+)
 from .ws import ClientWebSocketResponse, WebSocketApp
+
+if TYPE_CHECKING:
+    from .typedefs import StrOrBytesPath
 
 logger = logging.getLogger(__name__)
 
 
 class Client:
-    _session: aiohttp.ClientSession
-    _base_url: str
-
     def __init__(
         self,
-        apis: dict[str, list[str]] | str | None = None,
+        apis: APICredentialsDict | StrOrBytesPath | None = None,
         base_url: str = "",
         **kwargs: Any,
     ) -> None:
@@ -46,11 +52,11 @@ class Client:
         )
         if hdrs.USER_AGENT not in self._session.headers:
             self._session.headers[hdrs.USER_AGENT] = f"pybotters/{__version__}"
-        apis = self._load_apis(apis)
-        self._session.__dict__["_apis"] = self._encode_apis(apis)
+        loaded_apis = self._load_apis(apis)
+        self._session.__dict__["_apis"] = self._encode_apis(loaded_apis)
         self._base_url = base_url
 
-    async def __aenter__(self) -> "Client":
+    async def __aenter__(self) -> Client:
         return self
 
     async def __aexit__(self, *args: Any) -> None:
@@ -67,9 +73,9 @@ class Client:
         *,
         params: Mapping[str, Any] | None = None,
         data: dict[str, Any] | None = None,
-        auth: Auth | None = Auth,
+        auth: type[Auth] | None = Auth,
         **kwargs: Any,
-    ) -> _RequestContextManager:
+    ) -> RequestContextManager:
         return self._session.request(
             method=method,
             url=self._base_url + url,
@@ -87,7 +93,7 @@ class Client:
         params: Mapping[str, str] | None = None,
         data: Any = None,
         **kwargs: Any,
-    ) -> _RequestContextManager:
+    ) -> RequestContextManager:
         """HTTP request.
 
         Args:
@@ -146,7 +152,7 @@ class Client:
         *,
         params: Mapping[str, str] | None = None,
         **kwargs: Any,
-    ) -> _RequestContextManager:
+    ) -> RequestContextManager:
         """HTTP GET request.
 
         Args:
@@ -168,7 +174,7 @@ class Client:
         *,
         data: Any = None,
         **kwargs: Any,
-    ) -> _RequestContextManager:
+    ) -> RequestContextManager:
         """HTTP POST request.
 
         Args:
@@ -190,7 +196,7 @@ class Client:
         *,
         data: Any = None,
         **kwargs: Any,
-    ) -> _RequestContextManager:
+    ) -> RequestContextManager:
         """HTTP PUT request.
 
         Args:
@@ -213,7 +219,7 @@ class Client:
         *,
         data: Any = None,
         **kwargs: Any,
-    ) -> _RequestContextManager:
+    ) -> RequestContextManager:
         """HTTP DELETE request.
 
         Args:
@@ -243,7 +249,7 @@ class Client:
         backoff: tuple[float, float, float, float] = WebSocketApp._DEFAULT_BACKOFF,
         autoping: bool = True,
         heartbeat: float = 10.0,
-        auth: Auth | None = Auth,
+        auth: type[Auth] | None = Auth,
         **kwargs: Any,
     ) -> WebSocketApp:
         """WebSocket request.
@@ -284,7 +290,9 @@ class Client:
         )
 
     @staticmethod
-    def _load_apis(apis: dict[str, list[str]] | str | None) -> dict[str, list[str]]:
+    def _load_apis(
+        apis: APICredentialsDict | StrOrBytesPath | None,
+    ) -> APICredentialsDict:
         if apis is None:
             current_apis = os.path.join(os.getcwd(), "apis.json")
             if os.path.isfile(current_apis):
@@ -297,7 +305,7 @@ class Client:
                         return json.load(fp)
                 else:
                     return {}
-        elif isinstance(apis, str):
+        elif isinstance(apis, (str, bytes, os.PathLike)):
             if os.path.isfile(apis):
                 with open(apis) as fp:
                     return json.load(fp)
@@ -311,15 +319,16 @@ class Client:
             return {}
 
     @staticmethod
-    def _encode_apis(apis: dict[str, list[str]]) -> dict[str, tuple[str | bytes, ...]]:
-        encoded = {}
+    def _encode_apis(apis: APICredentialsDict) -> EncodedAPICredentialsDict:
+        encoded: EncodedAPICredentialsDict = {}
         for name in apis:
-            if name in PassphraseRequiredExchanges.items and len(apis[name]) < 3:
-                logger.warning(f"Missing passphrase for {name}")
-                continue
-            if len(apis[name]) >= 2:
-                apis[name][1] = apis[name][1].encode()
-            encoded[name] = tuple(apis[name])
+            if len(apis[name]) == 2:
+                if name in PassphraseRequiredExchanges.items:
+                    logger.warning(f"Missing passphrase for {name}")
+                    continue
+                encoded[name] = (apis[name][0], apis[name][1].encode(), "")
+            elif len(apis[name]) == 3:
+                encoded[name] = (apis[name][0], apis[name][1].encode(), apis[name][2])
         return encoded
 
 

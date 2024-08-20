@@ -402,7 +402,7 @@ class Auth:
 
 @dataclass
 class Item:
-    name: str | Callable[[CIMultiDict], str]
+    name: str | Callable[[tuple[str, URL], dict[str, Any]], str]
     func: Any
 
 
@@ -418,7 +418,8 @@ class DynamicNameSelector:
 
 
 class Hosts:
-    items = {
+    # NOTE: yarl.URL.host is also allowed to be None. So, for brevity, relax the type check on the `items` key.
+    items: dict[str | None, Item] = {
         "api.bybit.com": Item("bybit", Auth.bybit),
         "api.bytick.com": Item("bybit", Auth.bybit),
         "api-demo.bybit.com": Item("bybit_demo", Auth.bybit),

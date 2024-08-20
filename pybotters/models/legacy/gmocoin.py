@@ -55,7 +55,7 @@ class Channel(Enum):
     @staticmethod
     def from_str(name: str) -> "Channel":
         if not hasattr(Channel, "_table"):
-            Channel._table = {
+            Channel._table = {  # type: ignore
                 "ticker": Channel.TICKER,
                 "orderbooks": Channel.ORDER_BOOKS,
                 "trades": Channel.TRADES,
@@ -64,7 +64,7 @@ class Channel(Enum):
                 "positionEvents": Channel.POSITION_EVENTS,
                 "positionSummaryEvents": Channel.POSITION_SUMMARY_EVENTS,
             }
-        return Channel._table[name]
+        return Channel._table[name]  # type: ignore
 
 
 class MessageType(Enum):
@@ -372,10 +372,10 @@ class ExecutionStore(DataStore):
     def sorted(self, query: Item | None = None) -> list[Execution]:
         if query is None:
             query = {}
-        result = []
+        result: list[Execution] = []
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
-                result.append(item)
+                result.append(item)  # type: ignore
         result.sort(key=lambda x: x["execution_id"], reverse=True)
         return result
 

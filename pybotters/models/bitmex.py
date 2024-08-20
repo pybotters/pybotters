@@ -24,22 +24,22 @@ class BitMEXDataStore(DataStoreCollection):
                     table, keys=msg["keys"] if "keys" in msg else [], data=data
                 )
                 if table == "trade":
-                    self["trade"]._MAXLEN = 99999
+                    self.trade._MAXLEN = 99999
             elif action == "insert":
-                if table in self:
-                    self[table]._insert(data)
+                if target_store := self[table]:
+                    target_store._insert(data)
             elif action == "update":
-                if table in self:
-                    self[table]._update(data)
+                if target_store := self[table]:
+                    target_store._update(data)
             elif action == "delete":
-                if table in self:
-                    self[table]._delete(data)
+                if target_store := self[table]:
+                    target_store._delete(data)
             if table == "order":
                 if "order" in self:
-                    self["order"]._delete(
+                    self.order._delete(
                         [
                             order
-                            for order in self["order"].find()
+                            for order in self.order.find()
                             if order["ordStatus"] in ("Filled", "Canceled")
                         ]
                     )
