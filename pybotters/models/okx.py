@@ -76,8 +76,8 @@ class OKXDataStore(DataStoreCollection):
             if "books" in channel:
                 if channel.startswith("books"):
                     channel = "books"
-            if channel in self:
-                self[channel]._onmessage(msg)
+            if target_onmessage := getattr(self[channel], "_onmessage", None):
+                target_onmessage(msg)
 
     @property
     def instruments(self) -> "Instruments":

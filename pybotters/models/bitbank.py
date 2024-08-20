@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import cast
 
 from ..store import DataStore, DataStoreCollection
 from ..typedefs import Item
@@ -56,9 +57,8 @@ class bitbankDataStore(DataStoreCollection):
 class Transactions(DataStore):
     _MAXLEN = 99999
 
-    def _onmessage(self, room_name: str, data: list[Item]) -> None:
-        data = data["transactions"]
-        for item in data:
+    def _onmessage(self, room_name: str, data: dict[str, list[Item]]) -> None:
+        for item in data["transactions"]:
             pair = room_name.replace("transactions_", "")
             self._insert([{"pair": pair, **item}])
 
@@ -81,20 +81,20 @@ class Depth(DataStore):
             limit=limit,
         )
 
-    def _onmessage(self, room_name: str, data: list[Item]) -> None:
+    def _onmessage(self, room_name: str, data: dict[str, object]) -> None:
         if "whole" in room_name:
             pair = room_name.replace("depth_whole_", "")
             result = self.find({"pair": pair})
             self._delete(result)
             tuples = (("bids", "bids"), ("asks", "asks"))
-            self.timestamp = data["timestamp"]
+            self.timestamp = cast(int, data["timestamp"])
         else:
             pair = room_name.replace("depth_diff_", "")
             tuples = (("b", "bids"), ("a", "asks"))
-            self.timestamp = data["t"]
+            self.timestamp = cast(int, data["t"])
 
         for side_item, side in tuples:
-            for item in data[side_item]:
+            for item in cast(list[list[str]], data[side_item]):
                 if item[1] != "0":
                     self._update(
                         [

@@ -780,6 +780,6 @@ class Positions(DataStore):
             # mark priceの変化によるポジション情報の部分更新
             # 性質上prev_itemは必ず存在するはず（ポジションが解消された後にマークプライス変化に
             # よるポジション情報の更新メッセージは来ないはず）
-            prev_item = self.get(d)
-            updated_item = {**prev_item, **d}
-            self._update([updated_item])
+            if prev_item := self.get(d):
+                updated_item = {**prev_item, **d}
+                self._update([updated_item])

@@ -30,7 +30,7 @@ class bitFlyerDataStore(DataStoreCollection):
         self._create("parentorders", datastore_class=ParentOrders)
         self._create("positions", datastore_class=Positions)
         self._create("balance", datastore_class=Balance)
-        self._snapshots = set()
+        self._snapshots: set[str] = set()
 
     async def initialize(self, *aws: Awaitable[aiohttp.ClientResponse]) -> None:
         """Initialize DataStore from HTTP response data.
@@ -251,6 +251,7 @@ class ChildOrders(DataStore):
                 if item["outstanding_size"]:
                     orig = self.get(item)
                     if orig:
+                        size: int | float
                         if isinstance(orig["size"], int) and isinstance(
                             item["size"], int
                         ):
@@ -419,6 +420,7 @@ class Balance(DataStore):
                     ope = self._QUOTE_OPERATOR[item["side"]]
                     rounder = self._ROUNDER[item["side"]]
 
+                    quote_amount: Decimal | int
                     quote_amount = Decimal(str(item["size"])) * Decimal(
                         str(item["price"])
                     )

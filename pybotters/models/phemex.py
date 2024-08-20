@@ -263,7 +263,7 @@ class Market24h(DataStore):
 class Kline(DataStore):
     _KEYS = ["symbol", "timestamp", "interval"]
 
-    def _onresponse(self, symbol: str, data: list[Item]) -> None:
+    def _onresponse(self, symbol: str, data: Item) -> None:
         self._insert(
             [
                 {

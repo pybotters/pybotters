@@ -6,6 +6,7 @@ from collections import defaultdict, deque
 from typing import Any, Awaitable
 
 import aiohttp
+from yarl import URL
 
 from ..auth import Auth
 from ..store import DataStore, DataStoreCollection
@@ -18,10 +19,10 @@ logger = logging.getLogger(__name__)
 class BinanceDataStoreBase(DataStoreCollection):
     """Binance の DataStoreCollection ベースクラス"""
 
-    _ORDERBOOK_INIT_ENDPOINT = None
-    _ORDER_INIT_ENDPOINT = None
-    _LISTENKEY_INIT_ENDPOINT = None
-    _KLINE_INIT_ENDPOINT = None
+    _ORDERBOOK_INIT_ENDPOINT: str
+    _ORDER_INIT_ENDPOINT: str
+    _LISTENKEY_INIT_ENDPOINT: str
+    _KLINE_INIT_ENDPOINT: str | tuple[str, ...]
 
     def _init(self) -> None:
         self._create("trade", datastore_class=Trade)
@@ -83,7 +84,7 @@ class BinanceDataStoreBase(DataStoreCollection):
         """子クラス用initialize hook"""
         ...
 
-    def _is_target_endpoint(self, target: str | tuple[str] | None, endpoint: str):
+    def _is_target_endpoint(self, target: str | tuple[str, ...] | None, endpoint: str):
         if target:
             if isinstance(target, str):
                 return endpoint == target
@@ -169,7 +170,7 @@ class BinanceDataStoreBase(DataStoreCollection):
     def _is_order_msg(self, msg: Any, event: str):
         raise NotImplementedError
 
-    async def _listenkey(self, url: aiohttp.client.URL, session: aiohttp.ClientSession):
+    async def _listenkey(self, url: URL, session: aiohttp.ClientSession):
         if url.path.startswith(BinanceSpotDataStore._LISTENKEY_INIT_ENDPOINT):
             params = {"listenKey": self.listenkey}
         else:
@@ -272,8 +273,8 @@ class BinanceDataStoreBase(DataStoreCollection):
 class BinanceFuturesDataStoreBase(BinanceDataStoreBase):
     """Binance 先物の DataStoreCollection ベースクラス"""
 
-    _BALANCE_INIT_ENDPOINT = None
-    _POSITION_INIT_ENDPOINT = None
+    _BALANCE_INIT_ENDPOINT: str
+    _POSITION_INIT_ENDPOINT: str
 
     def _init(self) -> None:
         super()._init()
@@ -661,7 +662,9 @@ class OrderBook(DataStore):
 
     def _init(self) -> None:
         self.initialized: defaultdict[str, bool] = defaultdict(lambda: False)
-        self._buff: defaultdict[str, deque] = defaultdict(lambda: deque(maxlen=8000))
+        self._buff: defaultdict[str, deque[Item]] = defaultdict(
+            lambda: deque(maxlen=8000)
+        )
 
     def sorted(
         self, query: Item | None = None, limit: int | None = None
@@ -705,7 +708,7 @@ class Account(DataStore):
     def _onmessage(self, item: Item) -> None:
         self._update(item["B"])
 
-    def _onresponse(self, data: list[Item]):
+    def _onresponse(self, data: dict[str, list[Item]]):
         for item in data["balances"]:
             self._update(
                 [
