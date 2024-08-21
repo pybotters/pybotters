@@ -210,6 +210,8 @@ class OrderBook(DataStore):
 
     def _onmessage(self, message: Item) -> None:
         symbol = message["symbol"]
+        if message.get("type") == "snapshot":
+            self._find_and_delete({"symbol": symbol})
         for book in (message.get("book"), message.get("orderbook_p")):
             if book is None:
                 continue
