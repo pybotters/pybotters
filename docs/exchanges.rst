@@ -97,7 +97,7 @@ Authentication
 * API 認証情報
     * ``{"bitbank": ["API_KEY", "API_SERCRET"]}``
 * HTTP 認証
-    HTTP リクエスト時に取引所が定める認証情報が自動設定されます。
+    HTTP リクエスト時に取引所が定める認証情報が自動設定されます。 認証方式は ``ACCESS-TIME-WINDOW`` を採用します。
 
     https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api_JP.md#%E8%AA%8D%E8%A8%BC
 * WebSocket 認証

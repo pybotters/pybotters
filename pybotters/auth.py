@@ -150,14 +150,19 @@ class Auth:
         path = url.raw_path_qs
         body = JsonPayload(data) if data else FormData(data)()
         nonce = str(int(time.time() * 1000))
+        window = headers.get("ACCESS-TIME-WINDOW", "")
         if method == METH_GET:
-            text = f"{nonce}{path}".encode()
+            text = f"{nonce}{window}{path}".encode()
         else:
-            text = nonce.encode() + body._value
+            text = f"{nonce}{window}".encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({"data": body})
         headers.update(
-            {"ACCESS-KEY": key, "ACCESS-NONCE": nonce, "ACCESS-SIGNATURE": signature}
+            {
+                "ACCESS-KEY": key,
+                "ACCESS-REQUEST-TIME": nonce,
+                "ACCESS-SIGNATURE": signature,
+            }
         )
 
         return args
