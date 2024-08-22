@@ -542,9 +542,48 @@ def test_bitbank_get(mock_session, mocker: pytest_mock.MockerFixture):
         "headers": CIMultiDict(
             {
                 "ACCESS-KEY": "l5HGaEzIC3KiMqbYwtAl1r48",
-                "ACCESS-NONCE": "2085848896000",
+                "ACCESS-REQUEST-TIME": "2085848896000",
                 "ACCESS-SIGNATURE": (
                     "87c0358b092b78c4ac8f46bbd447665acbe9c8a136068473d14f8143ac9ac6aa"
+                ),
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.bitbank(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"]._value == expected_kwargs["data"]._value
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_bitbank_get_with_window(mock_session, mocker: pytest_mock.MockerFixture):
+    mocker.patch("time.time", return_value=2085848896.0)
+    args = (
+        "GET",
+        URL("https://api.bitbank.cc/v1/user/spot/order").with_query(
+            {
+                "pair": "btc_jpy",
+            }
+        ),
+    )
+    kwargs = {
+        "data": None,
+        "headers": CIMultiDict({"ACCESS-TIME-WINDOW": "1000"}),
+        "session": mock_session,
+    }
+    expected_args = (
+        "GET",
+        URL("https://api.bitbank.cc/v1/user/spot/order?pair=btc_jpy"),
+    )
+    expected_kwargs = {
+        "data": aiohttp.formdata.FormData({})(),
+        "headers": CIMultiDict(
+            {
+                "ACCESS-TIME-WINDOW": "1000",
+                "ACCESS-KEY": "l5HGaEzIC3KiMqbYwtAl1r48",
+                "ACCESS-REQUEST-TIME": "2085848896000",
+                "ACCESS-SIGNATURE": (
+                    "b01d3c62a7a80fcd6ca46736c9b956c703a7ebedc04d788b9b33b433979e84bd"
                 ),
             }
         ),
@@ -585,7 +624,7 @@ def test_bitbank_post(mock_session, mocker: pytest_mock.MockerFixture):
         "headers": CIMultiDict(
             {
                 "ACCESS-KEY": "l5HGaEzIC3KiMqbYwtAl1r48",
-                "ACCESS-NONCE": "2085848896000",
+                "ACCESS-REQUEST-TIME": "2085848896000",
                 "ACCESS-SIGNATURE": (
                     "d3f190a3707dae355edf4cc38252c02d6aa360d8c3b84f2a734f1ac306b88812"
                 ),
