@@ -107,9 +107,9 @@ class Orderbook(DataStore):
                 )
 
     def _onmessage(self, pair: str, data: dict[str, list[list[str]] | str]) -> None:
-        self.last_update_at = cast(dict[str, str], data).pop("last_update_at")
-        for side in cast(list[list[str]], data):
-            for rate, amount in cast(list[list[str]], data):
+        self.last_update_at = cast("dict[str, str]", data).pop("last_update_at")
+        for side in cast("dict[str, list[list[str]]]", data):
+            for rate, amount in cast("list[list[str]]", data[side]):
                 if amount == "0":
                     self._delete([{"pair": pair, "side": side, "rate": rate}])
                 else:
