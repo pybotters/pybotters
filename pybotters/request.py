@@ -1,10 +1,14 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
 from multidict import MultiDict
-from yarl import URL
 
 from .auth import Auth, Hosts
+
+if TYPE_CHECKING:
+    from yarl import URL
 
 
 class ClientRequest(aiohttp.ClientRequest):

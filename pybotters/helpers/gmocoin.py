@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import asyncio
 import logging
-from typing import NoReturn
+from typing import TYPE_CHECKING, NoReturn
 
-from ..client import Client
-from ..ws import WebSocketApp
+if TYPE_CHECKING:
+    from ..client import Client
+    from ..ws import WebSocketApp
 
 logger = logging.getLogger(__name__)
 

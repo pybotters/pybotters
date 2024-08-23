@@ -13,19 +13,21 @@ import time
 import uuid
 from dataclasses import dataclass
 from secrets import token_hex
-from typing import Any, AsyncIterator, Awaitable, Generator, cast
+from typing import TYPE_CHECKING, Any, AsyncIterator, Awaitable, Generator, cast
 
 import aiohttp
 from aiohttp.http_websocket import json
 
 from .auth import Auth as _Auth
-from .typedefs import (
-    WsBytesHandler,
-    WsHeartBeatHandler,
-    WsJsonHandler,
-    WsRateLimitHandler,
-    WsStrHandler,
-)
+
+if TYPE_CHECKING:
+    from .typedefs import (
+        WsBytesHandler,
+        WsHeartBeatHandler,
+        WsJsonHandler,
+        WsRateLimitHandler,
+        WsStrHandler,
+    )
 
 logger = logging.getLogger(__name__)
 

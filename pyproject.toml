@@ -36,6 +36,7 @@ classifiers = [
 ]
 dependencies = [
   "aiohttp>=3.7.0",
+  "typing-extensions ; python_version < \"3.10\"",
 ]
 
 [project.optional-dependencies]
@@ -114,7 +115,7 @@ fail_under = 100.0
 line-length = 88
 
 [tool.ruff.lint]
-select = ["E", "F", "B", "I"]
+select = ["E", "F", "B", "I", "TCH"]
 ignore = ["E501"]
 
 [tool.mypy]

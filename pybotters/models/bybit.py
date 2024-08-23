@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Awaitable
-
-import aiohttp
-from yarl import URL
+from typing import TYPE_CHECKING, Awaitable
 
 from ..store import DataStore, DataStoreCollection
-from ..typedefs import Item
-from ..ws import ClientWebSocketResponse
+
+if TYPE_CHECKING:
+    import aiohttp
+    from yarl import URL
+
+    from ..typedefs import Item
+    from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 

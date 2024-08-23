@@ -3,15 +3,18 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict, deque
-from typing import Any, Awaitable
+from typing import TYPE_CHECKING, Any, Awaitable
 
 import aiohttp
-from yarl import URL
 
 from ..auth import Auth
 from ..store import DataStore, DataStoreCollection
-from ..typedefs import Item
-from ..ws import ClientWebSocketResponse
+
+if TYPE_CHECKING:
+    from yarl import URL
+
+    from ..typedefs import Item
+    from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 

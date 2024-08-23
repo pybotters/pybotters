@@ -4,10 +4,11 @@ import asyncio
 import copy
 import uuid
 from dataclasses import dataclass
-from typing import Any, Hashable, Iterator, Literal, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Hashable, Iterator, Literal, TypeVar, overload
 
-from .typedefs import Item
-from .ws import ClientWebSocketResponse
+if TYPE_CHECKING:
+    from .typedefs import Item
+    from .ws import ClientWebSocketResponse
 
 
 class DataStore:

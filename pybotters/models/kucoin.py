@@ -5,12 +5,15 @@ import copy
 import logging
 import time
 import uuid
-from typing import Any, Awaitable
+from typing import TYPE_CHECKING, Any, Awaitable
 
 import aiohttp
 
-from ..store import DataStore, DataStoreCollection, Item
-from ..ws import ClientWebSocketResponse
+from ..store import DataStore, DataStoreCollection
+
+if TYPE_CHECKING:
+    from ..typedefs import Item
+    from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
