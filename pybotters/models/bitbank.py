@@ -96,7 +96,7 @@ class Depth(DataStore):
             self.timestamp = cast(int, data["t"])
 
         for side_item, side in tuples:
-            for item in cast(list[list[str]], data[side_item]):
+            for item in cast("list[list[str]]", data[side_item]):
                 if item[1] != "0":
                     self._update(
                         [
