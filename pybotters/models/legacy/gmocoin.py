@@ -8,13 +8,13 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Awaitable, TypedDict, cast
 
 from pybotters.store import DataStore, DataStoreCollection
-from pybotters.typedefs import Item
 
 from ...auth import Auth
 
 if TYPE_CHECKING:
     import aiohttp
 
+    from ...typedefs import Item
     from ...ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
@@ -305,7 +305,7 @@ class TickerStore(DataStore):
     _KEYS = ["symbol"]
 
     def _onmessage(self, mes: Ticker) -> None:
-        self._update([cast(Item, mes)])
+        self._update([cast("Item", mes)])
 
 
 class OrderBookStore(DataStore):
@@ -338,7 +338,7 @@ class OrderBookStore(DataStore):
 
 class TradeStore(DataStore):
     def _onmessage(self, mes: Trade) -> None:
-        self._insert([cast(Item, mes)])
+        self._insert([cast("Item", mes)])
 
 
 class OrderStore(DataStore):
@@ -349,9 +349,9 @@ class OrderStore(DataStore):
 
     def _onmessage(self, mes: Order) -> None:
         if mes["order_status"] in (OrderStatus.WAITING, OrderStatus.ORDERED):
-            self._update([cast(Item, mes)])
+            self._update([cast("Item", mes)])
         else:
-            self._delete([cast(Item, mes)])
+            self._delete([cast("Item", mes)])
 
     def _onexecution(self, mes: Execution) -> None:
         current = cast(Order, self.get({"order_id": mes["order_id"]}))
@@ -363,9 +363,9 @@ class OrderStore(DataStore):
             current["executed_size"] = mes["order_executed_size"]
             remain = current["size"] - current["executed_size"]
             if remain == 0:
-                self._delete([cast(Item, current)])
+                self._delete([cast("Item", current)])
             else:
-                self._update([cast(Item, current)])
+                self._update([cast("Item", current)])
 
 
 class ExecutionStore(DataStore):
@@ -385,7 +385,7 @@ class ExecutionStore(DataStore):
         self._insert(cast("list[Item]", data))
 
     def _onmessage(self, mes: Execution) -> None:
-        self._insert([cast(Item, mes)])
+        self._insert([cast("Item", mes)])
 
 
 class PositionStore(DataStore):
@@ -396,11 +396,11 @@ class PositionStore(DataStore):
 
     def _onmessage(self, mes: Position, type: MessageType) -> None:
         if type == MessageType.OPR:
-            self._insert([cast(Item, mes)])
+            self._insert([cast("Item", mes)])
         elif type == MessageType.CPR:
-            self._delete([cast(Item, mes)])
+            self._delete([cast("Item", mes)])
         else:
-            self._update([cast(Item, mes)])
+            self._update([cast("Item", mes)])
 
 
 class PositionSummaryStore(DataStore):
@@ -410,7 +410,7 @@ class PositionSummaryStore(DataStore):
         self._update(cast("list[Item]", data))
 
     def _onmessage(self, mes: PositionSummary) -> None:
-        self._update([cast(Item, mes)])
+        self._update([cast("Item", mes)])
 
 
 class MessageHelper:
