@@ -6,13 +6,15 @@ import logging
 import math
 import operator
 from decimal import Decimal
-from typing import Awaitable
-
-import aiohttp
+from typing import TYPE_CHECKING, Awaitable
 
 from ..store import DataStore, DataStoreCollection
-from ..typedefs import Item
-from ..ws import ClientWebSocketResponse
+
+if TYPE_CHECKING:
+    import aiohttp
+
+    from ..typedefs import Item
+    from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 

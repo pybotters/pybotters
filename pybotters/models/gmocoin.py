@@ -3,15 +3,18 @@ from __future__ import annotations
 import asyncio
 import logging
 import warnings
-from typing import Awaitable
-
-import aiohttp
+from typing import TYPE_CHECKING, Awaitable
 
 from pybotters.store import DataStore, DataStoreCollection
-from pybotters.typedefs import Item
 
 from ..auth import Auth
-from ..ws import ClientWebSocketResponse
+
+if TYPE_CHECKING:
+    import aiohttp
+
+    from pybotters.typedefs import Item
+
+    from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import json
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from ..store import DataStore, DataStoreCollection
-from ..typedefs import Item
-from ..ws import ClientWebSocketResponse
+
+if TYPE_CHECKING:
+    from ..typedefs import Item
+    from ..ws import ClientWebSocketResponse
 
 
 class bitbankDataStore(DataStoreCollection):

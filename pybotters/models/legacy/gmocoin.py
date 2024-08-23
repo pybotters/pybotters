@@ -5,15 +5,17 @@ import logging
 from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum, auto
-from typing import Any, Awaitable, TypedDict, cast
-
-import aiohttp
+from typing import TYPE_CHECKING, Any, Awaitable, TypedDict, cast
 
 from pybotters.store import DataStore, DataStoreCollection
 from pybotters.typedefs import Item
 
 from ...auth import Auth
-from ...ws import ClientWebSocketResponse
+
+if TYPE_CHECKING:
+    import aiohttp
+
+    from ...ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 

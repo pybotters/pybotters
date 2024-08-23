@@ -6,14 +6,16 @@ import hashlib
 import hmac
 import time
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
-import aiohttp
 from aiohttp.formdata import FormData
 from aiohttp.hdrs import METH_DELETE, METH_GET
 from aiohttp.payload import JsonPayload
 from multidict import CIMultiDict, MultiDict
 from yarl import URL
+
+if TYPE_CHECKING:
+    import aiohttp
 
 
 class Auth:
