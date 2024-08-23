@@ -1,19 +1,19 @@
-from __future__ import annotations
+from __future__ import annotations  # pragma: no cover
 
-import sys
-from typing import TYPE_CHECKING, Any, Protocol
-
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias
-else:
-    from typing_extensions import TypeAlias
+from typing import TYPE_CHECKING, Any, Protocol  # pragma: no cover
 
 if TYPE_CHECKING:
+    import sys
     from collections.abc import Awaitable, Callable, Coroutine
     from contextlib import AbstractAsyncContextManager
 
     from _typeshed import StrOrBytesPath as StrOrBytesPath
     from aiohttp.client_ws import ClientResponse, ClientWebSocketResponse
+
+    if sys.version_info >= (3, 10):
+        from typing import TypeAlias
+    else:
+        from typing_extensions import TypeAlias
 
     class RequestContextManager(
         Awaitable[ClientResponse], AbstractAsyncContextManager[ClientResponse], Protocol
