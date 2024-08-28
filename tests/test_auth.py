@@ -108,6 +108,11 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             b"r9ugGEq5pJkrBuqs6GYFgHFIgsPr4iAw06awzFByoZPRjTJs",
             "MyPassphrase123",
         ),
+        "okj": (
+            "NpuOBinRJMsSKHE38Gbf6MAm",
+            b"xNn5J6y2uSAOZNHOORX2f6hWdD8QqE2eW01KDrt4gq74Q7A6",
+            "MyPassphrase123",
+        ),
     }
     assert set(apis.keys()) == set(
         item.name if isinstance(item.name, str) else item.name.__name__
@@ -1365,6 +1370,92 @@ def test_kucoin_post(mock_session, mocker: pytest_mock.MockerFixture):
         "session": mock_session,
     }
     args = pybotters.auth.Auth.kucoin(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"]._value == expected_kwargs["data"]._value
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+@pytest.mark.freeze_time(datetime.datetime(2036, 2, 5, 18, 28, 16))
+def test_okj_get(mock_session, mocker: pytest_mock.MockerFixture):
+    args = (
+        "GET",
+        URL(
+            "https://www.okcoin.jp/api/spot/v3/orders?instrument_id=BTC-JPY&state=filled&limit=2&&after=2500723297223680"
+        ),
+    )
+    kwargs = {
+        "data": None,
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = (
+        "GET",
+        URL(
+            "https://www.okcoin.jp/api/spot/v3/orders?instrument_id=BTC-JPY&state=filled&limit=2&&after=2500723297223680"
+        ),
+    )
+    expected_kwargs = {
+        "data": aiohttp.formdata.FormData({})(),
+        "headers": CIMultiDict(
+            {
+                "OK-ACCESS-KEY": "NpuOBinRJMsSKHE38Gbf6MAm",
+                "OK-ACCESS-SIGN": "z2O3V5la0FP21wbxkoFr5f+HDvoiqnZ5Cklz814LWJE=",
+                "OK-ACCESS-TIMESTAMP": "2036-02-05T18:28:16.000Z",
+                "OK-ACCESS-PASSPHRASE": "MyPassphrase123",
+                "Content-Type": "application/json",
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.okj(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"]._value == expected_kwargs["data"]._value
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+@pytest.mark.freeze_time(datetime.datetime(2036, 2, 5, 18, 28, 16))
+def test_okj_post(mock_session, mocker: pytest_mock.MockerFixture):
+    args = ("POST", URL("https://www.okcoin.jp/api/spot/v3/orders"))
+    kwargs = {
+        "data": {
+            "type": "limit",
+            "side": "buy",
+            "instrument_id": "BTC-JPY",
+            "size": "0.001",
+            "client_oid": "oktspot79",
+            "price": "4638.51",
+            "notional": "",
+            "order_type": "3",
+        },
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = ("POST", URL("https://www.okcoin.jp/api/spot/v3/orders"))
+    expected_kwargs = {
+        "data": aiohttp.payload.JsonPayload(
+            {
+                "type": "limit",
+                "side": "buy",
+                "instrument_id": "BTC-JPY",
+                "size": "0.001",
+                "client_oid": "oktspot79",
+                "price": "4638.51",
+                "notional": "",
+                "order_type": "3",
+            }
+        ),
+        "headers": CIMultiDict(
+            {
+                "OK-ACCESS-KEY": "NpuOBinRJMsSKHE38Gbf6MAm",
+                "OK-ACCESS-SIGN": "V/csv742qfo7G7QAi81qQQik8KrEmwKh5xsTHIFlq2M=",
+                "OK-ACCESS-TIMESTAMP": "2036-02-05T18:28:16.000Z",
+                "OK-ACCESS-PASSPHRASE": "MyPassphrase123",
+                "Content-Type": "application/json",
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.okj(args, kwargs)
     assert args == expected_args
     assert kwargs["data"]._value == expected_kwargs["data"]._value
     assert kwargs["headers"] == expected_kwargs["headers"]
