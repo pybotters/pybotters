@@ -381,6 +381,12 @@ class Heartbeat:
             await ws.send_str(f'{{"id": "{uuid.uuid4()}", "type": "ping"}}')
             await asyncio.sleep(15)
 
+    @staticmethod
+    async def okj(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str("ping")
+            await asyncio.sleep(15.0)
+
 
 class Auth:
     @staticmethod
@@ -649,6 +655,7 @@ class HeartbeatHosts:
         "contract.mexc.com": Heartbeat.mexc,
         "ws-api-spot.kucoin.com": Heartbeat.kucoin,
         "ws-api-futures.kucoin.com": Heartbeat.kucoin,
+        "connect.okcoin.jp": Heartbeat.okj,
     }
 
 

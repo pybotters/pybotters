@@ -792,6 +792,7 @@ async def test_websocketqueue():
         (pybotters.ws.Heartbeat.bitget,),
         (pybotters.ws.Heartbeat.mexc,),
         (pybotters.ws.Heartbeat.kucoin,),
+        (pybotters.ws.Heartbeat.okj,),
     ],
 )
 async def test_heartbeat_text(mocker: pytest_mock.MockerFixture, test_input):

@@ -171,6 +171,14 @@ Authentication
 
     https://dev.okcoin.jp/en/#spot_ws-login
 
+WebSocket
+~~~~~~~~~
+
+* Ping-Pong
+    取引所が定める Ping-Pong メッセージが自動送信されます。
+
+    https://dev.okcoin.jp/en/#spot_ws-limit
+
 DataStore
 ~~~~~~~~~
 
