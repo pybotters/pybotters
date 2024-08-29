@@ -11,6 +11,7 @@ import random
 import struct
 import time
 import uuid
+import zlib
 from dataclasses import dataclass
 from secrets import token_hex
 from typing import TYPE_CHECKING, Any, AsyncIterator, Awaitable, Generator, cast
@@ -380,6 +381,12 @@ class Heartbeat:
             await ws.send_str(f'{{"id": "{uuid.uuid4()}", "type": "ping"}}')
             await asyncio.sleep(15)
 
+    @staticmethod
+    async def okj(ws: aiohttp.ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str("ping")
+            await asyncio.sleep(15.0)
+
 
 class Auth:
     @staticmethod
@@ -576,6 +583,43 @@ class Auth:
         }
         await ws.send_json(msg)
 
+    @staticmethod
+    async def okj(ws: aiohttp.ClientWebSocketResponse):
+        key: str = ws._response._session.__dict__["_apis"][
+            AuthHosts.items[ws._response.url.host].name
+        ][0]
+        secret: bytes = ws._response._session.__dict__["_apis"][
+            AuthHosts.items[ws._response.url.host].name
+        ][1]
+        passphrase: bytes = ws._response._session.__dict__["_apis"][
+            AuthHosts.items[ws._response.url.host].name
+        ][2]
+
+        timestamp = str(time.time())
+        text = f"{timestamp}GET/users/self/verify"
+        sign = base64.b64encode(
+            hmac.new(secret, text.encode(), digestmod=hashlib.sha256).digest()
+        ).decode()
+        msg_to_send = {
+            "op": "login",
+            "args": [key, passphrase, timestamp, sign],
+        }
+        await ws.send_json(msg_to_send)
+        async for msg in ws:
+            if msg.type != aiohttp.WSMsgType.BINARY:
+                continue
+            try:
+                data = json.loads(zlib.decompress(msg.data, -zlib.MAX_WBITS))
+            except json.JSONDecodeError:
+                pass
+            else:
+                event = data.get("event")
+                if event == "error":
+                    logger.warning(data)
+                    break
+                elif event == "login":
+                    break
+
 
 @dataclass
 class Item:
@@ -611,6 +655,7 @@ class HeartbeatHosts:
         "contract.mexc.com": Heartbeat.mexc,
         "ws-api-spot.kucoin.com": Heartbeat.kucoin,
         "ws-api-futures.kucoin.com": Heartbeat.kucoin,
+        "connect.okcoin.jp": Heartbeat.okj,
     }
 
 
@@ -632,6 +677,7 @@ class AuthHosts:
         "wspap.okx.com": Item("okx_demo", Auth.okx),
         "ws.bitget.com": Item("bitget", Auth.bitget),
         "contract.mexc.com": Item("mexc", Auth.mexc),
+        "connect.okcoin.jp": Item("okj", Auth.okj),
     }
 
 
