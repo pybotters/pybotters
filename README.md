@@ -53,6 +53,7 @@ It has the following features, making it useful for developing a trading bot.
 | GMO Coin | ✅ | ✅ | [Link](https://api.coin.z.com/docs/) |
 | bitbank | ✅ | ✅ | [Link](https://github.com/bitbankinc/bitbank-api-docs) |
 | Coincheck | ✅ | ✅ | [Link](https://coincheck.com/ja/documents/exchange/api) |
+| OKJ | ✅ | Not yet | [Link](https://dev.okcoin.jp/en/) |
 | Bybit | ✅ | ✅ | [Link](https://bybit-exchange.github.io/docs/v5/intro) |
 | Binance | ✅ | ✅ | [Link](https://developers.binance.com/docs/binance-spot-api-docs/CHANGELOG) |
 | OKX | ✅ | ✅ | [Link](https://www.okx.com/docs-v5/en/) |

@@ -152,6 +152,31 @@ DataStore
 対応している WebSocket チャンネルはリファレンスの *ATTRIBUTES* をご覧ください。
 
 
+OKJ
+---
+
+https://dev.okcoin.jp/en/
+
+Authentication
+~~~~~~~~~~~~~~
+
+* API 認証情報
+    * ``{"okj": ["API_KEY", "API_SERCRET", "API_PASSPHRASE"]}``
+* HTTP 認証
+    HTTP リクエスト時に取引所が定める認証情報が自動設定されます。
+
+    https://dev.okcoin.jp/en/#summary-yan-zheng
+* WebSocket 認証
+    WebSocket 接続時に取引所が定める認証情報の WebSocket メッセージが自動送信されます。
+
+    https://dev.okcoin.jp/en/#spot_ws-login
+
+DataStore
+~~~~~~~~~
+
+未サポート。
+
+
 Bybit
 -----
 
