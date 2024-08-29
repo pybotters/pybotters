@@ -1,13 +1,16 @@
+from __future__ import annotations
+
 import asyncio
 import functools
 import json
 import logging
+import zlib
+from typing import TYPE_CHECKING
 from unittest.mock import ANY, AsyncMock, MagicMock, PropertyMock, call
 
 import aiohttp
 import pytest
 import pytest_asyncio
-import pytest_mock
 from aiohttp import web
 from aiohttp.test_utils import TestServer
 from yarl import URL
@@ -16,6 +19,10 @@ import pybotters
 import pybotters.auth
 import pybotters.ws
 from pybotters.ws import WebSocketApp
+
+if TYPE_CHECKING:
+    import pytest_mock
+    from _typeshed import ReadableBuffer
 
 
 @pytest_asyncio.fixture
@@ -1412,6 +1419,112 @@ async def test_auth_mexc_ws(mocker: pytest_mock.MockerFixture):
             },
         }
     )
+
+
+def _compress(data: ReadableBuffer, /, level: int = -1, wbits: int = 15) -> bytes:
+    co = zlib.compressobj(level=level, wbits=wbits)
+    deflate = co.compress(data) + co.flush()
+    return deflate
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    (
+        "test_input",
+        "expected",
+    ),
+    [
+        # signed
+        (
+            {
+                "url": URL("wss://connect.okcoin.jp:443/ws/v3"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.PONG,
+                        b"",
+                        None,
+                    ),
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.BINARY,
+                        _compress(b"pong", wbits=-zlib.MAX_WBITS),
+                        None,
+                    ),
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.BINARY,
+                        _compress(
+                            json.dumps({"event": "login", "success": True}).encode(),
+                            wbits=-zlib.MAX_WBITS,
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [],
+            },
+        ),
+        # invalid signature
+        (
+            {
+                "url": URL("wss://connect.okcoin.jp:443/ws/v3"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.BINARY,
+                        _compress(
+                            json.dumps(
+                                {
+                                    "event": "error",
+                                    "message": "Invalid sign",
+                                    "errorCode": 30013,
+                                }
+                            ).encode(),
+                            wbits=-zlib.MAX_WBITS,
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [("pybotters.ws", logging.WARNING, ANY)],
+            },
+        ),
+    ],
+)
+async def test_auth_okj_ws(
+    mocker: pytest_mock.MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+    test_input,
+    expected,
+):
+    mocker.patch("time.time", return_value=2085848896.0)
+
+    m_wsresp = AsyncMock()
+    m_wsresp._response.url = test_input["url"]
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "okj": (
+            "NpuOBinRJMsSKHE38Gbf6MAm",
+            b"xNn5J6y2uSAOZNHOORX2f6hWdD8QqE2eW01KDrt4gq74Q7A6",
+            "MyPassphrase123",
+        ),
+    }
+    m_wsresp.__aiter__.return_value = test_input["messages"]
+
+    await asyncio.wait_for(pybotters.ws.Auth.okj(m_wsresp), timeout=5.0)
+
+    assert m_wsresp.send_json.call_args == call(
+        {
+            "op": "login",
+            "args": [
+                "NpuOBinRJMsSKHE38Gbf6MAm",
+                "MyPassphrase123",
+                "2085848896.0",
+                "4G7fREPrFGwpbozBXFDBFaIrJ1ZDeD2n2V36KttTyFs=",
+            ],
+        }
+    )
+    assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
+        "records"
+    ]
 
 
 @pytest.mark.asyncio
