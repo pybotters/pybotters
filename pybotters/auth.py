@@ -7,6 +7,7 @@ import hmac
 import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable
+from urllib.parse import urlencode
 
 from aiohttp.formdata import FormData
 from aiohttp.hdrs import METH_DELETE, METH_GET
@@ -437,6 +438,46 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def bittrade(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
+        method, url = args
+        data = kwargs["data"]
+
+        session: aiohttp.ClientSession = kwargs["session"]
+        key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
+        secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
+
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%S"
+        )
+
+        query = MultiDict(url.query)
+        query.extend(
+            {
+                "AccessKeyId": key,
+                "SignatureMethod": "HmacSHA256",
+                "SignatureVersion": "2",
+                "Timestamp": timestamp,
+            }
+        )
+        sorted_query = MultiDict(sorted(query.items()))
+        # NOTE: yarl.URL.raw_query_string does not encode colons(:), so use urllib.parse.urlencode instead
+        sorted_raw_query_string = urlencode(sorted_query)
+        sign_str = (
+            f"{method}\n{url.host}\n{url.raw_path}\n{sorted_raw_query_string}".encode()
+        )
+        signature = base64.b64encode(
+            hmac.new(secret, sign_str, hashlib.sha256).digest()
+        ).decode()
+        query.extend({"Signature": signature})
+
+        url = url.with_query(query)
+
+        if data:
+            kwargs.update({"data": JsonPayload(data)})
+
+        return (method, url)
+
 
 @dataclass
 class Item:
@@ -490,6 +531,7 @@ class Hosts:
         "api.kucoin.com": Item("kucoin", Auth.kucoin),
         "api-futures.kucoin.com": Item("kucoin", Auth.kucoin),
         "www.okcoin.jp": Item("okj", Auth.okj),
+        "api-cloud.bittrade.co.jp": Item("bittrade", Auth.bittrade),
     }
 
 

@@ -1,6 +1,7 @@
 import datetime
 import random
 
+import aiohttp.abc
 import aiohttp.formdata
 import aiohttp.payload
 import pytest
@@ -112,6 +113,10 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             "NpuOBinRJMsSKHE38Gbf6MAm",
             b"xNn5J6y2uSAOZNHOORX2f6hWdD8QqE2eW01KDrt4gq74Q7A6",
             "MyPassphrase123",
+        ),
+        "bittrade": (
+            "e2xxxxxx-99xxxxxx-84xxxxxx-7xxxx",
+            b"b0xxxxxx-c6xxxxxx-94xxxxxx-dxxxx",
         ),
     }
     assert set(apis.keys()) == set(
@@ -1459,3 +1464,81 @@ def test_okj_post(mock_session, mocker: pytest_mock.MockerFixture):
     assert args == expected_args
     assert kwargs["data"]._value == expected_kwargs["data"]._value
     assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+@pytest.mark.freeze_time(datetime.datetime(2017, 5, 11, 15, 19, 30))
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        (
+            {
+                "args": (
+                    "GET",
+                    URL("https://api-cloud.bittrade.co.jp/v1/order/orders").with_query(
+                        {"order-id": "123456789"}
+                    ),
+                ),
+                "kwargs": {"data": None, "headers": None},
+            },
+            {
+                "args": (
+                    "GET",
+                    URL("https://api-cloud.bittrade.co.jp/v1/order/orders").with_query(
+                        {
+                            "order-id": "123456789",
+                            "AccessKeyId": "e2xxxxxx-99xxxxxx-84xxxxxx-7xxxx",
+                            "SignatureMethod": "HmacSHA256",
+                            "SignatureVersion": "2",
+                            "Timestamp": "2017-05-11T15:19:30",
+                            "Signature": "qmHOHCJ+e8Psi2VqhdZELGKrhTcvAOaBekVOeFXQMc0=",
+                        }
+                    ),
+                ),
+                "kwargs": {"data": None, "headers": None},
+            },
+        ),
+        (
+            {
+                "args": (
+                    "POST",
+                    URL("https://api-cloud.bittrade.co.jp/v1/order/orders/place"),
+                ),
+                "kwargs": {"data": {"order-id": "123456789"}, "headers": None},
+            },
+            {
+                "args": (
+                    "POST",
+                    URL(
+                        "https://api-cloud.bittrade.co.jp/v1/order/orders/place"
+                    ).with_query(
+                        {
+                            "AccessKeyId": "e2xxxxxx-99xxxxxx-84xxxxxx-7xxxx",
+                            "SignatureMethod": "HmacSHA256",
+                            "SignatureVersion": "2",
+                            "Timestamp": "2017-05-11T15:19:30",
+                            "Signature": "/yTARtqPKvYXF9PkmdgkruvfJWSr8umI6HOrNgvs4uk=",
+                        }
+                    ),
+                ),
+                "kwargs": {
+                    "data": aiohttp.payload.JsonPayload({"order-id": "123456789"}),
+                    "headers": None,
+                },
+            },
+        ),
+    ],
+)
+def test_bittrade(mock_session, test_input, expected):
+    args = test_input["args"]
+    kwargs = test_input["kwargs"]
+    kwargs["session"] = mock_session
+
+    args = pybotters.auth.Auth.bittrade(args, kwargs)
+
+    expected["kwargs"]["session"] = mock_session
+    if isinstance(expected["kwargs"]["data"], aiohttp.payload.Payload):
+        expected["kwargs"]["data"] = expected["kwargs"]["data"]._value
+    if isinstance(kwargs["data"], aiohttp.payload.Payload):
+        kwargs["data"] = kwargs["data"]._value
+
+    assert {"args": args, "kwargs": kwargs} == expected
