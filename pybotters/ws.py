@@ -15,6 +15,7 @@ import zlib
 from dataclasses import dataclass
 from secrets import token_hex
 from typing import TYPE_CHECKING, Any, AsyncIterator, Awaitable, Generator, cast
+from urllib.parse import urlencode
 
 import aiohttp
 from aiohttp.http_websocket import json
@@ -620,6 +621,60 @@ class Auth:
                 elif event == "login":
                     break
 
+    @staticmethod
+    async def bittrade(ws: aiohttp.ClientWebSocketResponse):
+        method = "GET"
+        host = ws._response.url.host
+        path = ws._response.url.path
+
+        key: str = ws._response._session.__dict__["_apis"][
+            AuthHosts.items[ws._response.url.host].name
+        ][0]
+        secret: bytes = ws._response._session.__dict__["_apis"][
+            AuthHosts.items[ws._response.url.host].name
+        ][1]
+
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%S"
+        )
+        params = {
+            "accessKey": key,
+            "signatureMethod": "HmacSHA256",
+            "signatureVersion": "2.1",
+            "timestamp": timestamp,
+        }
+        params_str = urlencode(params)
+        sign_str = f"{method}\n{host}\n{path}\n{params_str}".encode()
+        signature = base64.b64encode(
+            hmac.new(secret, sign_str, hashlib.sha256).digest()
+        ).decode()
+
+        msg_to_send = {
+            "action": "req",
+            "ch": "auth",
+            "params": {
+                "authType": "api",
+                "accessKey": key,
+                "signatureMethod": params["signatureMethod"],
+                "signatureVersion": params["signatureVersion"],
+                "timestamp": timestamp,
+                "signature": signature,
+            },
+        }
+
+        await ws.send_json(msg_to_send)
+
+        async for msg in ws:
+            if msg.type != aiohttp.WSMsgType.TEXT:
+                continue
+
+            data: dict[str, Any] = msg.json()
+            if data.get("ch") == "auth":
+                if data.get("code") == 200:
+                    break
+                else:
+                    logger.warning(data)
+
 
 @dataclass
 class Item:
@@ -678,6 +733,7 @@ class AuthHosts:
         "ws.bitget.com": Item("bitget", Auth.bitget),
         "contract.mexc.com": Item("mexc", Auth.mexc),
         "connect.okcoin.jp": Item("okj", Auth.okj),
+        "api-cloud.bittrade.co.jp": Item("bittrade", Auth.bittrade),
     }
 
 

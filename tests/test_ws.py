@@ -5,6 +5,7 @@ import functools
 import json
 import logging
 import zlib
+from datetime import datetime
 from typing import TYPE_CHECKING
 from unittest.mock import ANY, AsyncMock, MagicMock, PropertyMock, call
 
@@ -1521,6 +1522,91 @@ async def test_auth_okj_ws(
                 "2085848896.0",
                 "4G7fREPrFGwpbozBXFDBFaIrJ1ZDeD2n2V36KttTyFs=",
             ],
+        }
+    )
+    assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
+        "records"
+    ]
+
+
+@pytest.mark.asyncio
+@pytest.mark.freeze_time(datetime(2019, 9, 1, 18, 16, 16))
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        # signed
+        (
+            {
+                "url": URL("wss://api-cloud.bittrade.co.jp/ws/v2"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.PONG,
+                        b"",
+                        None,
+                    ),
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {"action": "req", "code": 200, "ch": "auth", "data": {}}
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [],
+            },
+        ),
+        # invalid signature
+        (
+            {
+                "url": URL("wss://api-cloud.bittrade.co.jp/ws/v2"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "action": "req",
+                                "ch": "auth",
+                                "code": 2002,
+                                "message": "auth.fail",
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [("pybotters.ws", logging.WARNING, ANY)],
+            },
+        ),
+    ],
+)
+async def test_auth_bittrade_ws(test_input, expected, caplog):
+    m_wsresp = AsyncMock()
+    m_wsresp._response.url = test_input["url"]
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "bittrade": (
+            "e2xxxxxx-99xxxxxx-84xxxxxx-7xxxx",
+            b"b0xxxxxx-c6xxxxxx-94xxxxxx-dxxxx",
+        ),
+    }
+    m_wsresp.__aiter__.return_value = test_input["messages"]
+
+    await asyncio.wait_for(pybotters.ws.Auth.bittrade(m_wsresp), timeout=5.0)
+
+    assert m_wsresp.send_json.call_args == call(
+        {
+            "action": "req",
+            "ch": "auth",
+            "params": {
+                "authType": "api",
+                "accessKey": "e2xxxxxx-99xxxxxx-84xxxxxx-7xxxx",
+                "signatureMethod": "HmacSHA256",
+                "signatureVersion": "2.1",
+                "timestamp": "2019-09-01T18:16:16",
+                "signature": "3OPwFJ4yGZ14Ji17K0o8AYARb47hmGcgoP5KiVlMdzU=",
+            },
         }
     )
     assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
