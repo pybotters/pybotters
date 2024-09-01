@@ -185,6 +185,40 @@ DataStore
 未サポート。
 
 
+BitTrade
+--------
+
+https://api-doc.bittrade.co.jp/
+
+Authentication
+~~~~~~~~~~~~~~
+
+* API 認証情報
+    * ``{"bittrade": ["API_KEY", "API_SERCRET"]}``
+* HTTP 認証
+    HTTP リクエスト時に取引所が定める認証情報が自動設定されます。
+
+    https://api-doc.bittrade.co.jp/#4adc7a21f5
+* WebSocket 認証
+    WebSocket 接続時に取引所が定める認証情報の WebSocket メッセージが自動送信されます。
+
+    https://api-doc.bittrade.co.jp/#7a52d716ff
+
+WebSocket
+~~~~~~~~~
+
+* Ping-Pong
+    取引所が定める Ping-Pong メッセージが自動送信されます。
+
+    * https://api-doc.bittrade.co.jp/#401564b16d
+    * https://api-doc.bittrade.co.jp/#111d6cb2aa
+
+DataStore
+~~~~~~~~~
+
+未サポート。
+
+
 Bybit
 -----
 
