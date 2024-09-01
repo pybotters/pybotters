@@ -54,6 +54,7 @@ It has the following features, making it useful for developing a trading bot.
 | bitbank | ✅ | ✅ | [Link](https://github.com/bitbankinc/bitbank-api-docs) |
 | Coincheck | ✅ | ✅ | [Link](https://coincheck.com/ja/documents/exchange/api) |
 | OKJ | ✅ | Not yet | [Link](https://dev.okcoin.jp/en/) |
+| BitTrade | ✅ | Not yet | [Link](https://api-doc.bittrade.co.jp/) |
 | Bybit | ✅ | ✅ | [Link](https://bybit-exchange.github.io/docs/v5/intro) |
 | Binance | ✅ | ✅ | [Link](https://developers.binance.com/docs/binance-spot-api-docs/CHANGELOG) |
 | OKX | ✅ | ✅ | [Link](https://www.okx.com/docs-v5/en/) |

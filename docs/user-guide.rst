@@ -372,6 +372,7 @@ OKX Demo trading          ``okx_demo``
 Phemex                    ``phemex``
 Phemex Testnet            ``phemex_testnet``
 OKJ                       ``okj``
+BitTrade                  ``bittrade``
 ========================= =========================
 
 また ``apis`` 引数に辞書オブジェクトではなく代わりに **JSON ファイルパス** を文字列として渡すことで、pybotters はその JSON ファイルを読み込みます。
