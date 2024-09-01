@@ -388,6 +388,27 @@ class Heartbeat:
             await ws.send_str("ping")
             await asyncio.sleep(15.0)
 
+    @staticmethod
+    async def bittrade(ws: aiohttp.ClientWebSocketResponse):
+        # Retail
+        if ws._response.url.path == "/retail/ws":
+            while not ws.closed:
+                ts = int(time.time())
+                await ws.send_json({"action": 5, "ts": ts})
+                await asyncio.sleep(10.0)
+        # Public
+        elif ws._response.url.path == "/ws":
+            while not ws.closed:
+                ts = int(time.time() * 1000)
+                await ws.send_json({"pong": ts})
+                await asyncio.sleep(5.0)
+        # Private
+        elif ws._response.url.path == "/ws/v2":
+            while not ws.closed:
+                ts = int(time.time() * 1000)
+                await ws.send_json({"action": "pong", "data": {"ts": ts}})
+                await asyncio.sleep(20.0)
+
 
 class Auth:
     @staticmethod
@@ -711,6 +732,7 @@ class HeartbeatHosts:
         "ws-api-spot.kucoin.com": Heartbeat.kucoin,
         "ws-api-futures.kucoin.com": Heartbeat.kucoin,
         "connect.okcoin.jp": Heartbeat.okj,
+        "api-cloud.bittrade.co.jp": Heartbeat.bittrade,
     }
 
 

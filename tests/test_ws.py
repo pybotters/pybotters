@@ -809,6 +809,27 @@ async def test_heartbeat_text(mocker: pytest_mock.MockerFixture, test_input):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
+    "test_input",
+    [
+        (URL("wss://api-cloud.bittrade.co.jp/retail/ws")),
+        (URL("wss://api-cloud.bittrade.co.jp/ws")),
+        (URL("wss://api-cloud.bittrade.co.jp/ws/v2")),
+    ],
+)
+async def test_heartbeat_bittrade(mocker: pytest_mock.MockerFixture, test_input):
+    m_wsresp = AsyncMock()
+    m_wsresp._response.url = test_input
+    type(m_wsresp).closed = PropertyMock(side_effect=[False, True])
+    m_asyncio_sleep = mocker.patch("asyncio.sleep")
+
+    await asyncio.wait_for(pybotters.ws.Heartbeat.bittrade(m_wsresp), timeout=5.0)
+
+    assert m_wsresp.send_json.called
+    assert m_asyncio_sleep.called
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
     ("test_input",),
     [
         (pybotters.ws.Heartbeat.binance,),
