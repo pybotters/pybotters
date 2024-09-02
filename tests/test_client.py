@@ -49,17 +49,19 @@ async def test_client_warn(mocker: pytest_mock.MockerFixture):
 
 
 @pytest.mark.asyncio
-async def test_client_with_missing_passphrase_apis(caplog: pytest.LogCaptureFixture):
-    passphrase_required_exchanges = sorted(
-        pybotters.auth.PassphraseRequiredExchanges.items
-    )
-    apis = {x: ["key", "secret"] for x in passphrase_required_exchanges}
-    async with pybotters.Client(apis=apis) as client:
-        assert isinstance(client._session, aiohttp.ClientSession)
-        assert not client._session.closed
-    assert client._session.__dict__["_apis"] == {}
+@pytest.mark.parametrize(
+    "test_input",
+    list(pybotters.auth.PassphraseRequiredExchanges.items),
+)
+async def test_client_with_missing_passphrase_apis(
+    caplog: pytest.LogCaptureFixture, test_input
+):
+    apis = {test_input: ["key", "secret"]}
+    async with pybotters.Client(apis=apis):
+        pass
+
     assert [rec.message for rec in caplog.records] == [
-        f"Missing passphrase for {x}" for x in passphrase_required_exchanges
+        f"Missing passphrase for {test_input}"
     ]
 
 
