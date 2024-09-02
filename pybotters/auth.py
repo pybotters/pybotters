@@ -536,4 +536,4 @@ class Hosts:
 
 
 class PassphraseRequiredExchanges:
-    items = {"bitget", "kucoin", "okj"}
+    items = {"okx", "bitget", "kucoin", "okj"}
