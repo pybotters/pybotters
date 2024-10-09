@@ -14,7 +14,7 @@ TL;DR
 **ワークフロー**
 
 0. (Optional) メンテナと議論が必要な場合 `Discussion <https://github.com/pybotters/pybotters/discussions>`_ または `Issue <https://github.com/pybotters/pybotters/pulls>`_ を作成する
-1. マシンをセットアップする (Python 3.8, Hatch ...)
+1. マシンをセットアップする (Python 3.9, Hatch ...)
 2. リポジトリを Fork する
 3. main ブランチを元に、変更する内容を表す名称のブランチ (トピックブランチ) を作成する
 4. あなたのアイディアをソースコードに反映する 💎💎
@@ -74,8 +74,8 @@ GitHub Codespaces は GitHub が提供するクラウドベースの開発環境
 Python
 ------
 
-pybotters は最小要求を **Python 3.8** としています。
-Python 3.8 の最新マイナーバージョンをインストールしてコーディングすることを推奨します。
+pybotters は最小要求を **Python 3.9** としています。
+Python 3.9 の最新マイナーバージョンをインストールしてコーディングすることを推奨します。
 
 Python のインストール方法は多岐にわたります。
 `こちらの記事 (python.jp) <https://www.python.jp/install/install.html>`__ を参考にするか、または次に紹介する **Hatch** を利用してください。

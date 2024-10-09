@@ -66,7 +66,7 @@ It has the following features, making it useful for developing a trading bot.
 
 ## 🐍 Requires
 
-Python 3.8+
+Python 3.9+
 
 ## 🔧 Installation
 
