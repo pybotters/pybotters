@@ -1,11 +1,18 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "pybotters",
+#     "rich",
+# ]
+# ///
+
 import asyncio
+from contextlib import suppress
 
 import pybotters
 
-try:
+with suppress(ImportError):
     from rich import print
-except ImportError:
-    pass
 
 
 async def main():
@@ -26,7 +33,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    try:
+    with suppress(KeyboardInterrupt):
         asyncio.run(main())
-    except KeyboardInterrupt:
-        pass

@@ -1,14 +1,21 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "pybotters",
+#     "rich",
+# ]
+# ///
+
 import asyncio
 import os
+from contextlib import suppress
 from dataclasses import dataclass
 from typing import Literal, Optional
 
 import pybotters
 
-try:
+with suppress(ImportError):
     from rich import print
-except ImportError:
-    pass
 
 
 @dataclass
@@ -151,7 +158,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    try:
+    with suppress(KeyboardInterrupt):
         asyncio.run(main())
-    except KeyboardInterrupt:
-        pass
