@@ -41,6 +41,23 @@ From `GitHub <https://github.com/pybotters/pybotters>`_ (開発バージョン):
     $ pip install git+https://github.com/pybotters/pybotters.git
 
 
+⚠️ Compatibility warning
+------------------------
+
+pybotters は現在次期バージョン (**v2**) を計画しています。 v2 ではコードベースのゼロから作り直され、全く新しい仕様に変更される予定です。 そのため、v1 で作成されたプログラムは v2 に対応していません。
+
+``requirements.txt`` や ``pyproject.toml`` などで pybotters を依存関係として指定している場合、 **バージョン指定** を行うことをお勧めします。 例えば、 ``pybotters<2.0`` と指定することで、v2 がリリースされても自動的にアップデートされないようにすることができます。
+
+プロジェクト管理ツール (Poetry, PDM, Rye, UV など) を使っている場合は例として以下のようにバージョン指定をします:
+
+.. code-block:: console
+
+    $ poetry|pdm|rye|uv add 'pybotters<2.0'
+
+.. note::
+    pybotters v2 のロードマップはこちらにあります！ `pybotters/pybotters#248 <https://github.com/pybotters/pybotters/issues/248>`_
+
+
 Quickstart
 ----------
 
