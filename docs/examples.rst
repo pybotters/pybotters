@@ -21,7 +21,7 @@ Trading bot
 :mod:`pybotters` で :ref:`websocket-api` と :ref:`datastore` を利用した bitFlyer トレード bot の基礎的な構成例です。
 説明はコードの下にあります。
 
-.. literalinclude:: ../example/trading-bot/bitflyer.py
+.. literalinclude:: ../examples/trading-bot/bitflyer.py
 
 Workflow
 ~~~~~~~~
@@ -84,57 +84,57 @@ Order Book watching
 bitFlyer
 ~~~~~~~~
 
-.. literalinclude:: ../example/datastore/bitflyer.py
+.. literalinclude:: ../examples/datastore/bitflyer.py
 
 GMO Coin
 ~~~~~~~~
 
-.. literalinclude:: ../example/datastore/gmocoin.py
+.. literalinclude:: ../examples/datastore/gmocoin.py
 
 bitbank
 ~~~~~~~
 
-.. literalinclude:: ../example/datastore/bitbank.py
+.. literalinclude:: ../examples/datastore/bitbank.py
 
 Coincheck
 ~~~~~~~~~
 
-.. literalinclude:: ../example/datastore/coincheck.py
+.. literalinclude:: ../examples/datastore/coincheck.py
 
 Bybit
 ~~~~~
 
-.. literalinclude:: ../example/datastore/bybit.py
+.. literalinclude:: ../examples/datastore/bybit.py
 
 Binance
 ~~~~~~~
 
-.. literalinclude:: ../example/datastore/binance.py
+.. literalinclude:: ../examples/datastore/binance.py
 
 OKX
 ~~~
 
-.. literalinclude:: ../example/datastore/okx.py
+.. literalinclude:: ../examples/datastore/okx.py
 
 Phemex
 ~~~~~~
 
-.. literalinclude:: ../example/datastore/phemex.py
+.. literalinclude:: ../examples/datastore/phemex.py
 
 Bitget
 ~~~~~~
 
-.. literalinclude:: ../example/datastore/bitget.py
+.. literalinclude:: ../examples/datastore/bitget.py
 
 KuCoin
 ~~~~~~
 
-.. literalinclude:: ../example/datastore/kucoin.py
+.. literalinclude:: ../examples/datastore/kucoin.py
 
 BitMEX
 ~~~~~~
 
-.. literalinclude:: ../example/datastore/bitmex.py
+.. literalinclude:: ../examples/datastore/bitmex.py
 
 Helpers
 -------
@@ -152,4 +152,4 @@ GMO Coin
 
 以下は適当なチャンネルを購読して、アクセストークン管理ヘルパーのタスクをスケジュールするサンプルコードです。
 
-.. literalinclude:: ../example/helpers/gmocoin.py
+.. literalinclude:: ../examples/helpers/gmocoin.py
