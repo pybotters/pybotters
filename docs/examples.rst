@@ -131,6 +131,11 @@ KuCoin
 
 .. literalinclude:: ../example/datastore/kucoin.py
 
+BitMEX
+~~~~~~
+
+.. literalinclude:: ../example/datastore/bitmex.py
+
 Helpers
 -------
 
