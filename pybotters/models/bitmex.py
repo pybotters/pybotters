@@ -15,6 +15,28 @@ logger = logging.getLogger(__name__)
 class BitMEXDataStore(DataStoreCollection):
     """BitMEX の DataStoreCollection クラス"""
 
+    def _init(self) -> None:
+        self._create("funding", datastore_class=DataStore)
+        self._create("instrument", datastore_class=DataStore)
+        self._create("insurance", datastore_class=DataStore)
+        self._create("liquidation", datastore_class=DataStore)
+        self._create("orderBookL2", datastore_class=OrderBook)
+        self._create("quote", datastore_class=DataStore)
+        self._create("quotebin1m", datastore_class=DataStore)
+        self._create("quotebin5m", datastore_class=DataStore)
+        self._create("quotebin1h", datastore_class=DataStore)
+        self._create("quotebin1d", datastore_class=DataStore)
+        self._create("trade", datastore_class=DataStore)
+        self._create("tradebin1m", datastore_class=DataStore)
+        self._create("tradebin5m", datastore_class=DataStore)
+        self._create("tradebin1h", datastore_class=DataStore)
+        self._create("tradebin1d", datastore_class=DataStore)
+        self._create("execution", datastore_class=DataStore)
+        self._create("order", datastore_class=DataStore)
+        self._create("margin", datastore_class=DataStore)
+        self._create("position", datastore_class=DataStore)
+        self._create("wallet", datastore_class=DataStore)
+
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         if "error" in msg:
             logger.warning(msg)
@@ -25,9 +47,18 @@ class BitMEXDataStore(DataStoreCollection):
             action = msg["action"]
             data = msg["data"]
             if action == "partial":
-                self._create(
-                    table, keys=msg["keys"] if "keys" in msg else [], data=data
-                )
+                if (target_store := self[table]) is None:
+                    self._create(
+                        table,
+                        keys=msg["keys"] if "keys" in msg else [],
+                        data=data,
+                        datastore_class=DataStore
+                        if table != "orderBookL2"
+                        else OrderBook,
+                    )
+                else:
+                    target_store._keys = tuple(msg["keys"] if "keys" in msg else [])
+                    target_store._insert(data)
                 if table == "trade":
                     self.trade._MAXLEN = 99999
             elif action == "insert":
@@ -70,9 +101,9 @@ class BitMEXDataStore(DataStoreCollection):
         return self._get("liquidation", DataStore)
 
     @property
-    def orderbook(self) -> DataStore:
+    def orderbook(self) -> OrderBook:
         """orderbook topic."""
-        return self._get("orderBookL2", DataStore)
+        return self._get("orderBookL2", OrderBook)
 
     @property
     def quote(self) -> DataStore:
@@ -151,3 +182,17 @@ class BitMEXDataStore(DataStoreCollection):
     def wallet(self) -> DataStore:
         """wallet topic."""
         return self._get("wallet", DataStore)
+
+
+class OrderBook(DataStore):
+    def sorted(
+        self, query: Item | None = None, limit: int | None = None
+    ) -> dict[str, list[Item]]:
+        return self._sorted(
+            item_key="side",
+            item_asc_key="Sell",
+            item_desc_key="Buy",
+            sort_key="price",
+            query=query,
+            limit=limit,
+        )
