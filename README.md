@@ -82,6 +82,14 @@ From [GitHub](https://github.com/pybotters/pybotters) (latest version):
 pip install git+https://github.com/pybotters/pybotters.git
 ```
 
+## ⚠️ Compatibility warning
+
+pybotters is planning a completely new code base v2. It is recommended to specify version less than 2.0 (`pybotters<2.0`) when specifying it as a dependency.
+
+> [!IMPORTANT]
+> The roadmap is here: [pybotters/pybotters#248](https://github.com/pybotters/pybotters/issues/248)
+
+
 ## 📝 Usage
 
 Example of bitFlyer API:
