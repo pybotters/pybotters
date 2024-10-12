@@ -54,7 +54,7 @@ pybotters は現在次期バージョン (**v2**) を計画しています。 v2
 
     $ poetry|pdm|rye|uv add 'pybotters<2.0'
 
-.. note::
+.. important::
     pybotters v2 のロードマップはこちらにあります！ `pybotters/pybotters#248 <https://github.com/pybotters/pybotters/issues/248>`_
 
 
