@@ -86,7 +86,8 @@ pip install git+https://github.com/pybotters/pybotters.git
 
 pybotters is planning a completely new code base v2. It is recommended to specify version less than 2.0 (`pybotters<2.0`) when specifying it as a dependency.
 
-Roadmap: [pybotters/pybotters#248](https://github.com/pybotters/pybotters/issues/248)
+> [!IMPORTANT]
+> The roadmap is here: [pybotters/pybotters#248](https://github.com/pybotters/pybotters/issues/248)
 
 
 ## 📝 Usage
