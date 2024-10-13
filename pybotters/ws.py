@@ -699,7 +699,7 @@ class Auth:
 
 @dataclass
 class Item:
-    name: str | None
+    name: str
     func: Any
 
 
