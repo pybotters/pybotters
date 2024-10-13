@@ -22,7 +22,9 @@ class GMOCoinHelper:
             client (Client): pybotters.Client
         """
         self._client = client
-        self._url = "https://api.coin.z.com/private/v1/ws-auth".removeprefix(self._client._base_url)
+        self._url = "https://api.coin.z.com/private/v1/ws-auth".removeprefix(
+            self._client._base_url
+        )
 
     async def create_access_token(self) -> str:
         """Helper for ``POST /private/v1/ws-auth``.
@@ -100,7 +102,3 @@ class GMOCoinHelper:
 
 
 class GMOCoinResponseError(Exception): ...
-
-
-def removeprefix(self: str, prefix: str, /) -> str:
-    return self[len(prefix) :]
