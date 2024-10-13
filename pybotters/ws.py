@@ -310,11 +310,11 @@ class WebSocketApp:
         """
         await self._task
 
-    async def _wait_handshake(self) -> "WebSocketApp":
+    async def _wait_handshake(self) -> WebSocketApp:
         await self._event.wait()
         return self
 
-    def __await__(self) -> Generator[Any, None, "WebSocketApp"]:
+    def __await__(self) -> Generator[Any, None, WebSocketApp]:
         return self._wait_handshake().__await__()
 
 
@@ -699,7 +699,7 @@ class Auth:
 
 @dataclass
 class Item:
-    name: str
+    name: str | None
     func: Any
 
 
