@@ -10,7 +10,7 @@ import asyncio
 import os
 from contextlib import suppress
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Literal
 
 import pybotters
 
@@ -23,9 +23,9 @@ class OrderCondition:
     """Order condition"""
 
     is_execute: bool
-    side: Optional[Literal["BUY", "SELL"]]
-    price: Optional[float]
-    size: Optional[float]
+    side: Literal["BUY", "SELL"] | None
+    price: float | None
+    size: float | None
 
 
 def your_awesome_algorithm(childorders, positions, board, ticker, executions):

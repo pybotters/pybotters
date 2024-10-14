@@ -4,9 +4,11 @@ import asyncio
 import copy
 import uuid
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Hashable, Iterator, Literal, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, overload
 
 if TYPE_CHECKING:
+    from collections.abc import Hashable, Iterator
+
     from .typedefs import Item
     from .ws import ClientWebSocketResponse
 

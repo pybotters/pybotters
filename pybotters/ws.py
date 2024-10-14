@@ -14,7 +14,7 @@ import uuid
 import zlib
 from dataclasses import dataclass
 from secrets import token_hex
-from typing import TYPE_CHECKING, Any, AsyncIterator, Awaitable, Generator, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlencode
 
 import aiohttp
@@ -23,6 +23,12 @@ from aiohttp.http_websocket import json
 from .auth import Auth as _Auth
 
 if TYPE_CHECKING:
+    from collections.abc import (
+        AsyncIterator,
+        Awaitable,
+        Generator,
+    )
+
     from .typedefs import (
         WsBytesHandler,
         WsHeartBeatHandler,

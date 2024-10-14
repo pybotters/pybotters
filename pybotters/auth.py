@@ -6,7 +6,7 @@ import hashlib
 import hmac
 import time
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
 from aiohttp.formdata import FormData
@@ -16,6 +16,8 @@ from multidict import CIMultiDict, MultiDict
 from yarl import URL
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     import aiohttp
 
 

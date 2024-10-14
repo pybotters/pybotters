@@ -19,9 +19,9 @@ if TYPE_CHECKING:
         Awaitable[ClientResponse], AbstractAsyncContextManager[ClientResponse], Protocol
     ): ...
 
-    APICredentialsDict: TypeAlias = "dict[str, list[str]]"
-    EncodedAPICredential: TypeAlias = "tuple[str, bytes, str]"
-    EncodedAPICredentialsDict: TypeAlias = "dict[str, EncodedAPICredential]"
+    APICredentialsDict: TypeAlias = dict[str, list[str]]
+    EncodedAPICredential: TypeAlias = tuple[str, bytes, str]
+    EncodedAPICredentialsDict: TypeAlias = dict[str, EncodedAPICredential]
 
     WsStrHandler = Callable[[str, ClientWebSocketResponse], None]
     WsBytesHandler = Callable[[bytes, ClientWebSocketResponse], None]
@@ -32,4 +32,4 @@ if TYPE_CHECKING:
         [ClientWebSocketResponse, Awaitable[None]], Awaitable[None]
     ]
 
-    Item: TypeAlias = "dict[str, Any]"
+    Item: TypeAlias = dict[str, Any]

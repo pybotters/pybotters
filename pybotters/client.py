@@ -5,7 +5,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Literal, Mapping
+from typing import TYPE_CHECKING, Any, Literal
 
 import aiohttp
 from aiohttp import hdrs
@@ -16,6 +16,8 @@ from .request import ClientRequest
 from .ws import ClientWebSocketResponse, WebSocketApp
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from .typedefs import (
         APICredentialsDict,
         EncodedAPICredentialsDict,
