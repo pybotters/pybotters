@@ -32,7 +32,7 @@ jobs:
           name: dist
           path: dist
 
-  types:
+  typing:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,7 +77,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.python-version }}
-          path: .coverage
+          path: .coverage.${{ matrix.python-version }}
           include-hidden-files: true
 
   report:
