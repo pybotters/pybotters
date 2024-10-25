@@ -51,7 +51,7 @@ jobs:
       - id: set-matrix
         run: |
           python_version=$(./scripts/python-version)
-          echo "python-version=$python_version" | tee -a "$GITHUB_ENV"
+          echo "python-version=$python_version" | tee -a "$GITHUB_OUTPUT"
 
   test:
     runs-on: ubuntu-latest
@@ -66,12 +66,9 @@ jobs:
 
       - uses: astral-sh/setup-uv@v3
 
-      - name: Setup UV_PYTHON variable
+      - run: ./scripts/test
         env:
           UV_PYTHON: ${{ matrix.python-version }}
-        run: echo "UV_PYTHON=$UV_PYTHON" | tee -a "$GITHUB_ENV"
-
-      - run: ./scripts/test
 
       - name: Disambiguate coverage filename
         run: mv .coverage ".coverage.${{ matrix.python-version }}"
