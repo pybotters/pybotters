@@ -1,0 +1,6 @@
+#!/bin/bash -eux
+
+# Create a virtual environment and syncronize the dependencies.
+
+uv venv --allow-existing
+uv pip compile requirements/dev.txt | uv pip sync -

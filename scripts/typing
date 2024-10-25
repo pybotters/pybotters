@@ -1,0 +1,11 @@
+#!/bin/bash -eux
+
+# Run type checking with mypy.
+
+uv run \
+    --with-editable . \
+    --with-requirements requirements/typing.txt \
+    --with-requirements requirements/test.txt \
+    --isolated \
+    --no-project \
+    mypy

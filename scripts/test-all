@@ -1,0 +1,34 @@
+#!/bin/bash -eu
+
+# Run tests with pytest.
+# If --all is passed, run tests with all Python versions. Otherwise, run tests with the first Python version.
+
+uv run \
+    --with-requirements requirements/test.txt \
+    --isolated \
+    --no-project \
+    coverage erase
+
+while IFS= read -r python_version; do
+    uv run \
+        --with-editable . \
+        --with-requirements requirements/test.txt \
+        --isolated \
+        --python "$python_version" \
+        --no-project \
+        pytest --cov --cov-append --cov-report=term-missing tests
+        # [FIXME] Can merge this?
+
+done < .python-version
+
+uv run \
+    --with-requirements requirements/test.txt \
+    --isolated \
+    --no-project \
+    coverage report --show-missing
+
+uv run \
+    --with-requirements requirements/test.txt \
+    --isolated \
+    --no-project \
+    coverage html

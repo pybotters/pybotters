@@ -1,0 +1,11 @@
+#!/bin/bash -eux
+
+# Run tests with pytest.
+# If --all is passed, run tests with all Python versions. Otherwise, run tests with the first Python version.
+
+uv run \
+    --with-editable . \
+    --with-requirements requirements/test.txt \
+    --isolated \
+    --no-project \
+    pytest --cov --cov-report=term-missing --cov-report=html tests

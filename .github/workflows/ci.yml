@@ -12,98 +12,128 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.x"
-    - name: Install Hatch
-      uses: pypa/hatch@install
-    - name: Run static analysis
-      run: hatch fmt --check
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+
+      - run: ./scripts/lint
 
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.9"
-    - name: Install Hatch
-      uses: pypa/hatch@install
-    - name: Build package
-      run: hatch build
-    - uses: actions/upload-artifact@v4
-      with:
-        name: dist
-        path: dist
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+
+      - run: uv build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
 
   types:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.9"
-    - name: Install Hatch
-      uses: pypa/hatch@install
-    - name: Run type checking
-      run: hatch run type-check
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+
+      - run: ./scripts/typing
+
+  set-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      python-version: ${{ steps.set-matrix.outputs.python-version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: set-matrix
+        run: |
+          python_version=$(./scripts/python-version)
+          echo "python-version=$python_version" | tee -a "$GITHUB_ENV"
 
   test:
     runs-on: ubuntu-latest
+    needs: set-matrix
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Hatch
-      uses: pypa/hatch@install
-    - name: Run tests
-      run: hatch test --python ${{ matrix.python-version }} --cover-quiet --randomize --parallel --retries 5 --retry-delay 3
-    - name: Disambiguate coverage filename
-      run: mv .coverage ".coverage.${{ matrix.python-version }}"
-    - name: Upload coverage data
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-${{ matrix.python-version }}
-        include-hidden-files: true
-        path: .coverage*
+        python-version: ${{ fromJSON(needs.set-matrix.outputs.python-version) }}
 
-  coverage:
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Setup UV_PYTHON variable
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
+        run: echo "UV_PYTHON=$UV_PYTHON" | tee -a "$GITHUB_ENV"
+
+      - run: ./scripts/test
+
+      - name: Disambiguate coverage filename
+        run: mv .coverage ".coverage.${{ matrix.python-version }}"
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.python-version }}
+          path: .coverage
+          include-hidden-files: true
+
+  report:
     runs-on: ubuntu-latest
     needs: test
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.9"
-    - name: Install Hatch
-      uses: pypa/hatch@install
-    - name: Download coverage data
-      uses: actions/download-artifact@v4
-      with:
-        pattern: coverage-*
-        merge-multiple: true
-    - name: Combine coverage reports
-      run: |
-        hatch run coverage:combine
-        hatch run coverage:html --fail-under=0
-        hatch run coverage:report --fail-under=0 --format=markdown -m >> $GITHUB_STEP_SUMMARY 
-        hatch run coverage:report
-    - name: Upload HTML report
-      uses: actions/upload-artifact@v4
-      if: ${{ always() }}
-      with:
-        name: htmlcov
-        path: htmlcov
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Download coverage data
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          merge-multiple: true
+
+      - name: Report coverage results
+        run: |
+          uv run \
+              --with-editable . \
+              --with-requirements requirements/test.txt \
+              --isolated \
+              --no-project \
+              coverage combine
+
+          set +e
+
+          uv run \
+              --with-editable . \
+              --with-requirements requirements/test.txt \
+              --isolated \
+              --no-project \
+              coverage report --format=markdown -m | tee -a "$GITHUB_STEP_SUMMARY"
+
+          uv run \
+              --with-editable . \
+              --with-requirements requirements/test.txt \
+              --isolated \
+              --no-project \
+              coverage html
+
+          set -e
+
+          uv run \
+              --with-editable . \
+              --with-requirements requirements/test.txt \
+              --isolated \
+              --no-project \
+              coverage report -m
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: htmlcov
+          path: htmlcov
