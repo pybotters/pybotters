@@ -1,0 +1,15 @@
+#!/bin/bash -eux
+
+# Run formatting with ruff.
+
+uv run \
+    --with-requirements requirements/lint.txt \
+    --isolated \
+    --no-project \
+    ruff format
+
+uv run \
+    --with-requirements requirements/lint.txt \
+    --isolated \
+    --no-project \
+    ruff check --fix

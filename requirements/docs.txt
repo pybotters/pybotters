@@ -1,0 +1,5 @@
+furo==2024.8.6
+sphinx==7.4.7
+sphinx-autobuild<=2024.2.4
+sphinx-copybutton==0.5.2
+sphinx-new-tab-link==0.6.1

@@ -10,47 +10,41 @@ requires-python = ">=3.9"
 license = "MIT"
 keywords = ["aiohttp", "crypto", "exchange", "trading"]
 authors = [
-  { name = "MtkN1", email = "51289448+MtkN1@users.noreply.github.com" },
+    { name = "MtkN1", email = "51289448+MtkN1@users.noreply.github.com" },
 ]
 classifiers = [
-  "Development Status :: 5 - Production/Stable",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "License :: OSI Approved :: MIT License",
-  "Framework :: AsyncIO",
-  "Framework :: aiohttp",
-  "Intended Audience :: Developers",
-  "Intended Audience :: Financial and Insurance Industry",
-  "Operating System :: POSIX",
-  "Operating System :: MacOS :: MacOS X",
-  "Operating System :: Microsoft :: Windows",
-  "Topic :: Internet :: WWW/HTTP",
-  "Topic :: Office/Business :: Financial :: Investment",
-  "Natural Language :: Japanese",
-  "Typing :: Typed",
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Framework :: AsyncIO",
+    "Framework :: aiohttp",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Operating System :: POSIX",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Natural Language :: Japanese",
+    "Typing :: Typed",
 ]
 dependencies = [
-  "aiohttp>=3.7.0",
-  "typing-extensions ; python_version < \"3.10\"",
-]
-
-[project.optional-dependencies]
-docs = [
-  "Sphinx",
-  "furo",
-  "sphinx-copybutton",
-  "sphinx-new-tab-link",
-  "sphinx-autobuild",
+    "aiohttp>=3.7",
+    "typing-extensions>=3.10 ; python_version < \"3.10\"",
 ]
 
 [project.urls]
 Documentation = "https://pybotters.readthedocs.io/ja/stable/"
 Repository = "https://github.com/pybotters/pybotters"
+
+[tool.uv.sources]
+pybotters = { workspace = true }
 
 [tool.hatch.version]
 source = "vcs"
@@ -58,40 +52,6 @@ source = "vcs"
 [tool.hatch.version.raw-options]
 version_scheme = "python-simplified-semver"
 local_scheme = "no-local-version"
-
-[tool.hatch.envs.hatch-test]
-extra-dependencies = [
-  "coverage[toml]",
-  "pytest",
-  "pytest-mock",
-  "pytest-asyncio",
-  "pytest-aiohttp",
-  "pytest-freezer",
-]
-
-[[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
-
-[tool.hatch.envs.default]
-template = "hatch-test"
-python = "3.9"
-dependencies = [
-  "mypy>=1.0.0",
-]
-[tool.hatch.envs.default.extra-scripts]
-type-check = "mypy"
-
-[tool.hatch.envs.coverage.extra-scripts]
-combine = "coverage combine {args}"
-report = "coverage report {args}"
-html = "coverage html {args}"
-
-[tool.hatch.envs.docs]
-features = ["docs"]
-template = "docs"
-[tool.hatch.envs.docs.scripts]
-build = "sphinx-build -M html docs docs/_build"
-autobuild = "sphinx-autobuild docs docs/_build/html"
 
 [tool.hatch.metadata.hooks.fancy-pypi-readme]
 content-type = "text/markdown"
@@ -103,14 +63,14 @@ path = "README.md"
 source_pkgs = ["pybotters", "tests"]
 parallel = true
 omit = [
-  "pybotters/models/*",
+    "pybotters/models/*",
 ]
 
 [tool.coverage.report]
 exclude_lines = [
-  "no cov",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
+    "no cov",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
 ]
 fail_under = 100.0
 

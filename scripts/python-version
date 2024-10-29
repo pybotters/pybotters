@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+
+import json
+import sys
+from pathlib import Path
+
+
+def main() -> int:
+    """Output the contents of the .python-version file in JSON format to standard output."""
+
+    python_version_text = Path(".python-version").read_text(encoding="utf-8")
+    python_version_lines = python_version_text.splitlines()
+    python_version_json = json.dumps(python_version_lines)
+
+    print(python_version_json)
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

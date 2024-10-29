@@ -10,24 +10,12 @@
             88
         ]
     },
-    "files.exclude": {
-        "**/.hatch": true
-    },
     "mypy-type-checker.importStrategy": "fromEnvironment",
     "python.analysis.typeCheckingMode": "off",
-    "python.defaultInterpreterPath": "${workspaceFolder}/.hatch/pybotters/bin/python",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
     "python.testing.pytestArgs": [
         "tests"
     ],
     "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": false,
-    "terminal.integrated.env.linux": {
-        "HATCH_CONFIG": ".vscode/hatch_config.toml"
-    },
-    "terminal.integrated.env.osx": {
-        "HATCH_CONFIG": ".vscode/hatch_config.toml"
-    },
-    "terminal.integrated.env.windows": {
-        "HATCH_CONFIG": ".vscode\\hatch_config.toml"
-    }
+    "python.testing.unittestEnabled": false
 }

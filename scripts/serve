@@ -1,0 +1,10 @@
+#!/bin/bash -eux
+
+# Build and serve documentation with Sphinx.
+
+uv run \
+    --with-editable . \
+    --with-requirements requirements/docs.txt \
+    --isolated \
+    --no-project \
+    sphinx-autobuild docs docs/_build/html
