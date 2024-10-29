@@ -14,7 +14,7 @@ TL;DR
 **ワークフロー**
 
 0. (Optional) メンテナと議論が必要な場合 `Discussion <https://github.com/pybotters/pybotters/discussions>`_ または `Issue <https://github.com/pybotters/pybotters/pulls>`_ を作成する
-1. マシンをセットアップする (Python 3.9, Hatch ...)
+1. マシンをセットアップする (Python 3.9, uv ...)
 2. リポジトリを Fork する
 3. main ブランチを元に、変更する内容を表す名称のブランチ (トピックブランチ) を作成する
 4. あなたのアイディアをソースコードに反映する 💎💎
@@ -78,28 +78,19 @@ pybotters は最小要求を **Python 3.9** としています。
 Python 3.9 の最新マイナーバージョンをインストールしてコーディングすることを推奨します。
 
 Python のインストール方法は多岐にわたります。
-`こちらの記事 (python.jp) <https://www.python.jp/install/install.html>`__ を参考にするか、または次に紹介する **Hatch** を利用してください。
+`こちらの記事 (python.jp) <https://www.python.jp/install/install.html>`__ を参考にするか、または次に紹介する **uv** を利用してください。
 
-Hatch
------
+uv
+--
 
-**Hatch** は PyPA より配布されているモダンで高機能なプロジェクト管理ツールです。
+**uv** は Astral によって開発されている非常に高速な Python プロジェクトマネージャーです。
 
-機能の一つとして環境作成時に **目的の Python バージョンを自動でダウンロード** します。
-当プロジェクトでは Hatch 環境を定義済みなのでこれを利用すれば Python のセットアップも省略できます。
-また他には環境を分離した便利なスクリプトランナーや、マトリクステストを実行できます。
+uv は機能の一つとして環境作成時に **目的の Python バージョンを自動でダウンロード** するので基本的なセットアップを省略できます。
+当プロジェクトでは作業ごとの uv コマンドを Bash スクリプトとして定義済みなので (``scripts`` 配下) これを利用することで簡単にテストなどを実行できます。
 
-https://hatch.pypa.io/latest/
+https://docs.astral.sh/uv/
 
-Hatch をインストールするには **pipx** の利用をおすすめします。
-pipx をインストールしてからその上で Hatch をインストールしましょう。
-
-.. code:: sh
-
-    pipx install hatch
-
-.. NOTE::
-    Codespaces 環境なら既に ``pipx`` が入っているはずです ✨
+uv は上記公式ドキュメントからインストールしてください。
 
 
 Git
@@ -121,13 +112,11 @@ Git がローカルにない場合はインストールしてください。
 Dependencies
 ------------
 
-プロジェクトとその依存関係をインストールします。
-
-Hatch の ``default`` 環境を作成すると、依存関係をインストールできます。
+仮想環境の作成と、プロジェクト及び依存関係をインストールします。
 
 .. code:: sh
 
-    hatch env create
+    ./scripts/sync
 
 
 CI
@@ -155,7 +144,7 @@ Format
 
 .. code:: bash
 
-    hatch fmt
+    ./scripts/format
 
 Lint
 ~~~~
@@ -164,7 +153,7 @@ Lint
 
 .. code:: bash
 
-    hatch fmt --check
+    ./scripts/lint
 
 
 Type check
@@ -179,7 +168,7 @@ https://mypy.readthedocs.io/
 
 .. code:: bash
 
-    hatch run type-check
+    ./scripts/typing
 
 
 Testing
@@ -195,13 +184,20 @@ https://docs.pytest.org
 
 .. code:: sh
 
-    hatch test
+    ./scripts/test
 
 全ての Python バージョンに対してテストカバレッジを実行するには、以下のコマンドを実行してください。
 
 .. code:: sh
 
-    hatch test --all --cover
+    ./scripts/test-all
+
+テストを実行すると標準出力と HTML のカバレッジレポートが生成されます。
+HTML のレポートを確認するには、以下のコマンドを実行してください。
+
+.. code:: sh
+
+    python -m http.server -d htmlcov
 
 **テストの基準**
 
@@ -209,6 +205,22 @@ https://docs.pytest.org
 * 例外として :ref:`DataStore <datastore>` に関する単体テストコードは、テスト方法を確立するまで省略しています。
 * ただし DataStore の動作確認ができる実環境用の機能テストコードを Pull request のコメントに張り付けてください。
 * 外部との通信部分はモック化してください。
+
+
+Documentation
+-------------
+
+Sphinx ドキュメントを自動ビルドしてローカル環境で閲覧することができます。
+
+.. code:: sh
+
+    ./scripts/serve
+
+ローカル環境にホストせずにドキュメントをビルドすることもできます。
+
+.. code:: sh
+
+    ./scripts/docs
 
 
 Branch Strategy

@@ -8,7 +8,7 @@
 [![CI](https://github.com/pybotters/pybotters/actions/workflows/ci.yml/badge.svg)](https://github.com/pybotters/pybotters/actions/workflows/ci.yml)
 [![publish](https://github.com/pybotters/pybotters/actions/workflows/publish.yml/badge.svg)](https://github.com/pybotters/pybotters/actions/workflows/publish.yml)
 [![Documentation Status](https://readthedocs.org/projects/pybotters/badge/?version=latest)](https://pybotters.readthedocs.io/ja/latest/?badge=latest)
-[![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/pybotters/pybotters?style=social)](https://github.com/pybotters/pybotters/stargazers)
