@@ -28,6 +28,9 @@ changelog:
     - title: Development
       labels:
         - release-development
+    - title: Dependencies
+      labels:
+        - dependencies
     - title: Other
       labels:
         - '*'
