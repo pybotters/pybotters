@@ -31,6 +31,7 @@ class bitFlyerDataStore(DataStoreCollection):
         self._create("parentorderevents", datastore_class=ParentOrderEvents)
         self._create("parentorders", datastore_class=ParentOrders)
         self._create("positions", datastore_class=Positions)
+        self._create("collateral", datastore_class=Collateral)
         self._create("balance", datastore_class=Balance)
         self._snapshots: set[str] = set()
 
@@ -42,6 +43,7 @@ class bitFlyerDataStore(DataStoreCollection):
         - GET /v1/me/getchildorders (:attr:`.bitFlyerDataStore.childorders`)
         - GET /v1/me/getparentorders (:attr:`.bitFlyerDataStore.parentorders`)
         - GET /v1/me/getpositions (:attr:`.bitFlyerDataStore.positions`)
+        - GET /v1/me/getcollateral (:attr:`.bitFlyerDataStore.collateral`)
         - GET /v1/me/getbalance (:attr:`.bitFlyerDataStore.balance`)
         """
         for f in asyncio.as_completed(aws):
@@ -53,6 +55,8 @@ class bitFlyerDataStore(DataStoreCollection):
                 self.parentorders._onresponse(data)
             elif resp.url.path == "/v1/me/getpositions":
                 self.positions._onresponse(data)
+            elif resp.url.path == "/v1/me/getcollateral":
+                self.collateral._onresponse(data)
             elif resp.url.path == "/v1/me/getbalance":
                 self.balance._onresponse(data)
 
@@ -87,7 +91,7 @@ class bitFlyerDataStore(DataStoreCollection):
             elif channel == "child_order_events":
                 self.childorderevents._onmessage(copy.deepcopy(message))
                 self.childorders._onmessage(copy.deepcopy(message))
-                self.positions._onmessage(copy.deepcopy(message))
+                self.positions._onmessage(copy.deepcopy(message), self.collateral)
                 self.balance._onmessage(copy.deepcopy(message))
             elif channel == "parent_order_events":
                 self.parentorderevents._onmessage(copy.deepcopy(message))
@@ -157,6 +161,14 @@ class bitFlyerDataStore(DataStoreCollection):
         https://bf-lightning-api.readme.io/docs/realtime-child-order-events
         """
         return self._get("positions", Positions)
+
+    @property
+    def collateral(self) -> "Collateral":
+        """Handmade collateral from child_order_events channel.
+
+        https://bf-lightning-api.readme.io/docs/realtime-child-order-events
+        """
+        return self._get("collateral", Collateral)
 
     @property
     def balance(self) -> "Balance":
@@ -323,7 +335,7 @@ class Positions(DataStore):
             for item in data:
                 self._insert([self._common_keys(item)])
 
-    def _onmessage(self, message: list[Item]) -> None:
+    def _onmessage(self, message: list[Item], collateral: Collateral) -> None:
         for item in message:
             product_code: str = item["product_code"]
             # skip spot
@@ -339,6 +351,13 @@ class Positions(DataStore):
                     else:
                         for uid, pos in positions.items():
                             if pos["size"] > item["size"]:
+                                collateral._onexecution(
+                                    item["side"],
+                                    pos["price"],
+                                    item["price"],
+                                    item["size"],
+                                    item,
+                                )
                                 if isinstance(pos["size"], int) and isinstance(
                                     item["size"], int
                                 ):
@@ -357,6 +376,13 @@ class Positions(DataStore):
                                 )  # !NOTE! This is manual call to `_put` method.
                                 break
                             else:
+                                collateral._onexecution(
+                                    item["side"],
+                                    pos["price"],
+                                    item["price"],
+                                    pos["size"],
+                                    item,
+                                )
                                 if isinstance(pos["size"], int) and isinstance(
                                     item["size"], int
                                 ):
@@ -374,6 +400,47 @@ class Positions(DataStore):
                         self._insert([item])
                     except KeyError:
                         pass
+
+
+class Collateral(DataStore):
+    def _onresponse(self, data: Item) -> None:
+        if not len(self):
+            self._insert([data])
+        else:
+            item = self.find()[0]
+            item.update(data)
+            self._put(
+                operation="update", source=data, item=data
+            )  # !NOTE! This is manual call to `_put` method.
+
+    def _onexecution(
+        self,
+        side: str,
+        open_price: float,
+        close_price: float,
+        size: float,
+        source_item: Item,
+    ) -> None:
+        # NOTE: This method is triggered from Positions
+
+        if not len(self):
+            return
+
+        item = self.find()[0]
+
+        buy_price, sell_price = {
+            "SELL": (open_price, close_price),
+            "BUY": (close_price, open_price),
+        }[side]
+        pnl = (Decimal(str(sell_price)) - Decimal(str(buy_price))) * Decimal(str(size))
+
+        new_collateral = Decimal(str(item["collateral"])) + pnl
+        # JPY hasu
+        item["collateral"] = float(
+            {"SELL": math.floor, "BUY": math.ceil}[side](new_collateral)
+        )
+
+        self._put(operation="update", source=source_item, item=item)
 
 
 class Balance(DataStore):
