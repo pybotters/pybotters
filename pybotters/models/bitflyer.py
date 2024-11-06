@@ -436,8 +436,9 @@ class Collateral(DataStore):
 
         new_collateral = Decimal(str(item["collateral"])) + pnl
         # JPY hasu
-        new_collateral = {"SELL": math.floor, "BUY": math.ceil}[side](new_collateral)
-        item["collateral"] = float(new_collateral)
+        item["collateral"] = float(
+            {"SELL": math.floor, "BUY": math.ceil}[side](new_collateral)
+        )
 
         self._put(operation="update", source=source_item, item=item)
 
