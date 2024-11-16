@@ -641,7 +641,9 @@ async def test_wsresponse_send_json():
     )
     await asyncio.wait_for(wsresp.send_json({"foo": "bar"}), timeout=5.0)
 
-    assert m_writer.send.call_args == call('{"foo": "bar"}', binary=ANY, compress=ANY)
+    assert m_writer.send_frame.call_args == call(
+        b'{"foo": "bar"}', aiohttp.WSMsgType.TEXT, compress=None
+    )
 
 
 @pytest.mark.asyncio
