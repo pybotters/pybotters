@@ -6,6 +6,7 @@ import datetime
 import hashlib
 import hmac
 import inspect
+import json
 import logging
 import random
 import struct
@@ -18,7 +19,6 @@ from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlencode
 
 import aiohttp
-from aiohttp.http_websocket import json
 
 from .auth import Auth as _Auth
 
