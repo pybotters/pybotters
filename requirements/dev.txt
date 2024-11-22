@@ -1,5 +1,6 @@
 -e .
 
+-r dependencies.txt
 -r test.txt
 -r lint.txt
 -r typing.txt
