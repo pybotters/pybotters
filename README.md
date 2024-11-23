@@ -59,7 +59,7 @@ It has the following features, making it useful for developing a trading bot.
 | Binance | ✅ | ✅ | [Link](https://developers.binance.com/docs/binance-spot-api-docs/CHANGELOG) |
 | OKX | ✅ | ✅ | [Link](https://www.okx.com/docs-v5/en/) |
 | Phemex | ✅ | ✅ | [Link](https://phemex-docs.github.io/) |
-| Bitget | ✅ | ✅ | [Link](https://bitgetlimited.github.io/apidoc/en/mix/) |
+| Bitget | ✅ | ✅ | [Link](https://www.bitget.com/api-doc/common/intro) |
 | MEXC | ✅ | No support | [Link](https://mexcdevelop.github.io/apidocs/spot_v3_en/) |
 | KuCoin | ✅ | ✅ | [Link](https://www.kucoin.com/docs/beginners/introduction) |
 | BitMEX | ✅ | ✅ | [Link](https://www.bitmex.com/app/apiOverview) |

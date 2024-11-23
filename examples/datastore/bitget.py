@@ -17,22 +17,28 @@ with suppress(ImportError):
 
 async def main():
     async with pybotters.Client() as client:
-        store = pybotters.BitgetDataStore()
+        store = pybotters.BitgetV2DataStore()
 
         await client.ws_connect(
-            "wss://ws.bitget.com/mix/v1/stream",
+            "wss://ws.bitget.com/v2/ws/public",
             send_json={
                 "op": "subscribe",
-                "args": [{"instType": "mc", "channel": "books", "instId": "BTCUSDT"}],
+                "args": [
+                    {
+                        "instType": "USDT-FUTURES",
+                        "channel": "books",
+                        "instId": "BTCUSDT",
+                    }
+                ],
             },
             hdlr_json=store.onmessage,
         )
 
         while True:
-            orderbook = store.orderbook.sorted(limit=2)
+            orderbook = store.book.sorted(limit=2)
             print(orderbook)
 
-            await store.orderbook.wait()
+            await store.book.wait()
 
 
 if __name__ == "__main__":
