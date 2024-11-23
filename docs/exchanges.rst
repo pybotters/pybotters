@@ -414,7 +414,7 @@ DataStore
 Bitget
 ------
 
-https://bitgetlimited.github.io/apidoc/en/mix/
+https://www.bitget.com/api-doc/common/intro
 
 Authentication
 ~~~~~~~~~~~~~~
@@ -424,11 +424,11 @@ Authentication
 * HTTP 認証
     HTTP リクエスト時に取引所が定める認証情報が自動設定されます。
 
-    https://bitgetlimited.github.io/apidoc/en/mix/#signature
+    https://www.bitget.com/api-doc/common/signature
 * WebSocket 認証
     WebSocket 接続時に取引所が定める認証情報の WebSocket メッセージが自動送信されます。
 
-    https://bitgetlimited.github.io/apidoc/en/mix/#login
+    https://www.bitget.com/api-doc/common/websocket-intro
 
 WebSocket
 ~~~~~~~~~
@@ -436,11 +436,12 @@ WebSocket
 * Ping-Pong
     取引所が定める Ping-Pong メッセージが自動送信されます。
 
-    https://bitgetlimited.github.io/apidoc/en/mix/#connect
+    https://www.bitget.com/api-doc/common/websocket-intro#connect
 
 DataStore
 ~~~~~~~~~
 
+* :class:`.BitgetV2DataStore`
 * :class:`.BitgetDataStore`
 
 

@@ -50,6 +50,7 @@ Exchange-specific Data Stores
    pybotters.BinanceSpotDataStore
    pybotters.BinanceUSDSMDataStore
    pybotters.BitMEXDataStore
+   pybotters.BitgetV2DataStore
    pybotters.BitgetDataStore
    pybotters.BybitDataStore
    pybotters.CoincheckDataStore

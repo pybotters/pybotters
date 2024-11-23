@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class BitgetDataStore(DataStoreCollection):
-    """Bitget の DataStoreCollection クラス"""
+    """DataStoreCollection for Bitget V1 API"""
 
     def _init(self) -> None:
         self._create("trade", datastore_class=Trade)
