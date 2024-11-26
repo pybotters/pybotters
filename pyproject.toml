@@ -78,7 +78,7 @@ fail_under = 100.0
 line-length = 88
 
 [tool.ruff.lint]
-select = ["E", "F", "B", "I", "TCH"]
+select = ["E", "F", "B", "I", "TC"]
 ignore = ["E501"]
 
 [tool.mypy]
