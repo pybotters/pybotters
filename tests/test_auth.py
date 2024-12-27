@@ -1,9 +1,11 @@
 import datetime
+import json
 import random
 
 import aiohttp.abc
 import aiohttp.formdata
 import aiohttp.payload
+import freezegun
 import pytest
 import pytest_mock
 from multidict import CIMultiDict
@@ -117,6 +119,12 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         "bittrade": (
             "e2xxxxxx-99xxxxxx-84xxxxxx-7xxxx",
             b"b0xxxxxx-c6xxxxxx-94xxxxxx-dxxxx",
+        ),
+        "hyperliquid": (
+            "0x0123456789012345678901234567890123456789012345678901234567890123",
+        ),
+        "hyperliquid_testnet": (
+            "0x0123456789012345678901234567890123456789012345678901234567890123",
         ),
     }
     assert set(apis.keys()) == set(
@@ -1540,5 +1548,204 @@ def test_bittrade(mock_session, test_input, expected):
         expected["kwargs"]["data"] = expected["kwargs"]["data"]._value
     if isinstance(kwargs["data"], aiohttp.payload.Payload):
         kwargs["data"] = kwargs["data"]._value
+
+    assert {"args": args, "kwargs": kwargs} == expected
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        # Case 0: sign_l1_action
+        (
+            # test_input
+            {
+                "args": ("POST", URL("https://api.hyperliquid.xyz/exchange")),
+                "kwargs": {
+                    "data": {
+                        "action": {
+                            "type": "order",
+                            "orders": [
+                                {
+                                    "a": 1,
+                                    "b": True,
+                                    "p": "100",
+                                    "s": "100",
+                                    "r": False,
+                                    "t": {"limit": {"tif": "Gtc"}},
+                                }
+                            ],
+                            "grouping": "na",
+                        },
+                    },
+                    "headers": None,
+                },
+                "freeze_time": 0,
+            },
+            # expected
+            {
+                "args": ("POST", URL("https://api.hyperliquid.xyz/exchange")),
+                "kwargs": {
+                    "data": {
+                        "action": {
+                            "type": "order",
+                            "orders": [
+                                {
+                                    "a": 1,
+                                    "b": True,
+                                    "p": "100",
+                                    "s": "100",
+                                    "r": False,
+                                    "t": {"limit": {"tif": "Gtc"}},
+                                }
+                            ],
+                            "grouping": "na",
+                        },
+                        "nonce": 0,
+                        "signature": {
+                            "r": "0xd65369825a9df5d80099e513cce430311d7d26ddf477f5b3a33d2806b100d78e",
+                            "s": "0x2b54116ff64054968aa237c20ca9ff68000f977c93289157748a3162b6ea940e",
+                            "v": 28,
+                        },
+                    },
+                    "headers": None,
+                },
+            },
+        ),
+        # Case 1: sign_user_signed_action
+        (
+            # test_input
+            {
+                "args": ("POST", URL("https://api.hyperliquid.xyz/exchange")),
+                "kwargs": {
+                    "data": {
+                        "action": {
+                            "type": "usdSend",
+                            "hyperliquidChain": "Testnet",
+                            "destination": "0x5e9ee1089755c3435139848e47e6635505d5a13a",
+                            "amount": "1",
+                            "time": 1687816341423,
+                        },
+                    },
+                    "headers": None,
+                },
+                "freeze_time": 1687816341.423,
+            },
+            # expected
+            {
+                "args": ("POST", URL("https://api.hyperliquid.xyz/exchange")),
+                "kwargs": {
+                    "data": {
+                        "action": {
+                            "type": "usdSend",
+                            "hyperliquidChain": "Testnet",
+                            "destination": "0x5e9ee1089755c3435139848e47e6635505d5a13a",
+                            "amount": "1",
+                            "time": 1687816341423,
+                            "signatureChainId": "0x66eee",
+                        },
+                        "nonce": 1687816341423,
+                        "signature": {
+                            "r": "0x637b37dd731507cdd24f46532ca8ba6eec616952c56218baeff04144e4a77073",
+                            "s": "0x11a6a24900e6e314136d2592e2f8d502cd89b7c15b198e1bee043c9589f9fad7",
+                            "v": 27,
+                        },
+                    },
+                    "headers": None,
+                },
+            },
+        ),
+        # Case 2: Testnet
+        (
+            # test_input
+            {
+                "args": ("POST", URL("https://api.hyperliquid-testnet.xyz/exchange")),
+                "kwargs": {
+                    "data": {
+                        "action": {
+                            "type": "order",
+                            "orders": [
+                                {
+                                    "a": 1,
+                                    "b": True,
+                                    "p": "100",
+                                    "s": "100",
+                                    "r": False,
+                                    "t": {"limit": {"tif": "Gtc"}},
+                                }
+                            ],
+                            "grouping": "na",
+                        },
+                    },
+                    "headers": None,
+                },
+                "freeze_time": 0,
+            },
+            # expected
+            {
+                "args": ("POST", URL("https://api.hyperliquid-testnet.xyz/exchange")),
+                "kwargs": {
+                    "data": {
+                        "action": {
+                            "type": "order",
+                            "orders": [
+                                {
+                                    "a": 1,
+                                    "b": True,
+                                    "p": "100",
+                                    "s": "100",
+                                    "r": False,
+                                    "t": {"limit": {"tif": "Gtc"}},
+                                }
+                            ],
+                            "grouping": "na",
+                        },
+                        "nonce": 0,
+                        "signature": {
+                            "r": "0x82b2ba28e76b3d761093aaded1b1cdad4960b3af30212b343fb2e6cdfa4e3d54",
+                            "s": "0x6b53878fc99d26047f4d7e8c90eb98955a109f44209163f52d8dc4278cbbd9f5",
+                            "v": 27,
+                        },
+                    },
+                    "headers": None,
+                },
+            },
+        ),
+        # Case 3: Info endpoint
+        (
+            # test_input
+            {
+                "args": ("POST", URL("https://api.hyperliquid.xyz/info")),
+                "kwargs": {
+                    "data": {"action": {"type": "meta"}},
+                    "headers": None,
+                },
+                "freeze_time": 0,
+            },
+            # expected
+            {
+                "args": ("POST", URL("https://api.hyperliquid.xyz/info")),
+                "kwargs": {
+                    "data": {"action": {"type": "meta"}},
+                    "headers": None,
+                },
+            },
+        ),
+    ],
+)
+def test_hyperliquid(mock_session, test_input, expected):
+    args = test_input["args"]
+    kwargs = test_input["kwargs"]
+    kwargs["session"] = mock_session
+
+    with freezegun.freeze_time(
+        datetime.datetime.fromtimestamp(
+            test_input["freeze_time"], tz=datetime.timezone.utc
+        )
+    ):
+        args = pybotters.auth.Auth.hyperliquid(args, kwargs)
+
+    expected["kwargs"]["session"] = mock_session
+    if isinstance(kwargs["data"], aiohttp.payload.JsonPayload):
+        kwargs["data"] = json.loads(kwargs["data"].decode())
 
     assert {"args": args, "kwargs": kwargs} == expected

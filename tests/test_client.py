@@ -17,6 +17,9 @@ async def test_client():
         "name1": ["key1", "secret1"],
         "name2": ["key2", "secret2"],
         "name3": ["key3", "secret3", "passphrase3"],
+        "name4": [
+            "key4",
+        ],
     }
     base_url = "http://example.com"
     async with pybotters.Client(apis=apis, base_url=base_url) as client:
@@ -28,6 +31,7 @@ async def test_client():
         "name1": tuple(["key1", "secret1".encode(), ""]),
         "name2": tuple(["key2", "secret2".encode(), ""]),
         "name3": tuple(["key3", "secret3".encode(), "passphrase3"]),
+        "name4": tuple(["key4", b"", ""]),
     }
     assert [tuple(x) for x in apis.values()] != [
         x for x in client._session.__dict__["_apis"].values()

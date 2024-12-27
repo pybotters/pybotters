@@ -331,6 +331,8 @@ class Client:
                 encoded[name] = (apis[name][0], apis[name][1].encode(), "")
             elif len(apis[name]) == 3:
                 encoded[name] = (apis[name][0], apis[name][1].encode(), apis[name][2])
+            elif len(apis[name]) == 1:
+                encoded[name] = (apis[name][0], b"", "")
         return encoded
 
 

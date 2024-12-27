@@ -15,6 +15,8 @@ from aiohttp.payload import JsonPayload
 from multidict import CIMultiDict, MultiDict
 from yarl import URL
 
+from pybotters.helpers import hyperliquid
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -480,6 +482,46 @@ class Auth:
 
         return (method, url)
 
+    @staticmethod
+    def hyperliquid(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
+        url: URL = args[1]
+        data: dict[str, Any] = kwargs["data"] or {}
+
+        session: aiohttp.ClientSession = kwargs["session"]
+        secret_key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
+
+        if url.path.startswith("/info"):
+            return args
+
+        action: dict[str, Any] = data.get("action", {})
+        nonce: int = data.setdefault("nonce", hyperliquid.get_timestamp_ms())
+        vault_address: str | None = data.get("vaultAddress")
+
+        if "signature" not in data:
+            eip712_typed_data: tuple[
+                hyperliquid.EIP712Domain,
+                hyperliquid.MessageTypes,
+                hyperliquid.MessageData,
+            ]
+            # sign_l1_action
+            if "hyperliquidChain" not in action:
+                is_mainnet = isinstance(url.host, str) and "testnet" not in url.host
+                eip712_typed_data = hyperliquid.construct_l1_action(
+                    action, nonce, is_mainnet, vault_address
+                )
+            # sign_user_signed_action
+            else:
+                eip712_typed_data = hyperliquid.construct_user_signed_action(action)
+                data["action"] = eip712_typed_data[2]  # MessageData
+
+            signature = hyperliquid.sign_typed_data(secret_key, *eip712_typed_data)
+            data["signature"] = signature
+
+        if data:
+            kwargs.update({"data": JsonPayload(data)})
+
+        return args
+
 
 @dataclass
 class Item:
@@ -534,6 +576,8 @@ class Hosts:
         "api-futures.kucoin.com": Item("kucoin", Auth.kucoin),
         "www.okcoin.jp": Item("okj", Auth.okj),
         "api-cloud.bittrade.co.jp": Item("bittrade", Auth.bittrade),
+        "api.hyperliquid.xyz": Item("hyperliquid", Auth.hyperliquid),
+        "api.hyperliquid-testnet.xyz": Item("hyperliquid_testnet", Auth.hyperliquid),
     }
 
 
