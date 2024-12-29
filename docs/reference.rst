@@ -89,3 +89,4 @@ Helpers
    :toctree: generated
 
    pybotters.helpers.GMOCoinHelper
+   pybotters.helpers.hyperliquid

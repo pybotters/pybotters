@@ -365,6 +365,8 @@ Bybit Demo trading        ``bybit_demo``
 Bybit Testnet             ``bybit_testnet``
 Coincheck                 ``coincheck``
 GMO Coin                  ``gmocoin``
+Hyperliquid               ``hyperliquid``
+Hyperliquid Testnet       ``hyperliquid_testnet``
 KuCoin                    ``kucoin``
 MECX                      ``mexc``
 OKX                       ``okx``

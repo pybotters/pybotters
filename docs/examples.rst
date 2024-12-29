@@ -69,6 +69,17 @@ Workflow
 4. 1 秒待機して次のループに移る
 
 
+Place Order
+-----------
+
+Hyperliquid
+~~~~~~~~~~~
+
+.. _examples-place-order-hyperliquid:
+
+.. literalinclude:: ../examples/order/hyperliquid.py
+
+
 Order Book watching
 -------------------
 
