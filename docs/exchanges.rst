@@ -565,3 +565,33 @@ DataStore
 * :class:`.BitMEXDataStore`
 
 対応している WebSocket チャンネルはリファレンスの *ATTRIBUTES* をご覧ください。
+
+Hyperliquid
+-----------
+
+https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api
+
+
+Authentication
+~~~~~~~~~~~~~~
+
+* API 認証情報
+    * ``{"hyperliquid": ["SECRET_KEY"]}`` (Mainnet)
+    * ``{"hyperliquid_testnet": ["SECRET_KEY"]}`` (Testnet)
+* HTTP 認証
+    `Exchange endpoint <https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint>`_ (``/exchange``) へのリクエストに対して以下の Request Body を省略することができます。 省略した場合、以下の値が自動設定されます。
+
+    * ``nonce``: 現在時刻のミリ秒
+    * ``signature``: ``action`` をハッシュ化し秘密鍵で署名した値
+
+    実際の利用方法は :ref:`Examples <examples-place-order-hyperliquid>` を参照してください。
+* WebSocket 認証
+    まだ対応していません (Work in progress)。 以下のように手動で署名を行うことも可能です。
+
+手動で署名をする必要がある場合は、より低レベルな署名ヘルパー :mod:`pybotters.helpers.hyperliquid` を利用してください。
+
+
+DataStore
+~~~~~~~~~
+
+まだ対応していません (Work in progress)。

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Download static dependencies.
+
+# NOTE: 
+# pybotters bundles ccxt's awesome static_dependencies to avoid additional dependencies.
+# This mainly includes authentication modules related to DEX and Ethereum.
+
+wget -O - https://files.pythonhosted.org/packages/0a/ef/c0032719c18766714eb4e8cf70ebe8a2724137bba6fa85c9e472ccf3c5fc/ccxt-4.3.77.tar.gz | tar -C downloads -xz
+rm -rf pybotters/_static_dependencies
+cp -rT downloads/ccxt-4.3.77/ccxt/static_dependencies pybotters/_static_dependencies

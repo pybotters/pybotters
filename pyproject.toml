@@ -64,6 +64,7 @@ source_pkgs = ["pybotters", "tests"]
 parallel = true
 omit = [
     "pybotters/models/*",
+    "pybotters/_static_dependencies/*",
 ]
 
 [tool.coverage.report]
@@ -76,6 +77,8 @@ fail_under = 100.0
 
 [tool.ruff]
 line-length = 88
+include = ["pyproject.toml", "pybotters/**/*.py", "tests/**/*.py"]
+extend-exclude = ["pybotters/_static_dependencies"]
 
 [tool.ruff.lint]
 select = ["E", "F", "B", "I", "TC"]
@@ -83,3 +86,4 @@ ignore = ["E501"]
 
 [tool.mypy]
 packages = ["pybotters", "tests"]
+exclude = ["pybotters/_static_dependencies"]

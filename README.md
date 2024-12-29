@@ -63,6 +63,7 @@ It has the following features, making it useful for developing a trading bot.
 | MEXC | ✅ | No support | [Link](https://mexcdevelop.github.io/apidocs/spot_v3_en/) |
 | KuCoin | ✅ | ✅ | [Link](https://www.kucoin.com/docs/beginners/introduction) |
 | BitMEX | ✅ | ✅ | [Link](https://www.bitmex.com/app/apiOverview) |
+| Hyperliquid | ✅ | Not yet | [Link](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api) |
 
 ## 🐍 Requires
 

@@ -11,6 +11,16 @@
         ]
     },
     "mypy-type-checker.importStrategy": "fromEnvironment",
+    "python.analysis.exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        "**/.*",
+        "pybotters/_static_dependencies"
+    ],
+    "python.analysis.include": [
+        "pybotters",
+        "tests"
+    ],
     "python.analysis.typeCheckingMode": "off",
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
     "python.testing.pytestArgs": [
