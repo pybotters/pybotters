@@ -594,4 +594,10 @@ Authentication
 DataStore
 ~~~~~~~~~
 
-まだ対応していません (Work in progress)。
+* :class:`.HyperliquidDataStore`
+
+対応している WebSocket チャンネルはリファレンスの *ATTRIBUTES* をご覧ください。
+
+.. warning::
+
+    部分的なサポートです。 一部のチャンネルは未対応です。 `#354 <https://github.com/pybotters/pybotters/issues/354>`_
