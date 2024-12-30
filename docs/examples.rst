@@ -147,6 +147,11 @@ BitMEX
 
 .. literalinclude:: ../examples/datastore/bitmex.py
 
+Hyperliquid
+~~~~~~~~~~~
+
+.. literalinclude:: ../examples/datastore/hyperliquid.py
+
 Helpers
 -------
 
