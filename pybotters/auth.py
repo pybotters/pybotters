@@ -30,8 +30,6 @@ class Auth:
         data: dict[str, Any] = kwargs["data"] or {}
         headers: CIMultiDict = kwargs["headers"]
 
-        headers.setdefault("X-BAPI-RECV-WINDOW", "5000")
-
         session: aiohttp.ClientSession = kwargs["session"]
         key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
         secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
@@ -39,7 +37,7 @@ class Auth:
         timestamp = str(int(time.time() * 1000))
         query_string = url.raw_query_string
         body = JsonPayload(data) if data else FormData(data)()
-        recv_window = headers["X-BAPI-RECV-WINDOW"]
+        recv_window = headers.get("X-BAPI-RECV-WINDOW", "")
         text = f"{timestamp}{key}{recv_window}{query_string}".encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({"data": body})
