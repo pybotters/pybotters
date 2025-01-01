@@ -30,6 +30,8 @@ class Auth:
         data: dict[str, Any] = kwargs["data"] or {}
         headers: CIMultiDict = kwargs["headers"]
 
+        headers.setdefault("X-BAPI-RECV-WINDOW", "5000")
+
         session: aiohttp.ClientSession = kwargs["session"]
         key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
         secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
@@ -37,7 +39,8 @@ class Auth:
         timestamp = str(int(time.time() * 1000))
         query_string = url.raw_query_string
         body = JsonPayload(data) if data else FormData(data)()
-        text = f"{timestamp}{key}{query_string}".encode() + body._value
+        recv_window = headers["X-BAPI-RECV-WINDOW"]
+        text = f"{timestamp}{key}{recv_window}{query_string}".encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({"data": body})
         headers.update(
@@ -82,9 +85,7 @@ class Auth:
         query = MultiDict(url.query)
 
         query_string = url.raw_query_string.encode()
-        signature = hmac.new(
-            secret, query_string + body._value, hashlib.sha256
-        ).hexdigest()
+        signature = hmac.new(secret, query_string + body._value, hashlib.sha256).hexdigest()
 
         query.extend({"signature": signature})
         url = url.with_query(query)
@@ -110,9 +111,7 @@ class Auth:
         text = f"{timestamp}{method}{path}".encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({"data": body})
-        headers.update(
-            {"ACCESS-KEY": key, "ACCESS-TIMESTAMP": timestamp, "ACCESS-SIGN": signature}
-        )
+        headers.update({"ACCESS-KEY": key, "ACCESS-TIMESTAMP": timestamp, "ACCESS-SIGN": signature})
 
         return args
 
@@ -137,9 +136,7 @@ class Auth:
             text = f"{timestamp}{method}{path}".encode()
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({"data": body})
-        headers.update(
-            {"API-KEY": key, "API-TIMESTAMP": timestamp, "API-SIGN": signature}
-        )
+        headers.update({"API-KEY": key, "API-TIMESTAMP": timestamp, "API-SIGN": signature})
 
         return args
 
@@ -191,9 +188,7 @@ class Auth:
         message = f"{method}{path}{expires}".encode() + body._value
         signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
         kwargs.update({"data": body})
-        headers.update(
-            {"api-expires": expires, "api-key": key, "api-signature": signature}
-        )
+        headers.update({"api-expires": expires, "api-key": key, "api-signature": signature})
 
         return args
 
@@ -239,9 +234,7 @@ class Auth:
         message = f"{nonce}{url}".encode() + body._value
         signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
         kwargs.update({"data": body})
-        headers.update(
-            {"ACCESS-KEY": key, "ACCESS-NONCE": nonce, "ACCESS-SIGNATURE": signature}
-        )
+        headers.update({"ACCESS-KEY": key, "ACCESS-NONCE": nonce, "ACCESS-SIGNATURE": signature})
 
         return args
 
@@ -261,9 +254,7 @@ class Auth:
         timestamp = f'{datetime.datetime.utcnow().isoformat(timespec="milliseconds")}Z'
         body = JsonPayload(data) if data else FormData(data)()
         text = f"{timestamp}{method}{url.raw_path_qs}".encode() + body._value
-        sign = base64.b64encode(
-            hmac.new(secret, text, hashlib.sha256).digest()
-        ).decode()
+        sign = base64.b64encode(hmac.new(secret, text, hashlib.sha256).digest()).decode()
         kwargs.update({"data": body})
         headers.update(
             {
@@ -293,9 +284,7 @@ class Auth:
         body = JsonPayload(data) if data else FormData(data)()
         timestamp = str(int(time.time() * 1000))
         msg = f"{timestamp}{method}{path}".encode() + body._value
-        sign = base64.b64encode(
-            hmac.new(secret, msg, digestmod=hashlib.sha256).digest()
-        ).decode()
+        sign = base64.b64encode(hmac.new(secret, msg, digestmod=hashlib.sha256).digest()).decode()
         kwargs.update({"data": body})
         headers.update(
             {
@@ -362,9 +351,7 @@ class Auth:
         query = MultiDict(url.query)
 
         query_string = url.raw_query_string.encode()
-        signature = hmac.new(
-            secret, query_string + body._value, hashlib.sha256
-        ).hexdigest()
+        signature = hmac.new(secret, query_string + body._value, hashlib.sha256).hexdigest()
 
         query.extend({"signature": signature})
 
@@ -426,9 +413,7 @@ class Auth:
         timestamp = f'{datetime.datetime.utcnow().isoformat(timespec="milliseconds")}Z'
         body = JsonPayload(data) if data else FormData(data)()
         text = f"{timestamp}{method}{url.raw_path_qs}".encode() + body._value
-        sign = base64.b64encode(
-            hmac.new(secret, text, hashlib.sha256).digest()
-        ).decode()
+        sign = base64.b64encode(hmac.new(secret, text, hashlib.sha256).digest()).decode()
         kwargs.update({"data": body})
         headers.update(
             {
@@ -451,9 +436,7 @@ class Auth:
         key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
         secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
 
-        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        )
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
 
         query = MultiDict(url.query)
         query.extend(
@@ -467,12 +450,8 @@ class Auth:
         sorted_query = MultiDict(sorted(query.items()))
         # NOTE: yarl.URL.raw_query_string does not encode colons(:), so use urllib.parse.urlencode instead
         sorted_raw_query_string = urlencode(sorted_query)
-        sign_str = (
-            f"{method}\n{url.host}\n{url.raw_path}\n{sorted_raw_query_string}".encode()
-        )
-        signature = base64.b64encode(
-            hmac.new(secret, sign_str, hashlib.sha256).digest()
-        ).decode()
+        sign_str = f"{method}\n{url.host}\n{url.raw_path}\n{sorted_raw_query_string}".encode()
+        signature = base64.b64encode(hmac.new(secret, sign_str, hashlib.sha256).digest()).decode()
         query.extend({"Signature": signature})
 
         url = url.with_query(query)
