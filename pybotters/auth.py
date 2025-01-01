@@ -37,7 +37,8 @@ class Auth:
         timestamp = str(int(time.time() * 1000))
         query_string = url.raw_query_string
         body = JsonPayload(data) if data else FormData(data)()
-        text = f"{timestamp}{key}{query_string}".encode() + body._value
+        recv_window = headers.get("X-BAPI-RECV-WINDOW", "")
+        text = f"{timestamp}{key}{recv_window}{query_string}".encode() + body._value
         signature = hmac.new(secret, text, hashlib.sha256).hexdigest()
         kwargs.update({"data": body})
         headers.update(
