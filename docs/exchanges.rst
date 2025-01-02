@@ -43,6 +43,7 @@ DataStore
         * ``collateral`` キーのみが更新されます。
     * :attr:`.bitFlyerDataStore.balance`
         * ``amount`` キーのみが更新されます。
+
     .. warning::
         bitFlyer の WebSocket チャンネル ``child_order_events`` は各種データを提供しておらず、計算の元となる約定情報のみを提供しています。 その為 ``bitFlyerDataStore`` は約定情報から独自に各種データを計算しています。 値が正確になるよう努めていますが、端数処理などの影響で実データとズレが生じる可能性があることに注意してください。 正確な値を必要とする場合は、HTTP API による :meth:`.bitFlyerDataStore.initialize` を利用してください。
 
