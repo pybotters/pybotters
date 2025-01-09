@@ -15,11 +15,11 @@ curl -fL "$url" | tar -C downloads -xz
 rm -rf pybotters/_static_dependencies
 cp -rT "downloads/$version_dir/ccxt/static_dependencies" pybotters/_static_dependencies
 
-# Delete extra `*` imports
-echo -n > pybotters/_static_dependencies/ethereum/__init__.py
+# Patch toolz get_versions().
+sed -i -E "s/get_versions\(\)\['version'\]/'0+unknown'/" pybotters/_static_dependencies/toolz/__init__.py 
 # The following error will be suppressed:
 #   fatal: bad revision 'HEAD'
-# This appears to be caused by static dependencies running sub-processes.
+# This appears to be due to running sub-processes.
 # https://github.com/ccxt/ccxt/blob/4.3.77/python/ccxt/static_dependencies/toolz/__init__.py#L25
 
 rm -rf "downloads/$version_dir"
