@@ -259,7 +259,7 @@ class Auth:
         secret: bytes = session.__dict__["_apis"][api_name][1]
         passphrase: str = session.__dict__["_apis"][api_name][2]
 
-        timestamp = f'{datetime.datetime.utcnow().isoformat(timespec="milliseconds")}Z'
+        timestamp = f"{datetime.datetime.utcnow().isoformat(timespec='milliseconds')}Z"
         body = JsonPayload(data) if data else FormData(data)()
         text = f"{timestamp}{method}{url.raw_path_qs}".encode() + body._value
         sign = base64.b64encode(
@@ -424,7 +424,7 @@ class Auth:
         secret: bytes = session.__dict__["_apis"][Hosts.items[url.host].name][1]
         passphrase: str = session.__dict__["_apis"][Hosts.items[url.host].name][2]
 
-        timestamp = f'{datetime.datetime.utcnow().isoformat(timespec="milliseconds")}Z'
+        timestamp = f"{datetime.datetime.utcnow().isoformat(timespec='milliseconds')}Z"
         body = JsonPayload(data) if data else FormData(data)()
         text = f"{timestamp}{method}{url.raw_path_qs}".encode() + body._value
         sign = base64.b64encode(
