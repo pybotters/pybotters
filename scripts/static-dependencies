@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eux
 
 # Download static dependencies.
 
@@ -6,6 +6,20 @@
 # pybotters bundles ccxt's awesome static_dependencies to avoid additional dependencies.
 # This mainly includes authentication modules related to DEX and Ethereum.
 
-wget -O - https://files.pythonhosted.org/packages/0a/ef/c0032719c18766714eb4e8cf70ebe8a2724137bba6fa85c9e472ccf3c5fc/ccxt-4.3.77.tar.gz | tar -C downloads -xz
+url='https://files.pythonhosted.org/packages/0a/ef/c0032719c18766714eb4e8cf70ebe8a2724137bba6fa85c9e472ccf3c5fc/ccxt-4.3.77.tar.gz'
+version_dir=$(basename "$url" .tar.gz)
+
+mkdir -p downloads
+curl -fL "$url" | tar -C downloads -xz
+
 rm -rf pybotters/_static_dependencies
-cp -rT downloads/ccxt-4.3.77/ccxt/static_dependencies pybotters/_static_dependencies
+cp -rT "downloads/$version_dir/ccxt/static_dependencies" pybotters/_static_dependencies
+
+# Patch toolz get_versions().
+sed -i -E "s/get_versions\(\)\['version'\]/'0+unknown'/" pybotters/_static_dependencies/toolz/__init__.py 
+# The following error will be suppressed:
+#   fatal: bad revision 'HEAD'
+# This appears to be due to running sub-processes.
+# https://github.com/ccxt/ccxt/blob/4.3.77/python/ccxt/static_dependencies/toolz/__init__.py#L25
+
+rm -rf "downloads/$version_dir"

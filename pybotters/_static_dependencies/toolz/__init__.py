@@ -22,5 +22,5 @@ from . import curried
 # functoolz._sigs.create_signature_registry()
 
 from ._version import get_versions
-__version__ = get_versions()['version']
+__version__ = '0+unknown'
 del get_versions
