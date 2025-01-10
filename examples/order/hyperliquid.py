@@ -1,11 +1,30 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "pybotters>=1.7.0",
+#     "rich",
+# ]
+# ///
+
 import asyncio
 import os
+from decimal import Decimal
 from pprint import pprint
 
 import pybotters
 
 # Your secret key: 0x00000...
 HYPERLIQUID_TESTNET_SECRET_KEY = os.environ["HYPERLIQUID_TESTNET_SECRET_KEY"]
+
+
+def normalize_number(number: str) -> str:
+    """Normalize a number.
+
+    e.g. "3300.0" -> "3300"
+
+    Hyperliquid API expects normalized numbers. Otherwise, `L1 error` will occur.
+    """
+    return str(Decimal(number).normalize())
 
 
 async def main() -> None:
@@ -53,8 +72,8 @@ async def main() -> None:
                         {
                             "a": asset_index["ETH"],  # asset
                             "b": True,  # is_buy
-                            "p": "3300",  # limit_px
-                            "s": "0.1",  # size
+                            "p": normalize_number("3300.0"),  # limit_px
+                            "s": normalize_number("0.1"),  # size
                             "r": False,  # reduce_only
                             "t": {"limit": {"tif": "Gtc"}},  # order_type
                         }
