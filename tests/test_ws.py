@@ -375,8 +375,6 @@ async def test_websocketapp_functional(
         (await asyncio.wait_for(wsq.get(), timeout=5.0)),
         (await asyncio.wait_for(wsq.get(), timeout=5.0)),
     ]
-    wstask.cancel()
-    await asyncio.wait([wstask], timeout=5.0)
 
     assert received_messages == [send_message, send_message]
     assert wstask.cancelled()
@@ -387,6 +385,9 @@ async def test_websocketapp_functional(
         call(20),
         call(30),
     ]
+
+    wstask.cancel()
+    await asyncio.wait([wstask], timeout=5.0)
 
 
 @pytest_asyncio.fixture
@@ -442,13 +443,14 @@ async def test_websocketapp_ensure_open_hdlr(
     received_messages = [
         (await asyncio.wait_for(wsq.get(), timeout=5.0)),
     ]
-    wstask.cancel()
-    await asyncio.wait([wstask], timeout=5.0)
 
     assert received_messages == [{"data": "spam"}]
     assert wstask.cancelled()
 
     assert caplog.records == []  # No handler errors
+
+    wstask.cancel()
+    await asyncio.wait([wstask], timeout=5.0)
 
 
 def test_heartbeathosts():
