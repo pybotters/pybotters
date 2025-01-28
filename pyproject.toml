@@ -89,4 +89,4 @@ packages = ["pybotters", "tests"]
 exclude = ["pybotters/_static_dependencies"]
 
 [tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "module"
+asyncio_default_fixture_loop_scope = "function"
