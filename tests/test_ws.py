@@ -448,7 +448,8 @@ async def test_websocketapp_ensure_open_hdlr(
     assert received_messages == [{"data": "spam"}]
     assert wstask.cancelled()
 
-    assert caplog.records == []  # No handler errors
+    records = [x for x in caplog.records if x.name == "pybotters.ws"]
+    assert records == []  # No handler errors
 
 
 def test_heartbeathosts():
