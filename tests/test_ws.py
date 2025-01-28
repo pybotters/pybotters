@@ -377,6 +377,7 @@ async def test_websocketapp_functional(
     ]
 
     assert received_messages == [send_message, send_message]
+    assert wstask.cancelled()
 
     assert m_random.call_count == 1
     assert m_asyncio_sleep.call_args_list == [
@@ -444,6 +445,7 @@ async def test_websocketapp_ensure_open_hdlr(
     ]
 
     assert received_messages == [{"data": "spam"}]
+    assert wstask.cancelled()
 
     assert caplog.records == []  # No handler errors
 
