@@ -489,7 +489,7 @@ class Auth:
         data: dict[str, Any] = kwargs["data"] or {}
 
         session: aiohttp.ClientSession = kwargs["session"]
-        secret_key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
+        private_key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
 
         if url.path.startswith("/info"):
             return args
@@ -515,7 +515,7 @@ class Auth:
                 eip712_typed_data = hyperliquid.construct_user_signed_action(action)
                 data["action"] = eip712_typed_data[2]  # MessageData
 
-            signature = hyperliquid.sign_typed_data(secret_key, *eip712_typed_data)
+            signature = hyperliquid.sign_typed_data(private_key, *eip712_typed_data)
             data["signature"] = signature
 
         if data:
