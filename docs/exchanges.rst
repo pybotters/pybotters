@@ -577,8 +577,8 @@ Authentication
 ~~~~~~~~~~~~~~
 
 * API 認証情報
-    * ``{"hyperliquid": ["SECRET_KEY"]}`` (Mainnet)
-    * ``{"hyperliquid_testnet": ["SECRET_KEY"]}`` (Testnet)
+    * ``{"hyperliquid": ["PRIVATE_KEY"]}`` (Mainnet)
+    * ``{"hyperliquid_testnet": ["PRIVATE_KEY"]}`` (Testnet)
 * HTTP 認証
     `Exchange endpoint <https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint>`_ (``/exchange``) へのリクエストに対して以下の Request Body を省略することができます。 省略した場合、以下の値が自動設定されます。
 

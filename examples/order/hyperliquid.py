@@ -13,8 +13,8 @@ from pprint import pprint
 
 import pybotters
 
-# Your secret key: 0x00000...
-HYPERLIQUID_TESTNET_SECRET_KEY = os.environ["HYPERLIQUID_TESTNET_SECRET_KEY"]
+# Your private key: 0x00000...
+HYPERLIQUID_TESTNET_PRIVATE_KEY = os.environ["HYPERLIQUID_TESTNET_PRIVATE_KEY"]
 
 
 def normalize_number(number: str) -> str:
@@ -24,19 +24,19 @@ def normalize_number(number: str) -> str:
 
     Hyperliquid API expects normalized numbers. Otherwise, `L1 error` will occur.
     """
-    return str(Decimal(number).normalize())
+    return format(Decimal(number).normalize(), "f")
 
 
 async def main() -> None:
     """Place a limit order in Hyperliquid Testnet.
 
     [!WARNING]
-    Please change the secret key, target asset, and limit price, etc.
+    Please change the private key, target asset, and limit price, etc.
     Default: ETH, buy, 3300, 0.1
     """
     apis = {
         # Mainnet is "hyperliquid"
-        "hyperliquid_testnet": [HYPERLIQUID_TESTNET_SECRET_KEY],
+        "hyperliquid_testnet": [HYPERLIQUID_TESTNET_PRIVATE_KEY],
     }
     base_url = "https://api.hyperliquid-testnet.xyz"
     async with pybotters.Client(apis=apis, base_url=base_url) as client:
