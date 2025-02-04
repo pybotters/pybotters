@@ -24,7 +24,7 @@ def normalize_number(number: str) -> str:
 
     Hyperliquid API expects normalized numbers. Otherwise, `L1 error` will occur.
     """
-    return str(Decimal(number).normalize())
+    return format(Decimal(number).normalize(), "f")
 
 
 async def main() -> None:
