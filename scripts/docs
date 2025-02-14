@@ -7,4 +7,5 @@ uv run \
     --with-requirements requirements/docs.txt \
     --isolated \
     --no-project \
-    sphinx-build -M html docs docs/_build
+    --python 3.13 \
+    sphinx-build -T -b html docs "${READTHEDOCS_OUTPUT:-docs/_build}/html"
