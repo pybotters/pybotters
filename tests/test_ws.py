@@ -432,7 +432,7 @@ async def test_websocketapp_ensure_open_hdlr(
             ws = await client.ws_connect(
                 f"ws://localhost:{test_ping_pong_server.port}/ws",
                 hdlr_json=wsq.onmessage,
-                heartbeat=None,
+                heartbeat=10.0,
                 autoping=True,
             )
             await ws.heartbeat(0.1)
