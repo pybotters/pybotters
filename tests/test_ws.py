@@ -1347,6 +1347,7 @@ async def test_auth_okx_ws(
         # signed
         (
             {
+                "url": URL("wss://ws.bitget.com/v2/ws/private"),
                 "messages": [
                     aiohttp.WSMessage(
                         aiohttp.WSMsgType.TEXT,
@@ -1361,12 +1362,26 @@ async def test_auth_okx_ws(
                 ],
             },
             {
+                "call_args": call(
+                    {
+                        "op": "login",
+                        "args": [
+                            {
+                                "api_key": "jbcfbye8AJzXxXwMKluXM12t",
+                                "passphrase": "MyPassphrase123",
+                                "timestamp": "2085848896",
+                                "sign": "RmRhCixsMce8H7j2uyvR6sk11tCRbYenohbd87nchH8=",
+                            }
+                        ],
+                    }
+                ),
                 "records": [],
             },
         ),
         # invalid signature
         (
             {
+                "url": URL("wss://ws.bitget.com/v2/ws/private"),
                 "messages": [
                     aiohttp.WSMessage(
                         aiohttp.WSMsgType.TEXT,
@@ -1376,8 +1391,29 @@ async def test_auth_okx_ws(
                 ],
             },
             {
+                "call_args": call(
+                    {
+                        "op": "login",
+                        "args": [
+                            {
+                                "api_key": "jbcfbye8AJzXxXwMKluXM12t",
+                                "passphrase": "MyPassphrase123",
+                                "timestamp": "2085848896",
+                                "sign": "RmRhCixsMce8H7j2uyvR6sk11tCRbYenohbd87nchH8=",
+                            }
+                        ],
+                    }
+                ),
                 "records": [("pybotters.ws", logging.WARNING, ANY)],
             },
+        ),
+        # not signed
+        (
+            {
+                "url": URL("wss://ws.bitget.com/v2/ws/public"),
+                "messages": [],
+            },
+            {"call_args": None, "records": []},
         ),
     ],
 )
@@ -1390,7 +1426,7 @@ async def test_auth_bitget_ws(
     mocker.patch("time.time", return_value=2085848896.0)
 
     m_wsresp = AsyncMock()
-    m_wsresp._response.url = URL("wss://ws.bitget.com/mix/v1/stream")
+    m_wsresp._response.url = test_input["url"]
     m_wsresp._response._session.__dict__["_apis"] = {
         "bitget": (
             "jbcfbye8AJzXxXwMKluXM12t",
@@ -1402,19 +1438,7 @@ async def test_auth_bitget_ws(
 
     await asyncio.wait_for(pybotters.ws.Auth.bitget(m_wsresp), timeout=5.0)
 
-    assert m_wsresp.send_json.call_args == call(
-        {
-            "op": "login",
-            "args": [
-                {
-                    "api_key": "jbcfbye8AJzXxXwMKluXM12t",
-                    "passphrase": "MyPassphrase123",
-                    "timestamp": "2085848896",
-                    "sign": "RmRhCixsMce8H7j2uyvR6sk11tCRbYenohbd87nchH8=",
-                }
-            ],
-        }
-    )
+    assert m_wsresp.send_json.call_args == expected["call_args"]
     assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
         "records"
     ]

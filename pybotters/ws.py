@@ -546,6 +546,9 @@ class Auth:
 
     @staticmethod
     async def bitget(ws: aiohttp.ClientWebSocketResponse):
+        if "public" in ws._response.url.parts:
+            return
+
         key: str = ws._response._session.__dict__["_apis"][
             AuthHosts.items[ws._response.url.host].name
         ][0]
