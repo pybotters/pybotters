@@ -29,7 +29,7 @@ class BitgetV2DataStore(DataStoreCollection):
 
     def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
         data = msg.get("data")
-        if data:
+        if data is not None:
             channel: str = msg["arg"]["channel"]
             if channel == "ticker":
                 self.ticker._onmessage(msg)
@@ -331,17 +331,21 @@ class Positions(DataStore):
     def _onmessage(self, msg: Item) -> None:
         inst_type = msg["arg"]["instType"]
 
+        snapshot_indexes = set()
         data_to_update = []
-        data_to_delete = []
         for item in msg["data"]:
+            snapshot_indexes.add((inst_type, item["instId"], item["posId"]))
             item = {"instType": inst_type} | item
-            if item["available"] != "0":
-                data_to_update.append(item)
-            else:
+            data_to_update.append(item)
+
+        data_to_delete = []
+        for item in self:
+            existing_item_index = (item["instType"], item["instId"], item["posId"])
+            if existing_item_index not in snapshot_indexes:
                 data_to_delete.append(item)
 
-        self._update(data_to_update)
         self._delete(data_to_delete)
+        self._update(data_to_update)
 
 
 class Fill(DataStore):
