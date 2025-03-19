@@ -397,10 +397,10 @@ class DataStoreCollection:
     def _get(self, name: str, type_: type[DataStore] | None = None) -> DataStore | None:
         return self._stores.get(name)
 
-    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse | None = None) -> None:
         print(msg)
 
-    def onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+    def onmessage(self, msg: Any, ws: ClientWebSocketResponse | None = None) -> None:
         """WebSocket message handler.
 
         :meth:`.Client.ws_connect` に渡すコールバックです。
