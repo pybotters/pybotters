@@ -51,7 +51,7 @@ class PhemexDataStore(DataStoreCollection):
                 if symbol:
                     self.kline._onresponse(symbol, data)
 
-    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse | None = None) -> None:
         if not msg.get("id"):
             if "trades" in msg or "trades_p" in msg:
                 self.trade._onmessage(msg)

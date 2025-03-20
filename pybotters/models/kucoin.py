@@ -73,7 +73,7 @@ class KuCoinDataStore(DataStoreCollection):
                     raise RuntimeError(f"Failed to get a websocket endpoint: {data}")
                 self._endpoint = self._create_endpoint(data["data"])
 
-    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse | None = None) -> None:
         if "topic" in msg:
             topic = msg["topic"]
             if (

@@ -37,7 +37,7 @@ class BitMEXDataStore(DataStoreCollection):
         self._create("position", datastore_class=DataStore)
         self._create("wallet", datastore_class=DataStore)
 
-    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse | None = None) -> None:
         if "error" in msg:
             logger.warning(msg)
         if "table" in msg:
