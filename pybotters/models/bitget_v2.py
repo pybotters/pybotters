@@ -27,7 +27,7 @@ class BitgetV2DataStore(DataStoreCollection):
         self._create("orders-algo", datastore_class=OrdersAlgo)
         self._create("positions-history", datastore_class=PositionsHistory)
 
-    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse | None = None) -> None:
         data = msg.get("data")
         if data is not None:
             channel: str = msg["arg"]["channel"]

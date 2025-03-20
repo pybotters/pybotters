@@ -65,7 +65,7 @@ class BybitDataStore(DataStoreCollection):
                 if target_onresponse := getattr(self[topic], "_onresponse", None):
                     target_onresponse(resp.url, data)
 
-    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse | None = None) -> None:
         if "success" in msg:
             if not msg["success"]:
                 logger.warning(msg)

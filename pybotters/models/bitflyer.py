@@ -9,12 +9,12 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Awaitable
 
 from ..store import DataStore, DataStoreCollection
+from ..ws import ClientWebSocketResponse
 
 if TYPE_CHECKING:
     import aiohttp
 
     from ..typedefs import Item
-    from ..ws import ClientWebSocketResponse
 
 logger = logging.getLogger(__name__)
 
@@ -60,14 +60,16 @@ class bitFlyerDataStore(DataStoreCollection):
             elif resp.url.path == "/v1/me/getbalance":
                 self.balance._onresponse(data)
 
-    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse | None = None) -> None:
         if "error" in msg:
             logger.warning(msg)
         if "params" in msg:
             channel: str = msg["params"]["channel"]
             message = msg["params"]["message"]
             if channel.startswith("lightning_board_"):
-                if channel.startswith("lightning_board_snapshot_"):
+                if channel.startswith("lightning_board_snapshot_") and isinstance(
+                    ws, ClientWebSocketResponse
+                ):
                     asyncio.create_task(
                         ws.send_json(
                             {

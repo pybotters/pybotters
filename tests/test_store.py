@@ -1,10 +1,21 @@
+from __future__ import annotations
+
 import asyncio
 import uuid
+from typing import TYPE_CHECKING
 
+import aiohttp
 import pytest
-import pytest_mock
+import pytest_asyncio
+from aiohttp import web
 
 import pybotters.store
+
+if TYPE_CHECKING:
+    from aiohttp.test_utils import TestClient
+    from pytest_aiohttp.plugin import AiohttpClient  # type: ignore
+
+    from pybotters.ws import ClientWebSocketResponse
 
 
 def test_dsm_construct():
@@ -33,26 +44,66 @@ def test_dsm_subcls_construct():
     assert called
 
 
-@pytest.mark.asyncio
-async def test_dsm_construct_onmessage(mocker: pytest_mock.MockerFixture):
-    dsm = pybotters.store.DataStoreCollection()
-    assert not dsm._iscorofunc
-    dsm._events.append(asyncio.Event())
-    dsm.onmessage({"foo": "bar"}, mocker.MagicMock())
-    assert not len(dsm._events)
+@pytest_asyncio.fixture
+async def echo_client(aiohttp_client: AiohttpClient) -> TestClient:
+    routes = web.RouteTableDef()
+
+    @routes.get("/ws")
+    async def echo(request: web.Request) -> web.WebSocketResponse:
+        ws = web.WebSocketResponse()
+        await ws.prepare(request)
+        async for msg in ws:
+            await ws.send_json(msg.json())
+        return ws
+
+    app = web.Application()
+    app.add_routes(routes)
+
+    client = await aiohttp_client(app)
+    return client
 
 
 @pytest.mark.asyncio
-async def test_dsm_wait():
-    dsm = pybotters.store.DataStoreCollection()
+async def test_dsc_onmessage(echo_client: TestClient) -> None:
+    class DSC(pybotters.store.DataStoreCollection):
+        task: asyncio.Task[None]
+
+        def _onmessage(
+            self, message: object, ws: ClientWebSocketResponse | None = None
+        ) -> None:
+            assert ws is not None
+            self.task = asyncio.create_task(ws.send_json(message))
+
+    messages: list[object] = []
+    async with echo_client.ws_connect(
+        "/ws", timeout=aiohttp.ClientWSTimeout(ws_receive=5.0)
+    ) as ws:
+        dsc = DSC()
+        dsc.onmessage({"foo": "bar"}, ws)  # type: ignore
+
+        await dsc.task
+        async for msg in ws:
+            messages.append(msg.json())
+            break
+
+    assert messages == [{"foo": "bar"}]
+
+
+def test_dsc_onmessage_without_ws(capsys: pytest.CaptureFixture) -> None:
+    dsc = pybotters.store.DataStoreCollection()
+    dsc.onmessage('{"foo":"bar"}')
+
+    captured = capsys.readouterr()
+    assert captured.out == '{"foo":"bar"}\n'
+
+
+@pytest.mark.asyncio
+async def test_dsc_wait() -> None:
+    dsc = pybotters.store.DataStoreCollection()
     loop = asyncio.get_running_loop()
 
-    def set_events():
-        for event in dsm._events:
-            event.set()
-
-    wait_task = loop.create_task(dsm.wait())
-    loop.call_soon(set_events)
+    wait_task = loop.create_task(dsc.wait())
+    loop.call_soon(dsc.onmessage, {"foo": "bar"})
 
     await asyncio.wait_for(wait_task, timeout=5.0)
 

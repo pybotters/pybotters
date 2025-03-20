@@ -33,7 +33,7 @@ class CoincheckDataStore(DataStoreCollection):
                 pair = resp.url.query.get("pair")
                 self.orderbook._onresponse(pair, data)
 
-    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse | None = None) -> None:
         first_item = next(iter(msg), None)
         if isinstance(first_item, list):
             self.trades._onmessage(msg)

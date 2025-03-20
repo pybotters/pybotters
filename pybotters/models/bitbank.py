@@ -18,7 +18,7 @@ class bitbankDataStore(DataStoreCollection):
         self._create("depth", datastore_class=Depth)
         self._create("ticker", datastore_class=Ticker)
 
-    def _onmessage(self, msg: str, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: str, ws: ClientWebSocketResponse | None = None) -> None:
         if msg.startswith("42"):
             data_json = json.loads(msg[2:])
             room_name = data_json[1]["room_name"]

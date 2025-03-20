@@ -629,7 +629,7 @@ class GMOCoinDataStore(DataStoreCollection):
                 self.token = data["data"]
                 asyncio.create_task(self._token(resp.__dict__["_raw_session"]))
 
-    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse | None = None) -> None:
         if "error" in msg:
             logger.warning(msg)
         if "channel" in msg:

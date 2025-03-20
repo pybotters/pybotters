@@ -115,7 +115,7 @@ class BinanceDataStoreBase(DataStoreCollection):
             resp.url.query["symbol"], resp.url.query["interval"], data
         )
 
-    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse | None = None) -> None:
         if "error" in msg:
             logger.warning(msg)
         if "result" not in msg:

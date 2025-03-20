@@ -62,7 +62,7 @@ class OKXDataStore(DataStoreCollection):
                 self.ordersalgo._onresponse(data["data"])
                 self.algoadvance._onresponse(data["data"])
 
-    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Any, ws: ClientWebSocketResponse | None = None) -> None:
         if "event" in msg:
             if msg["event"] == "error":
                 logger.warning(msg)

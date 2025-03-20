@@ -47,7 +47,7 @@ class BitgetDataStore(DataStoreCollection):
                         f"Data: {data}"
                     )
 
-    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse | None = None) -> None:
         if "arg" in msg and "data" in msg:
             channel = msg["arg"].get("channel")
             if channel == "trade":

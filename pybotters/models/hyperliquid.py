@@ -20,7 +20,7 @@ class HyperliquidDataStore(DataStoreCollection):
         self._create("trades", datastore_class=Trades)
         # TODO: Add other data streams
 
-    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse) -> None:
+    def _onmessage(self, msg: Item, ws: ClientWebSocketResponse | None = None) -> None:
         channel = msg.get("channel")
 
         if channel == "l2Book":
