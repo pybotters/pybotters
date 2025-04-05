@@ -8,7 +8,7 @@ from .models.binance import (
     BinanceSpotDataStore,
     BinanceUSDSMDataStore,
 )
-from .models.bitbank import bitbankDataStore
+from .models.bitbank import bitbankDataStore, bitbankPrivateDataStore
 from .models.bitflyer import bitFlyerDataStore
 from .models.bitget import BitgetDataStore
 from .models.bitget_v2 import BitgetV2DataStore
@@ -54,6 +54,7 @@ __all__: tuple[str, ...] = (
     "PhemexDataStore",
     "bitFlyerDataStore",
     "bitbankDataStore",
+    "bitbankPrivateDataStore",
     # auth
     "Auth",
 )

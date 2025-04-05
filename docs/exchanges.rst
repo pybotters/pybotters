@@ -111,8 +111,9 @@ Authentication
     HTTP リクエスト時に取引所が定める認証情報が自動設定されます。 認証方式は ``ACCESS-TIME-WINDOW`` を採用します。
 
     https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api_JP.md#%E8%AA%8D%E8%A8%BC
-* WebSocket 認証
-    *現時点で Private WebSocket API はありません*
+* PubNub 認証
+    :mod:`pybotters.helpers.bitbank` のヘルパー関数を利用して、自動的に PubNub の認証を行います。
+
 
 WebSocket
 ~~~~~~~~~
