@@ -357,12 +357,15 @@ async def test_bitbank_subscribe_bitbank_error(
 ) -> None:
     async with pybotters.Client() as client:
         with pytest.raises(ValueError):
-            async for _ in subscribe(
-                client,
-                bitbank_server=server_bitbank_error,
-                pubnub_server=server_pubnub,
-            ):
-                pass
+            await (
+                subscribe(
+                    client,
+                    bitbank_server=server_bitbank_error,
+                    pubnub_server=server_pubnub,
+                )
+                .__aiter__()
+                .__anext__()
+            )
 
 
 @pytest.mark.asyncio
@@ -371,12 +374,15 @@ async def test_bitbank_subscribe_pubnub_error(
 ) -> None:
     async with pybotters.Client() as client:
         with pytest.raises(ValueError):
-            async for _ in subscribe(
-                client,
-                bitbank_server=server_bitbank,
-                pubnub_server=server_pubnub_error,
-            ):
-                pass
+            await (
+                subscribe(
+                    client,
+                    bitbank_server=server_bitbank,
+                    pubnub_server=server_bitbank_error,
+                )
+                .__aiter__()
+                .__anext__()
+            )
 
 
 @pytest.mark.asyncio
@@ -384,12 +390,16 @@ async def test_bitbank_subscribe_pubnub_expired(
     server_bitbank: str, server_pubnub_expired: str
 ) -> None:
     async with pybotters.Client() as client:
-        async for message in subscribe(
-            client,
-            channel="1234567890",
-            token="expired",
-            bitbank_server=server_bitbank,
-            pubnub_server=server_pubnub_expired,
-        ):
-            assert message == {"t": {"t": "1231312313123", "r": 33}, "m": []}
-            break
+        message = (
+            await subscribe(
+                client,
+                channel="1234567890",
+                token="expired",
+                bitbank_server=server_bitbank,
+                pubnub_server=server_pubnub_expired,
+            )
+            .__aiter__()
+            .__anext__()
+        )
+
+    assert message == {"t": {"t": "1231312313123", "r": 33}, "m": []}
