@@ -111,14 +111,14 @@ Authentication
     HTTP リクエスト時に取引所が定める認証情報が自動設定されます。 認証方式は ``ACCESS-TIME-WINDOW`` を採用します。
 
     https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api_JP.md#%E8%AA%8D%E8%A8%BC
-* WebSocket 認証
-    *現時点で Private WebSocket API はありません*
+* PubNub 認証
+    :mod:`pybotters.helpers.bitbank` のヘルパー関数を利用して、自動的に PubNub の認証を行います。
 
 WebSocket
 ~~~~~~~~~
 
 * Socket.IO
-    bitbank の WebSocket は Socket.IO で実装されています。
+    bitbank の Public WebSocket は Socket.IO で実装されています。
     pybotters は Socket.IO にネイティブでは対応していない為、低レベルで URL の指定と購読リクエストを送信をする必要があります。
 
     低レベルで Socket.IO の購読リクエストには :meth:`.Client.ws_connect` の引数 ``send_str`` を ``'42["join-room","depth_whole_btc_jpy"]'`` のように指定します。
@@ -130,10 +130,23 @@ WebSocket
 * Ping-Pong
     * Socket.IO の Ping-Pong が自動で送信されます。
 
+PubNub
+~~~~~~
+
+* PubNub クライアント
+    bitbank の Private Stream API は PubNub によって配信されています。 これは WebSocket のようなプロトコルではありません。
+
+    pybotters はヘルパー関数として組み込みの PubNub クライアント :mod:`pybotters.helpers.bitbank` を提供しています。
+    このヘルパー関数群では Private Stream API のサブスクライブをできます。 さらにトークンの自動取得・トークンの自動更新を行います。
+    また :class:`.bitbankPrivateDataStore` を簡単に利用することができます。 (:ref:`Examples <bitbankhelper>`)
+
+    別途、ファースト・パーティの `PubNub SDK <https://www.pubnub.com/docs/sdks/python>`_ を利用することもできます。 これより高機能ですが、ただし pybotters の HTTP セッションとは互換性がありません。 組み込みのヘルパー関数を利用することで、イベントループをより適切に管理することができます。
+
 DataStore
 ~~~~~~~~~
 
 * :class:`.bitbankDataStore`
+* :class:`.bitbankPrivateDataStore`
 
 対応している WebSocket チャンネルはリファレンスの *ATTRIBUTES* をご覧ください。
 

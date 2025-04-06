@@ -169,3 +169,16 @@ GMO Coin
 以下は適当なチャンネルを購読して、アクセストークン管理ヘルパーのタスクをスケジュールするサンプルコードです。
 
 .. literalinclude:: ../examples/helpers/gmocoin.py
+
+.. _bitbankhelper:
+
+bitbank
+~~~~~~~
+
+:class:`.bitbankPrivateDataStore` と組み込みの PubNub クライアント :mod:`pybotters.helpers.bitbank` を利用したサンプルコードです。
+
+このサンプルコードでは、まず REST API を利用してアクティブオーダーを初期化します。
+その後組み込みの PubNub クライアントを利用して Private Stream API を非同期でサブスクライブします。
+そして、DataStore の :ref:`watch` 機能を利用してアクティブオーダーの変更を監視します。
+
+.. literalinclude:: ../examples/helpers/bitbank.py

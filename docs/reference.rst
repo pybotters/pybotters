@@ -61,6 +61,7 @@ Exchange-specific Data Stores
    pybotters.PhemexDataStore
    pybotters.bitFlyerDataStore
    pybotters.bitbankDataStore
+   pybotters.bitbankPrivateDataStore
 
 
 Abstract DataStore
@@ -91,3 +92,4 @@ Helpers
 
    pybotters.helpers.GMOCoinHelper
    pybotters.helpers.hyperliquid
+   pybotters.helpers.bitbank
