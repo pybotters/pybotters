@@ -6,6 +6,7 @@ import logging
 import os
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal
+from urllib.parse import urlparse
 
 import aiohttp
 from aiohttp import hdrs
@@ -78,9 +79,13 @@ class Client:
         auth: type[Auth] | None = Auth,
         **kwargs: Any,
     ) -> RequestContextManager:
+        if urlparse(url).scheme:
+            target_url = url
+        else:
+            target_url = self._base_url + url
         return self._session.request(
             method=method,
-            url=self._base_url + url,
+            url=target_url,
             params=params,
             data=data,
             auth=auth,

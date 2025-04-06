@@ -6,6 +6,9 @@ import aiohttp
 import pytest
 import pytest_asyncio
 import pytest_mock
+from aiohttp import web
+from aiohttp.test_utils import TestServer
+from yarl import URL
 
 import pybotters
 import pybotters.auth
@@ -50,6 +53,38 @@ async def test_client_warn(mocker: pytest_mock.MockerFixture):
     assert client._base_url == base_url
     assert client._session.closed
     assert client._session.__dict__["_apis"] == {}
+
+
+@pytest.mark.asyncio
+async def test_client_base_url() -> None:
+    base_routes = web.RouteTableDef()
+
+    @base_routes.get("/")
+    async def base_hello(request: web.Request) -> web.Response:
+        return web.Response(text="Hello from base")
+
+    base_app = web.Application()
+    base_app.add_routes(base_routes)
+
+    alt_routes = web.RouteTableDef()
+
+    @alt_routes.get("/")
+    async def alt_hello(request: web.Request) -> web.Response:
+        return web.Response(text="Hello from alt")
+
+    alt_app = web.Application()
+    alt_app.add_routes(alt_routes)
+
+    async with (
+        TestServer(base_app) as base_server,
+        TestServer(alt_app) as alt_server,
+    ):
+        base_url = str(base_server.make_url(URL()))
+        alt_url = str(alt_server.make_url(URL()))
+        async with pybotters.Client(base_url=base_url) as client:
+            r = await client.fetch("GET", alt_url)
+
+    assert r.text == "Hello from alt"
 
 
 @pytest.mark.asyncio
