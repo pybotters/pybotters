@@ -266,13 +266,10 @@ async def server_pubnub_error() -> AsyncGenerator[str]:
 
     @routes.get("/v2/subscribe/sub-c-ecebae8e-dd60-11e6-b6b1-02ee2ddab7fe/1234567890/0")
     async def subscribe(request: web.Request) -> web.Response:
-        if request.query.get("tt") is None:
-            return web.json_response({"t": {"t": "1231312313123", "r": 33}, "m": []})
-        else:
-            return web.json_response(
-                {"error": True, "status": 403, "service": "Access Manager"},
-                status=403,
-            )
+        return web.json_response(
+            {"error": True, "status": 403, "service": "Access Manager"},
+            status=403,
+        )
 
     app = web.Application()
     app.add_routes(routes)
@@ -378,7 +375,7 @@ async def test_bitbank_subscribe_pubnub_error(
                 subscribe(
                     client,
                     bitbank_server=server_bitbank,
-                    pubnub_server=server_bitbank_error,
+                    pubnub_server=server_pubnub_error,
                 )
                 .__aiter__()
                 .__anext__()
