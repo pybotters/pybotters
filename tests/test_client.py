@@ -61,7 +61,7 @@ async def test_client_base_url() -> None:
 
     @base_routes.get("/")
     async def base_hello(request: web.Request) -> web.Response:
-        return web.Response(text="Hello from base")
+        return web.Response(text="Hello from base")  # pragma: no cover
 
     base_app = web.Application()
     base_app.add_routes(base_routes)
