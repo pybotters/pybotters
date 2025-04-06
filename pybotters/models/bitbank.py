@@ -137,8 +137,9 @@ class bitbankPrivateDataStore(DataStoreCollection):
         The bitbank Private Stream API is provided via PubNub. It is not a WebSocket
         API.
 
-    The :meth:`~.DataStoreCollection.onmessage` handler must be used in combination with
-    the `PubNub SDK <https://pypi.org/project/pubnub/>`_
+        The :meth:`~.DataStoreCollection.onmessage` handler can be used with the
+        built-in PubNub helper functions :mod:`pybotters.helpers.bitbank` or the
+        first-party `PubNub SDK <https://www.pubnub.com/docs/sdks/python>`_.
     """
 
     def _init(self) -> None:

@@ -124,7 +124,7 @@ async def subscribe_with_callback(
                 store = pybotters.bitbankPrivateDataStore()
                 task = asyncio.create_task(subscribe_with_callback(client, store.onmessage))
                 try:
-                    # Watch spot_order ...
+                    # Example: Watch active orders ...
                     with store.spot_order.watch() as stream:
                         async for _ in stream:
                             print(store.spot_order.find())
