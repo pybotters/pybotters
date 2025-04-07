@@ -537,6 +537,7 @@ def test_bitbank_private_order() -> None:
     """Tests for bitbankPrivateDataStore spot_order only."""
     store = pybotters.bitbankPrivateDataStore()
 
+    msg: Any
     # Create an order
     msg = {
         "method": "spot_order_new",
@@ -644,6 +645,70 @@ def test_bitbank_private_order() -> None:
             }
         ],
     }
+    store.onmessage(msg)
+
+    assert store.spot_order.find() == [
+        {
+            "average_price": "0.000",
+            "executed_amount": "0.0000",
+            "order_id": 44280998810,
+            "ordered_at": 1742546617276,
+            "pair": "xrp_jpy",
+            "price": "359.412",
+            "remaining_amount": "0.0002",
+            "side": "buy",
+            "start_amount": "0.0002",
+            "status": "UNFILLED",
+            "type": "limit",
+            "expire_at": 1758098617276,
+            "post_only": True,
+            "user_cancelable": True,
+        }
+    ]
+
+    # Create anoter order (for spot_order_invalidation)
+    msg = {
+        "method": "spot_order_new",
+        "params": [
+            {
+                "average_price": "0.000",
+                "executed_amount": "0.0000",
+                "order_id": 44280888880,
+                "ordered_at": 1742546316395,
+                "pair": "xrp_jpy",
+                "price": "354.426",
+                "remaining_amount": "0.0001",
+                "side": "buy",
+                "start_amount": "0.0001",
+                "status": "UNFILLED",
+                "type": "limit",
+                "expire_at": 1758098316395,
+                "post_only": True,
+                "user_cancelable": True,
+            }
+        ],
+    }
+    store.onmessage(msg)
+
+    assert store.spot_order.get({"order_id": 44280888880}) == {
+        "average_price": "0.000",
+        "executed_amount": "0.0000",
+        "order_id": 44280888880,
+        "ordered_at": 1742546316395,
+        "pair": "xrp_jpy",
+        "price": "354.426",
+        "remaining_amount": "0.0001",
+        "side": "buy",
+        "start_amount": "0.0001",
+        "status": "UNFILLED",
+        "type": "limit",
+        "expire_at": 1758098316395,
+        "post_only": True,
+        "user_cancelable": True,
+    }
+
+    # spot_order_invalidation
+    msg = {"method": "spot_order_invalidation", "params": {"order_id": [44280888880]}}
     store.onmessage(msg)
 
     assert store.spot_order.find() == [

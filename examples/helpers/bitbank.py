@@ -14,16 +14,15 @@ from pybotters.helpers.bitbank import subscribe_with_callback
 
 BITBANK_API_KEY = os.environ["BITBANK_API_KEY"]
 BITBANK_API_SECRET = os.environ["BITBANK_API_SECRET"]
-apis = {"bitbank": [BITBANK_API_KEY, BITBANK_API_SECRET]}
 
 
 async def main():
-    async with pybotters.Client(apis=apis) as client:
+    apis = apis = {"bitbank": [BITBANK_API_KEY, BITBANK_API_SECRET]}
+    base_url = "https://api.bitbank.cc/v1"
+    async with pybotters.Client(apis=apis, base_url=base_url) as client:
         store = pybotters.bitbankPrivateDataStore()
 
-        await store.initialize(
-            client.get("https://api.bitbank.cc/v1/user/spot/active_orders")
-        )
+        await store.initialize(client.get("/user/spot/active_orders"))
 
         task = asyncio.create_task(subscribe_with_callback(client, store.onmessage))
         try:
