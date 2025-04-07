@@ -31,7 +31,7 @@ class bitbankDataStore(DataStoreCollection):
         if msg.startswith("42"):
             data_json = json.loads(msg[2:])
             room_name = data_json[1]["room_name"]
-            data = data_json[1]["params"]["data"]
+            data = data_json[1]["message"]["data"]
             if "transactions" in room_name:
                 self.transactions._onmessage(room_name, data)
             elif "depth" in room_name:
@@ -213,9 +213,6 @@ class bitbankPrivateDataStore(DataStoreCollection):
     def spot_order(self) -> SpotOrder:
         """``spot_order_new``, ``spot_order``, ``spot_order_invalidation`` method.
 
-        FIXME: ``spot_order_invalidation`` behavior on the bitbank side is not well
-        understood.
-
         Keys: ``["order_id"]``
 
         Only active orders are stored. Completed and canceled orders are removed from
@@ -327,6 +324,7 @@ class SpotOrder(DataStore):
         data_to_delete: list[Item] = []
         for order_id in params["order_id"]:
             data_to_delete.append({"order_id": order_id})
+        self._delete(data_to_delete)
 
 
 class SpotTrade(DataStore, _BasicUpdateMixin):
