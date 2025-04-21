@@ -1,2 +1,2 @@
-aiohttp==3.11.17
+aiohttp==3.11.18
 typing-extensions==4.13.2 ; python_version < "3.10"
