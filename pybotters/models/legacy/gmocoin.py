@@ -323,7 +323,7 @@ class OrderBookStore(DataStore):
         }
         for item in self:
             if all(k in item and query[k] == item[k] for k in query):
-                result[item["side"]].append(cast(OrderLevel, item))
+                result[item["side"]].append(cast("OrderLevel", item))
         result[OrderSide.SELL].sort(key=lambda x: x["price"])
         result[OrderSide.BUY].sort(key=lambda x: x["price"], reverse=True)
         return result
@@ -354,7 +354,7 @@ class OrderStore(DataStore):
             self._delete([cast("Item", mes)])
 
     def _onexecution(self, mes: Execution) -> None:
-        current = cast(Order, self.get({"order_id": mes["order_id"]}))
+        current = cast("Order", self.get({"order_id": mes["order_id"]}))
         if (
             mes["order_executed_size"]
             and current

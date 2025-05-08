@@ -210,7 +210,7 @@ class WebSocketApp:
             self._current_ws = ws
             self._event.set()
 
-            await cast(ClientWebSocketResponse, ws)._wait_authtask()
+            await cast("ClientWebSocketResponse", ws)._wait_authtask()
 
             await self._ws_send(ws, send_str, send_bytes, send_json)
 
@@ -816,8 +816,8 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
 class RequestLimit:
     @staticmethod
     async def gmocoin(ws: aiohttp.ClientWebSocketResponse, send_str: Awaitable[None]):
-        session = cast(aiohttp.ClientSession, ws._response._session)
-        async with cast(ClientWebSocketResponse, ws)._lock:
+        session = cast("aiohttp.ClientSession", ws._response._session)
+        async with cast("ClientWebSocketResponse", ws)._lock:
             await send_str
             r = await session.get("https://api.coin.z.com/public/v1/status", auth=_Auth)
             data = await r.json()
@@ -837,8 +837,8 @@ class RequestLimit:
     async def binance(
         ws: aiohttp.ClientWebSocketResponse, send_str: Awaitable[None]
     ) -> None:
-        session = cast(aiohttp.ClientSession, ws._response._session)
-        async with cast(ClientWebSocketResponse, ws)._lock:
+        session = cast("aiohttp.ClientSession", ws._response._session)
+        async with cast("ClientWebSocketResponse", ws)._lock:
             await send_str
             r = await session.get("https://api.binance.com/api/v3/time", auth=None)
             data = await r.json()

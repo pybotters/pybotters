@@ -256,7 +256,7 @@ async def fetch_channel_and_token(
     if (not isinstance(data, dict)) or (data.get("success") != 1):
         raise ValueError(data)
 
-    return cast(BaseResponse, data)
+    return cast("BaseResponse", data)
 
 
 async def fetch_subscribe(
@@ -292,4 +292,4 @@ async def fetch_subscribe(
     if (not isinstance(data, dict)) or ("t" not in data):
         raise ValueError(data)
 
-    return cast(SubscribeResponse, data)
+    return cast("SubscribeResponse", data)

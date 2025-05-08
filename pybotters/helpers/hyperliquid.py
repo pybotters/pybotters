@@ -230,7 +230,7 @@ def _cast_to_any_dict(like_typed_dict: Mapping[str, object]) -> dict[str, Any]:
 
     TypedDict is a Mapping[str, object], but many signatures that do not handle this correctly require dict[str, Any].
     """
-    return cast(dict[str, Any], like_typed_dict)
+    return cast("dict[str, Any]", like_typed_dict)
 
 
 # Ref: eth_account.Account.sign_typed_data

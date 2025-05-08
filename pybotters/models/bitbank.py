@@ -98,11 +98,11 @@ class Depth(DataStore):
             result = self.find({"pair": pair})
             self._delete(result)
             tuples = (("bids", "bids"), ("asks", "asks"))
-            self.timestamp = cast(int, data["timestamp"])
+            self.timestamp = cast("int", data["timestamp"])
         else:
             pair = room_name.replace("depth_diff_", "")
             tuples = (("b", "bids"), ("a", "asks"))
-            self.timestamp = cast(int, data["t"])
+            self.timestamp = cast("int", data["t"])
 
         for side_item, side in tuples:
             for item in cast("list[list[str]]", data[side_item]):
