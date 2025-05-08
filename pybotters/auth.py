@@ -491,7 +491,7 @@ class Auth:
         session: aiohttp.ClientSession = kwargs["session"]
         private_key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
 
-        if url.path.startswith("/info"):
+        if url.path.startswith(("/info", "/ws")):
             return args
 
         action: dict[str, Any] = data.get("action", {})

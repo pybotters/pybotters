@@ -1730,6 +1730,26 @@ def test_bittrade(mock_session, test_input, expected):
                 },
             },
         ),
+        # Case 4: WebSocket endpoint
+        (
+            # test_input
+            {
+                "args": ("POST", URL("https://api.hyperliquid.xyz/ws")),
+                "kwargs": {
+                    "data": None,
+                    "headers": None,
+                },
+                "freeze_time": 0,
+            },
+            # expected
+            {
+                "args": ("POST", URL("https://api.hyperliquid.xyz/ws")),
+                "kwargs": {
+                    "data": None,
+                    "headers": None,
+                },
+            },
+        ),
     ],
 )
 def test_hyperliquid(mock_session, test_input, expected):
