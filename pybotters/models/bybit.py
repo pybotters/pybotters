@@ -24,10 +24,11 @@ class BybitDataStore(DataStoreCollection):
         self._create("publicTrade", datastore_class=Trade)
         self._create("tickers", datastore_class=Ticker)
         self._create("kline", datastore_class=Kline)
-        self._create("liquidation", datastore_class=Liquidation)
+        self._create("allLiquidation", datastore_class=Liquidation)
         self._create("kline_lt", datastore_class=LTKline)
         self._create("tickers_lt", datastore_class=LTTicker)
         self._create("lt", datastore_class=LTNav)
+        self._create("liquidation", datastore_class=Liquidation)
         self._create("position", datastore_class=Position)
         self._create("execution", datastore_class=Execution)
         self._create("order", datastore_class=Order)
@@ -110,12 +111,12 @@ class BybitDataStore(DataStoreCollection):
         return self._get("kline", Kline)
 
     @property
-    def liquidation(self) -> "Liquidation":
-        """liquidation topic.
+    def all_liquidation(self) -> "AllLiquidation":
+        """allLiquidation topic.
 
-        https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+        https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
         """
-        return self._get("liquidation", Liquidation)
+        return self._get("allLiquidation", AllLiquidation)
 
     @property
     def lt_kline(self) -> "LTKline":
@@ -140,6 +141,14 @@ class BybitDataStore(DataStoreCollection):
         https://bybit-exchange.github.io/docs/v5/websocket/public/etp-nav
         """
         return self._get("lt", LTNav)
+
+    @property
+    def liquidation(self) -> "Liquidation":
+        """liquidation topic.
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+        """
+        return self._get("liquidation", Liquidation)
 
     @property
     def position(self) -> "Position":
@@ -248,11 +257,11 @@ class Kline(DataStore):
         self._update(msg["data"])
 
 
-class Liquidation(DataStore):
+class AllLiquidation(DataStore):
     _MAXLEN = 99999
 
     def _onmessage(self, msg: Item, topic_ext: list[str]) -> None:
-        self._insert([msg["data"]])
+        self._insert(msg["data"])
 
 
 class LTKline(Kline): ...
@@ -262,6 +271,13 @@ class LTTicker(Ticker): ...
 
 
 class LTNav(Ticker): ...
+
+
+class Liquidation(DataStore):
+    _MAXLEN = 99999
+
+    def _onmessage(self, msg: Item, topic_ext: list[str]) -> None:
+        self._insert([msg["data"]])
 
 
 class Position(DataStore):
