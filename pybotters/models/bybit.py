@@ -24,7 +24,7 @@ class BybitDataStore(DataStoreCollection):
         self._create("publicTrade", datastore_class=Trade)
         self._create("tickers", datastore_class=Ticker)
         self._create("kline", datastore_class=Kline)
-        self._create("all-liquidation", datastore_class=Liquidation)
+        self._create("allLiquidation", datastore_class=Liquidation)
         self._create("kline_lt", datastore_class=LTKline)
         self._create("tickers_lt", datastore_class=LTTicker)
         self._create("lt", datastore_class=LTNav)
@@ -112,11 +112,11 @@ class BybitDataStore(DataStoreCollection):
 
     @property
     def all_liquidation(self) -> "AllLiquidation":
-        """all-liquidation topic.
+        """allLiquidation topic.
 
         https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
         """
-        return self._get("all-liquidation", AllLiquidation)
+        return self._get("allLiquidation", AllLiquidation)
 
     @property
     def lt_kline(self) -> "LTKline":
