@@ -24,7 +24,7 @@ class BybitDataStore(DataStoreCollection):
         self._create("publicTrade", datastore_class=Trade)
         self._create("tickers", datastore_class=Ticker)
         self._create("kline", datastore_class=Kline)
-        self._create("allLiquidation", datastore_class=Liquidation)
+        self._create("allLiquidation", datastore_class=AllLiquidation)
         self._create("kline_lt", datastore_class=LTKline)
         self._create("tickers_lt", datastore_class=LTTicker)
         self._create("lt", datastore_class=LTNav)
