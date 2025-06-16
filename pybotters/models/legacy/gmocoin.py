@@ -482,8 +482,8 @@ class MessageHelper:
             symbol=Symbol[data["symbol"]],
             settle_type=SettleType[data["settleType"]],
             side=OrderSide[data["side"]],
-            price=Decimal(data.get("executionPrice", data.get("price"))),
-            size=Decimal(data.get("executionSize", data.get("size"))),
+            price=Decimal(data.get("executionPrice") or data["price"]),
+            size=Decimal(data.get("executionSize") or data["size"]),
             timestamp=parse_datetime(
                 data.get("executionTimestamp", data.get("timestamp"))
             ),
@@ -511,7 +511,7 @@ class MessageHelper:
 
     @staticmethod
     def to_order(data: Item) -> "Order":
-        status = OrderStatus[data.get("status", data.get("orderStatus"))]
+        status = OrderStatus[data.get("status") or data["orderStatus"]]
         timestamp = parse_datetime(data.get("orderTimestamp", data.get("timestamp")))
         return Order(
             order_id=data["orderId"],
@@ -522,10 +522,10 @@ class MessageHelper:
             order_status=status,
             cancel_type=CancelType[data.get("cancelType", CancelType.NONE.name)],
             order_timestamp=timestamp,
-            price=Decimal(data.get("price", data.get("orderPrice"))),
-            size=Decimal(data.get("size", data.get("orderSize"))),
+            price=Decimal(data.get("price") or data["orderPrice"]),
+            size=Decimal(data.get("size") or data["orderSize"]),
             executed_size=Decimal(
-                data.get("executedSize", data.get("orderExecutedSize"))
+                data.get("executedSize") or data["orderExecutedSize"]
             ),
             losscut_price=Decimal(data["losscutPrice"]),
             time_in_force=data["timeInForce"],
