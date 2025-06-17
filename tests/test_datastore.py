@@ -1692,3 +1692,64 @@ def test_hyperliquid(test_input: StoreArg, expected: object) -> None:
     s = store[test_input.name]
     assert s is not None
     assert s.find() == expected
+
+
+def test_hyperliquid_active_orders() -> None:
+    store = pybotters.HyperliquidDataStore()
+
+    # Receive the open order event
+    store.onmessage(
+        {
+            "channel": "orderUpdates",
+            "data": [
+                {
+                    "order": {
+                        "coin": "BTC",
+                        "limitPx": "29792.0",
+                        "oid": 91490942,
+                        "side": "A",
+                        "sz": "0.0",
+                        "timestamp": 1681247412573,
+                    },
+                    "status": "open",
+                    "statusTimestamp": 1750141385054,
+                }
+            ],
+        }
+    )
+
+    assert len(store.order_updates) == 1
+    assert store.order_updates.get({"coin": "BTC", "oid": 91490942}) == {
+        "coin": "BTC",
+        "limitPx": "29792.0",
+        "oid": 91490942,
+        "side": "A",
+        "sz": "0.0",
+        "timestamp": 1681247412573,
+        "status": "open",
+        "statusTimestamp": 1750141385054,
+    }
+
+    # Receive the filled order event
+    store.onmessage(
+        {
+            "channel": "orderUpdates",
+            "data": [
+                {
+                    "order": {
+                        "coin": "BTC",
+                        "limitPx": "29792.0",
+                        "oid": 91490942,
+                        "side": "A",
+                        "sz": "0.0",
+                        "timestamp": 1681247412573,
+                    },
+                    "status": "filled",  # FILLED ORDER
+                    "statusTimestamp": 1750141385054,
+                }
+            ],
+        }
+    )
+
+    assert len(store.order_updates) == 0
+    assert store.order_updates.get({"coin": "BTC", "oid": 91490942}) is None

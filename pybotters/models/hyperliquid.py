@@ -718,19 +718,26 @@ class OrderUpdates(DataStore):
 
     def _onmessage(self, msg: Item) -> None:
         data_to_update: list[Item] = []
+        data_to_delete: list[Item] = []
 
         if isinstance(msg["data"], list):
             for item in msg["data"]:
                 if (
                     isinstance(item, dict)
                     and "order" in item
+                    and "status" in item
                     and isinstance(item["order"], dict)
                 ):
                     order = item.pop("order")
                     flattened_order = {**order, **item}
-                    data_to_update.append(flattened_order)
+
+                    if item["status"] == "open":
+                        data_to_update.append(flattened_order)
+                    else:
+                        data_to_delete.append(flattened_order)
 
         self._update(data_to_update)
+        self._delete(data_to_delete)
 
 
 class UserEvents(DataStore):
