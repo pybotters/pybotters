@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 import pytest
 import pytest_asyncio
@@ -16,6 +16,17 @@ if TYPE_CHECKING:
     from typing import Any
 
     from pybotters.typedefs import Item
+
+
+class ParamArg(NamedTuple):
+    test_input: Any
+    expected: Any
+
+
+@dataclass
+class StoreArg:
+    name: str
+    data: Any
 
 
 def test_bitgetv2_positions() -> None:
@@ -1034,5 +1045,650 @@ async def test_bitbank_private_initialize(
         await store.initialize(client.request(test_input.method, test_input.url))
 
     s = store[test_input.store_name]
+    assert s is not None
+    assert s.find() == expected
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="allMids",
+                    data={
+                        "channel": "allMids",
+                        "data": {
+                            "mids": {
+                                "APE": "4.33245",
+                                "ARB": "1.21695",
+                            }
+                        },
+                    },
+                ),
+                expected=[
+                    {"coin": "APE", "px": "4.33245"},
+                    {"coin": "ARB", "px": "1.21695"},
+                ],
+            ),
+            id="allMids",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="notification",
+                    data={
+                        "channel": "notification",
+                        "data": {
+                            "notification": "<notification>",
+                        },
+                    },
+                ),
+                expected=[
+                    {"notification": "<notification>"},
+                ],
+            ),
+            id="notification",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="webData2",
+                    data={
+                        "channel": "webData2",
+                        "data": {
+                            "clearinghouseState": {
+                                "marginSummary": {
+                                    "accountValue": "29.78001",
+                                    "totalNtlPos": "0.0",
+                                    "totalRawUsd": "29.78001",
+                                    "totalMarginUsed": "0.0",
+                                },
+                                "crossMarginSummary": {
+                                    "accountValue": "29.78001",
+                                    "totalNtlPos": "0.0",
+                                    "totalRawUsd": "29.78001",
+                                    "totalMarginUsed": "0.0",
+                                },
+                                "crossMaintenanceMarginUsed": "0.0",
+                                "withdrawable": "29.78001",
+                                "assetPositions": [],
+                                "time": 1733968369395,
+                            },
+                            "user": "0x0000000000000000000000000000000000000001",
+                        },
+                    },
+                ),
+                expected=[
+                    {
+                        "clearinghouseState": {
+                            "marginSummary": {
+                                "accountValue": "29.78001",
+                                "totalNtlPos": "0.0",
+                                "totalRawUsd": "29.78001",
+                                "totalMarginUsed": "0.0",
+                            },
+                            "crossMarginSummary": {
+                                "accountValue": "29.78001",
+                                "totalNtlPos": "0.0",
+                                "totalRawUsd": "29.78001",
+                                "totalMarginUsed": "0.0",
+                            },
+                            "crossMaintenanceMarginUsed": "0.0",
+                            "withdrawable": "29.78001",
+                            "assetPositions": [],
+                            "time": 1733968369395,
+                        },
+                        "user": "0x0000000000000000000000000000000000000001",
+                    },
+                ],
+            ),
+            id="webData2",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="candle",
+                    data={
+                        "channel": "candle",
+                        "data": {
+                            "T": 1681924499999,
+                            "c": "29258.0",
+                            "h": "29309.0",
+                            "i": "15m",
+                            "l": "29250.0",
+                            "n": 189,
+                            "o": "29295.0",
+                            "s": "BTC",
+                            "t": 1681923600000,
+                            "v": "0.98639",
+                        },
+                    },
+                ),
+                expected=[
+                    {
+                        "T": 1681924499999,
+                        "c": "29258.0",
+                        "h": "29309.0",
+                        "i": "15m",
+                        "l": "29250.0",
+                        "n": 189,
+                        "o": "29295.0",
+                        "s": "BTC",
+                        "t": 1681923600000,
+                        "v": "0.98639",
+                    }
+                ],
+            ),
+            id="candle",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="l2Book",
+                    data={
+                        "channel": "l2Book",
+                        "data": {
+                            "coin": "TEST",
+                            "time": 1681222254710,
+                            "levels": [
+                                [
+                                    {"px": "19900", "sz": "1", "n": 1},
+                                    {"px": "19800", "sz": "2", "n": 2},
+                                    {"px": "19700", "sz": "3", "n": 3},
+                                ],
+                                [
+                                    {"px": "20100", "sz": "1", "n": 1},
+                                    {"px": "20200", "sz": "2", "n": 2},
+                                    {"px": "20300", "sz": "3", "n": 3},
+                                ],
+                            ],
+                        },
+                    },
+                ),
+                expected=[
+                    {"coin": "TEST", "side": "B", "px": "19900", "sz": "1", "n": 1},
+                    {"coin": "TEST", "side": "B", "px": "19800", "sz": "2", "n": 2},
+                    {"coin": "TEST", "side": "B", "px": "19700", "sz": "3", "n": 3},
+                    {"coin": "TEST", "side": "A", "px": "20100", "sz": "1", "n": 1},
+                    {"coin": "TEST", "side": "A", "px": "20200", "sz": "2", "n": 2},
+                    {"coin": "TEST", "side": "A", "px": "20300", "sz": "3", "n": 3},
+                ],
+            ),
+            id="l2Book",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="trades",
+                    data={
+                        "channel": "trades",
+                        "data": [
+                            {
+                                "coin": "AVAX",
+                                "side": "B",
+                                "px": "18.435",
+                                "sz": "93.53",
+                                "hash": "0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8",
+                                "time": 1681222254710,
+                                "tid": 118906512037719,
+                                "users": [
+                                    "0x72d73fea74d7ff40c3e5a70e17f5b1aaf47dfc26",
+                                    "0x4b9d7caad51e284a45112395da621b94ec82b03f",
+                                ],
+                            },
+                            {
+                                "coin": "@107",
+                                "side": "A",
+                                "px": "18.620413815",
+                                "sz": "43.84",
+                                "time": 1735969713869,
+                                "hash": "0x2222138cc516e3fe746c0411dd733f02e60086f43205af2ae37c93f6a792430b",
+                                "tid": 907359904431134,
+                                "users": [
+                                    "0x0000000000000000000000000000000000000001",
+                                    "0xffffffffffffffffffffffffffffffffffffffff",
+                                ],
+                            },
+                        ],
+                    },
+                ),
+                expected=[
+                    {
+                        "coin": "AVAX",
+                        "side": "B",
+                        "px": "18.435",
+                        "sz": "93.53",
+                        "hash": "0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8",
+                        "time": 1681222254710,
+                        "tid": 118906512037719,
+                        "users": [
+                            "0x72d73fea74d7ff40c3e5a70e17f5b1aaf47dfc26",
+                            "0x4b9d7caad51e284a45112395da621b94ec82b03f",
+                        ],
+                    },
+                    {
+                        "coin": "@107",
+                        "side": "A",
+                        "px": "18.620413815",
+                        "sz": "43.84",
+                        "time": 1735969713869,
+                        "hash": "0x2222138cc516e3fe746c0411dd733f02e60086f43205af2ae37c93f6a792430b",
+                        "tid": 907359904431134,
+                        "users": [
+                            "0x0000000000000000000000000000000000000001",
+                            "0xffffffffffffffffffffffffffffffffffffffff",
+                        ],
+                    },
+                ],
+            ),
+            id="trades",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="orderUpdates",
+                    data={
+                        "channel": "orderUpdates",
+                        "data": [
+                            {
+                                "order": {
+                                    "coin": "BTC",
+                                    "limitPx": "29792.0",
+                                    "oid": 91490942,
+                                    "side": "A",
+                                    "sz": "0.0",
+                                    "timestamp": 1681247412573,
+                                },
+                                "status": "open",
+                                "statusTimestamp": 1750141385054,
+                            }
+                        ],
+                    },
+                ),
+                expected=[
+                    {
+                        "coin": "BTC",
+                        "limitPx": "29792.0",
+                        "oid": 91490942,
+                        "side": "A",
+                        "sz": "0.0",
+                        "timestamp": 1681247412573,
+                        "status": "open",
+                        "statusTimestamp": 1750141385054,
+                    }
+                ],
+            ),
+            id="orderUpdates",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="userEvents",
+                    data={
+                        "channel": "user",
+                        "data": {
+                            "fills": [
+                                {
+                                    "coin": "AVAX",
+                                    "px": "18.435",
+                                    "sz": "93.53",
+                                    "side": "B",
+                                    "time": 1681222254710,
+                                    "startPosition": "26.86",
+                                    "dir": "Open Long",
+                                    "closedPnl": "0.0",
+                                    "hash": "0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8",
+                                    "oid": 90542681,
+                                    "crossed": False,
+                                    "fee": "0.01",
+                                    "tid": 118906512037719,
+                                    "liquidation": {
+                                        "liquidatedUser": "0x0000000000000000000000000000000000000000",
+                                        "markPx": "18.435",
+                                        "method": "<method>",
+                                    },
+                                    "feeToken": "USDC",
+                                    "builderFee": "0.01",
+                                },
+                            ],
+                            "funding": {
+                                "time": 1681222254710,
+                                "coin": "ETH",
+                                "usdc": "-3.625312",
+                                "szi": "49.1477",
+                                "fundingRate": "0.0000417",
+                            },
+                            "liquidation": {
+                                "lid": 0,
+                                "liquidator": "0x0000000000000000000000000000000000000000",
+                                "liquidated_user": "0x0000000000000000000000000000000000000000",
+                                "liquidated_ntl_pos": "0.0",
+                                "liquidated_account_value": "0.0",
+                            },
+                            "nonUserCancel": [
+                                {
+                                    "coin": "AVAX",
+                                    "oid": 90542681,
+                                }
+                            ],
+                        },
+                    },
+                ),
+                expected=[
+                    {
+                        "type": "fills",
+                        "coin": "AVAX",
+                        "px": "18.435",
+                        "sz": "93.53",
+                        "side": "B",
+                        "time": 1681222254710,
+                        "startPosition": "26.86",
+                        "dir": "Open Long",
+                        "closedPnl": "0.0",
+                        "hash": "0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8",
+                        "oid": 90542681,
+                        "crossed": False,
+                        "fee": "0.01",
+                        "tid": 118906512037719,
+                        "liquidation": {
+                            "liquidatedUser": "0x0000000000000000000000000000000000000000",
+                            "markPx": "18.435",
+                            "method": "<method>",
+                        },
+                        "feeToken": "USDC",
+                        "builderFee": "0.01",
+                    },
+                    {
+                        "type": "funding",
+                        "time": 1681222254710,
+                        "coin": "ETH",
+                        "usdc": "-3.625312",
+                        "szi": "49.1477",
+                        "fundingRate": "0.0000417",
+                    },
+                    {
+                        "type": "liquidation",
+                        "lid": 0,
+                        "liquidator": "0x0000000000000000000000000000000000000000",
+                        "liquidated_user": "0x0000000000000000000000000000000000000000",
+                        "liquidated_ntl_pos": "0.0",
+                        "liquidated_account_value": "0.0",
+                    },
+                    {
+                        "type": "nonUserCancel",
+                        "coin": "AVAX",
+                        "oid": 90542681,
+                    },
+                ],
+            ),
+            id="userEvents",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="userFundings",
+                    data={
+                        "channel": "userFundings",
+                        "data": {
+                            "isSnapshot": True,
+                            "user": "0x0000000000000000000000000000000000000001",
+                            "fundings": [
+                                {
+                                    "time": 1681222254710,
+                                    "coin": "ETH",
+                                    "usdc": "-3.625312",
+                                    "szi": "49.1477",
+                                    "fundingRate": "0.0000417",
+                                },
+                            ],
+                        },
+                    },
+                ),
+                expected=[
+                    {
+                        "time": 1681222254710,
+                        "coin": "ETH",
+                        "usdc": "-3.625312",
+                        "szi": "49.1477",
+                        "fundingRate": "0.0000417",
+                    },
+                ],
+            ),
+            id="userFundings",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="userNonFundingLedgerUpdates",
+                    data={
+                        "channel": "userNonFundingLedgerUpdates",
+                        "data": {
+                            "isSnapshot": True,
+                            "user": "0x0000000000000000000000000000000000000001",
+                            "nonFundingLedgerUpdates": [
+                                {
+                                    "time": 1681222254710,
+                                    "hash": "0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8",
+                                    "delta": {"type": "<type>", "usdc": "0.0"},
+                                }
+                            ],
+                        },
+                    },
+                ),
+                expected=[
+                    {
+                        "time": 1681222254710,
+                        "hash": "0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8",
+                        "delta": {"type": "<type>", "usdc": "0.0"},
+                    }
+                ],
+            ),
+            id="userNonFundingLedgerUpdates",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="activeAssetCtx",
+                    data={
+                        "channel": "activeAssetCtx",
+                        "data": {
+                            "coin": "BTC",
+                            "ctx": {
+                                "dayNtlVlm": "1169046.29406",
+                                "prevDayPx": "15.322",
+                                "markPx": "14.3161",
+                                "midPx": "14.314",
+                                "funding": "0.0000125",
+                                "openInterest": "688.11",
+                                "oraclePx": "14.32",
+                            },
+                        },
+                    },
+                ),
+                expected=[
+                    {
+                        "coin": "BTC",
+                        "dayNtlVlm": "1169046.29406",
+                        "prevDayPx": "15.322",
+                        "markPx": "14.3161",
+                        "midPx": "14.314",
+                        "funding": "0.0000125",
+                        "openInterest": "688.11",
+                        "oraclePx": "14.32",
+                    }
+                ],
+            ),
+            id="activeAssetCtx",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="activeAssetData",
+                    data={
+                        "channel": "activeAssetData",
+                        "data": {
+                            "user": "0x0000000000000000000000000000000000000001",
+                            "coin": "ETH",
+                            "leverage": {
+                                "type": "cross",
+                                "value": 20,
+                            },
+                            "maxTradeSzs": ["0.0", "0.0"],
+                            "availableToTrade": ["0.0", "0.0"],
+                        },
+                    },
+                ),
+                expected=[
+                    {
+                        "user": "0x0000000000000000000000000000000000000001",
+                        "coin": "ETH",
+                        "leverage": {
+                            "type": "cross",
+                            "value": 20,
+                        },
+                        "maxTradeSzs": ["0.0", "0.0"],
+                        "availableToTrade": ["0.0", "0.0"],
+                    }
+                ],
+            ),
+            id="activeAssetData",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="userTwapSliceFills",
+                    data={
+                        "channel": "userTwapSliceFills",
+                        "data": {
+                            "isSnapshot": True,
+                            "user": "0x0000000000000000000000000000000000000001",
+                            "twapSliceFills": [
+                                {
+                                    "coin": "AVAX",
+                                    "px": "18.435",
+                                    "sz": "93.53",
+                                    "side": "B",
+                                    "time": 1681222254710,
+                                    "startPosition": "26.86",
+                                    "dir": "Open Long",
+                                    "closedPnl": "0.0",
+                                    "hash": "0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8",
+                                    "oid": 90542681,
+                                    "crossed": False,
+                                    "fee": "0.01",
+                                    "tid": 118906512037719,
+                                    "liquidation": {
+                                        "liquidatedUser": "0x0000000000000000000000000000000000000000",
+                                        "markPx": "18.435",
+                                        "method": "<method>",
+                                    },
+                                    "feeToken": "USDC",
+                                    "builderFee": "0.01",
+                                    "twapId": 3156,
+                                },
+                            ],
+                        },
+                    },
+                ),
+                expected=[
+                    {
+                        "coin": "AVAX",
+                        "px": "18.435",
+                        "sz": "93.53",
+                        "side": "B",
+                        "time": 1681222254710,
+                        "startPosition": "26.86",
+                        "dir": "Open Long",
+                        "closedPnl": "0.0",
+                        "hash": "0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8",
+                        "oid": 90542681,
+                        "crossed": False,
+                        "fee": "0.01",
+                        "tid": 118906512037719,
+                        "liquidation": {
+                            "liquidatedUser": "0x0000000000000000000000000000000000000000",
+                            "markPx": "18.435",
+                            "method": "<method>",
+                        },
+                        "feeToken": "USDC",
+                        "builderFee": "0.01",
+                        "twapId": 3156,
+                    },
+                ],
+            ),
+            id="userTwapSliceFills",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="userTwapHistory",
+                    data={
+                        "channel": "userTwapHistory",
+                        "data": {
+                            "isSnapshot": True,
+                            "user": "0x0000000000000000000000000000000000000001",
+                            "history": [
+                                {
+                                    "state": {},
+                                    "status": {
+                                        "status": "<status>",
+                                        "description": "<description>",
+                                    },
+                                    "time": 1681222254710,
+                                },
+                            ],
+                        },
+                    },
+                ),
+                expected=[
+                    {
+                        "state": {},
+                        "status": {
+                            "status": "<status>",
+                            "description": "<description>",
+                        },
+                        "time": 1681222254710,
+                    },
+                ],
+            ),
+            id="userTwapHistory",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="bbo",
+                    data={
+                        "channel": "bbo",
+                        "data": {
+                            "coin": "TEST",
+                            "time": 1708622398623,
+                            "bbo": [
+                                {"px": "19900", "sz": "1", "n": 1},
+                                {"px": "20100", "sz": "1", "n": 1},
+                            ],
+                        },
+                    },
+                ),
+                expected=[
+                    {
+                        "coin": "TEST",
+                        "time": 1708622398623,
+                        "bbo": [
+                            {"px": "19900", "sz": "1", "n": 1},
+                            {"px": "20100", "sz": "1", "n": 1},
+                        ],
+                    },
+                ],
+            ),
+            id="bbo",
+        ),
+    ],
+)
+def test_hyperliquid(test_input: StoreArg, expected: object) -> None:
+    store = pybotters.HyperliquidDataStore()
+    store.onmessage(test_input.data)
+
+    s = store[test_input.name]
     assert s is not None
     assert s.find() == expected
