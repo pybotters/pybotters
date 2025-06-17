@@ -13,7 +13,10 @@ logger = logging.getLogger(__name__)
 
 
 class HyperliquidDataStore(DataStoreCollection):
-    """DataStoreCollection for Hyperliquid."""
+    """DataStoreCollection for Hyperliquid.
+
+    https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+    """
 
     def _init(self) -> None:
         self._create("allMids", datastore_class=AllMids)
@@ -79,8 +82,6 @@ class HyperliquidDataStore(DataStoreCollection):
     def all_mids(self) -> AllMids:
         """``allMids`` data stream.
 
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
-
         Data type: Mutable
 
         Keys: ``["coin"]``
@@ -100,8 +101,6 @@ class HyperliquidDataStore(DataStoreCollection):
     def notification(self) -> Notification:
         """``notification`` data stream.
 
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
-
         Data type: Append-only
 
         Data structure:
@@ -118,8 +117,6 @@ class HyperliquidDataStore(DataStoreCollection):
     @property
     def web_data2(self) -> WebData2:
         """``webData2`` data stream.
-
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
 
         Data type: Mutable
 
@@ -159,8 +156,6 @@ class HyperliquidDataStore(DataStoreCollection):
     def candle(self) -> Candle:
         """``candle`` data stream.
 
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
-
         Data type: Mutable
 
         Keys: ``["t", "T", "s", "i"]``
@@ -190,8 +185,6 @@ class HyperliquidDataStore(DataStoreCollection):
     @property
     def l2_book(self) -> L2Book:
         """``l2Book`` data stream.
-
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
 
         Data type: Mutable
 
@@ -252,8 +245,6 @@ class HyperliquidDataStore(DataStoreCollection):
     def trades(self) -> Trades:
         """``trades`` data stream.
 
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
-
         Data type: Append-only
 
         Data structure:
@@ -281,8 +272,6 @@ class HyperliquidDataStore(DataStoreCollection):
     @property
     def order_updates(self) -> OrderUpdates:
         """``orderUpdates`` data stream.
-
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
 
         Data type: Mutable; active orders only
 
@@ -312,8 +301,6 @@ class HyperliquidDataStore(DataStoreCollection):
     @property
     def user_events(self) -> UserEvents:
         """``userEvents`` data stream.
-
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
 
         Data type: Append-only
 
@@ -378,8 +365,6 @@ class HyperliquidDataStore(DataStoreCollection):
     def user_fills(self) -> UserFills:
         """``userFills`` data stream.
 
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
-
         Data type: Append-only
 
         Data structure:
@@ -417,8 +402,6 @@ class HyperliquidDataStore(DataStoreCollection):
     def user_fundings(self) -> UserFundings:
         """``userFundings`` data stream.
 
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
-
         Data type: Append-only
 
         Data structure:
@@ -440,8 +423,6 @@ class HyperliquidDataStore(DataStoreCollection):
     @property
     def user_non_funding_ledger_updates(self) -> UserNonFundingLedgerUpdates:
         """``userNonFundingLedgerUpdates`` data stream.
-
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
 
         Data type: Append-only
 
@@ -465,8 +446,6 @@ class HyperliquidDataStore(DataStoreCollection):
     @property
     def active_asset_ctx(self) -> ActiveAssetCtx:
         """``activeAssetCtx`` data stream.
-
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
 
         Data type: Mutable
 
@@ -503,8 +482,6 @@ class HyperliquidDataStore(DataStoreCollection):
     def active_asset_data(self) -> ActiveAssetData:
         """``activeAssetData`` data stream.
 
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
-
         Data type: Mutable
 
         Keys: ``["user", "coin"]``
@@ -531,8 +508,6 @@ class HyperliquidDataStore(DataStoreCollection):
     @property
     def user_twap_slice_fills(self) -> UserTwapSliceFills:
         """``userTwapSliceFills`` data stream.
-
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
 
         Data type: Append-only
 
@@ -572,8 +547,6 @@ class HyperliquidDataStore(DataStoreCollection):
     def user_twap_history(self) -> UserTwapHistory:
         """``userTwapHistory`` data stream.
 
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
-
         Data type: Append-only
 
         Data structure:
@@ -596,8 +569,6 @@ class HyperliquidDataStore(DataStoreCollection):
     @property
     def bbo(self) -> Bbo:
         """``bbo`` data stream.
-
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
 
         Data type: Mutable
 
