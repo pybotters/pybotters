@@ -157,7 +157,7 @@ Multiple WebSocket senders/handlers
 Current WebSocket connection
 ----------------------------
 
-:attr:`.WebSocketApp.current_ws` プロパティから現在接続中の WebSocket コネクションにアクセスできます。 この変数は :class:`pybotters.ClientWebSocketResponse` 型であり、 `aiohttp.ClientWebSocketResponse <https://docs.aiohttp.org/en/stable/client_reference.html#clientwebsocketresponse>`_ のサブクラスです。
+:attr:`.WebSocketApp.current_ws` プロパティから現在接続中の WebSocket コネクションにアクセスできます。 この変数は :class:`pybotters.ClientWebSocketResponse` 型であり、 :class:`aiohttp.ClientWebSocketResponse` のサブクラスです。
 このクラスから 1 回限りの WebSocket メッセージ送信などができます。
 これは取引所 WebSocket API で注文の作成に対応しているケースなどで有用です。
 
