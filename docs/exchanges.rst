@@ -600,7 +600,10 @@ Authentication
 
     実際の利用方法は :ref:`Examples <examples-place-order-hyperliquid>` を参照してください。
 * WebSocket 認証
-    まだ対応していません (Work in progress)。 以下のように手動で署名を行うことも可能です。
+    `Post requests <https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests>`_ の ``action`` タイプのメッセージ送信に対して以下の認証情報が自動設定されます。
+
+    * ``nonce``: 現在時刻のミリ秒
+    * ``signature``: ``action`` をハッシュ化し秘密鍵で署名した値
 
 手動で署名をする必要がある場合は、より低レベルな署名ヘルパー :mod:`pybotters.helpers.hyperliquid` を利用してください。
 
