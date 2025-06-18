@@ -7,8 +7,10 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Coroutine
     from contextlib import AbstractAsyncContextManager
 
+    import aiohttp
     from _typeshed import StrOrBytesPath as StrOrBytesPath
-    from aiohttp.client_ws import ClientResponse, ClientWebSocketResponse
+
+    from .ws import ClientWebSocketResponse
 
     if sys.version_info >= (3, 10):
         from typing import TypeAlias
@@ -16,7 +18,9 @@ if TYPE_CHECKING:
         from typing_extensions import TypeAlias
 
     class RequestContextManager(
-        Awaitable[ClientResponse], AbstractAsyncContextManager[ClientResponse], Protocol
+        Awaitable[aiohttp.ClientResponse],
+        AbstractAsyncContextManager[aiohttp.ClientResponse],
+        Protocol,
     ): ...
 
     APICredentialsDict: TypeAlias = dict[str, list[str]]

@@ -21,7 +21,7 @@ from .models.kucoin import KuCoinDataStore
 from .models.okx import OKXDataStore
 from .models.phemex import PhemexDataStore
 from .store import DataStore, DataStoreCollection, StoreChange, StoreStream
-from .ws import WebSocketApp, WebSocketQueue
+from .ws import ClientWebSocketResponse, WebSocketApp, WebSocketQueue
 
 __all__: tuple[str, ...] = (
     # version
@@ -31,6 +31,7 @@ __all__: tuple[str, ...] = (
     "FetchResult",
     "NotJSONContent",
     # ws
+    "ClientWebSocketResponse",
     "WebSocketApp",
     "WebSocketQueue",
     # store
