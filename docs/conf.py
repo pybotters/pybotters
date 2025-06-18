@@ -36,7 +36,6 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_new_tab_link",
     "sphinx.ext.napoleon",
-    "sphinx.ext.intersphinx",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
