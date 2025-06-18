@@ -248,7 +248,7 @@ Automatic WebSocket heartbeat
 
     前述の通りハートビートはデフォルトで有効になっており、トレード bot のユースケースでこれを無効にすることは推奨されません。
 
-    なお、このハートビート機能は `aiohttp の実装 <https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.ws_connect>`_ によるものです。
+    なお、このハートビート機能は aiohttp の実装 (:meth:`aiohttp.ClientSession.ws_connect` の ``heartbeat`` 引数) によるものです。
 
 
 .. _manual-websocket-heartbeat:

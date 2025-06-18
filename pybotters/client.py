@@ -46,7 +46,7 @@ class Client:
         Args:
             apis: API 認証情報
             base_url: ベース URL
-            **kwargs: aiohttp.ClientSession にバイパスされる引数
+            **kwargs: :class:`aiohttp.ClientSession` にバイパスされる引数
         """
         self._session = aiohttp.ClientSession(
             request_class=ClientRequest,
@@ -109,10 +109,10 @@ class Client:
             params: リクエスト URL のクエリ文字列
             data: リクエストの本文で送信するデータ
             auth: 認証オプション (デフォルトで有効、None で無効)
-            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+            **kwargs: :meth:`aiohttp.ClientSession.request` にバイパスされる引数
 
         Returns:
-            aiohttp.ClientResponse
+            :class:`aiohttp.ClientResponse`
 
         Usage example: :ref:`http-method-api`
         """
@@ -135,7 +135,7 @@ class Client:
             params: リクエスト URL のクエリ文字列
             data: リクエストの本文で送信するデータ
             auth: 認証オプション (デフォルトで有効、None で無効)
-            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+            **kwargs: :meth:`aiohttp.ClientSession.request` にバイパスされる引数
 
         Returns:
             FetchResult
@@ -166,10 +166,10 @@ class Client:
             url: リクエスト URL
             params: リクエスト URL のクエリ文字列
             auth: 認証オプション (デフォルトで有効、None で無効)
-            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+            **kwargs: :meth:`aiohttp.ClientSession.request` にバイパスされる引数
 
         Returns:
-            aiohttp.ClientResponse
+            :class:`aiohttp.ClientResponse`
 
         Usage example: :ref:`http-method-api`
         """
@@ -188,10 +188,10 @@ class Client:
             url: リクエスト URL
             data: リクエストの本文で送信するデータ
             auth: 認証オプション (デフォルトで有効、None で無効)
-            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+            **kwargs: :meth:`aiohttp.ClientSession.request` にバイパスされる引数
 
         Returns:
-            aiohttp.ClientResponse
+            :class:`aiohttp.ClientResponse`
 
         Usage example: :ref:`http-method-api`
         """
@@ -211,10 +211,10 @@ class Client:
             params: リクエスト URL のクエリ文字列
             data: リクエストの本文で送信するデータ
             auth: 認証オプション (デフォルトで有効、None で無効)
-            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+            **kwargs: :meth:`aiohttp.ClientSession.request` にバイパスされる引数
 
         Returns:
-            aiohttp.ClientResponse
+            :class:`aiohttp.ClientResponse`
 
         Usage example: :ref:`http-method-api`
         """
@@ -234,10 +234,10 @@ class Client:
             params: リクエスト URL のクエリ文字列
             data: リクエストの本文で送信するデータ
             auth: 認証オプション (デフォルトで有効、None で無効)
-            **kwargs: aiohttp.ClientSession.request にバイパスされる引数
+            **kwargs: :meth:`aiohttp.ClientSession.request` にバイパスされる引数
 
         Returns:
-            aiohttp.ClientResponse
+            :class:`aiohttp.ClientResponse`
 
         Usage example: :ref:`http-method-api`
         """
@@ -273,7 +273,7 @@ class Client:
             autoping: Ping に対する自動 Pong 応答 (デフォルト True)
             heartbeat: WebSocket ハートビート (デフォルト 10.0 秒)
             auth: 認証オプション (デフォルトで有効、None で無効)
-            **kwargs: aiohttp.ClientSession.ws_connect にバイパスされる引数
+            **kwargs: :meth:`aiohttp.ClientSession.ws_connect` にバイパスされる引数
 
         Returns:
             WebSocketApp
@@ -346,7 +346,7 @@ class FetchResult:
     """Fetch API result.
 
     Attributes:
-        response: `aiohttp.ClientResponse`
+        response: :class:`aiohttp.ClientResponse`
         text: テキストデータ
         data: JSON データ (JSON ではない場合は :class:`.NotJSONContent`)
     """
