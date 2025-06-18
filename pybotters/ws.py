@@ -770,6 +770,10 @@ class AuthHosts:
 
 
 class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
+    """Class for handling client-side websockets.
+
+    This class is a subclass of :class:`aiohttp.ClientWebSocketResponse`."""
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if self._response.url.host in HeartbeatHosts.items:
@@ -792,6 +796,7 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
             await self.__dict__["_authtask"]
 
     async def send_str(self, *args, **kwargs) -> None:
+        """Send *data* to peer as :attr:`aiohttp.WSMsgType.TEXT` message."""
         if self._response.url.host not in RequestLimitHosts.items:
             await super().send_str(*args, **kwargs)
         else:
@@ -799,6 +804,7 @@ class ClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
             await RequestLimitHosts.items[self._response.url.host](self, super_send_str)
 
     async def send_json(self, *args, **kwargs) -> None:
+        """Send *data* to peer as JSON string."""
         if (
             (kwargs.pop("auth", _Auth) is _Auth)
             and (self._response.url.host in MessageSignHosts.items)

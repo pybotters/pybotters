@@ -267,7 +267,7 @@ WebSocket API
     これらの引数は送信するメッセージをリストで括ることで複数のメッセージを送信できます (:ref:`multiple-websocket-senders-handlers`) 。
 * WebSocket メッセージの受信
     ``hdlr_str``, ``hdlr_bytes``, ``hdlr_json`` 引数で受信した WebSocket メッセージのハンドラ (コールバック) を指定します。
-    指定するハンドラの第 1 引数をそれぞれ :class:`str`, :class:`bytes`, :data:`typing.Any` を取る必要があります。 第 2 引数は :class:`.ClientWebSocketResponse` ``| None`` を取る必要があります。
+    指定するハンドラの第 1 引数はそれぞれ :class:`str`, :class:`bytes`, :data:`typing.Any` を取る必要があります。 第 2 引数は :class:`.ClientWebSocketResponse` または ``None`` を取る必要があります。
     上記のコードでは無名関数をハンドラに指定して WebSocket メッセージを標準出力しています。
 
     pybotters には組み込みのハンドラとして、汎用性の高い :ref:`websocketqueue` や、 :ref:`取引所固有の DataStore <exchange-specific-datastore>` があります。
