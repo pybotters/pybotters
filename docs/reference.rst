@@ -27,6 +27,7 @@ WebSocket API Returns
    :toctree: generated
 
    pybotters.WebSocketApp
+   pybotters.ClientWebSocketResponse
 
 
 Common WebSocket handlers
