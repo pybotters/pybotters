@@ -890,6 +890,28 @@ class MessageSign:
         if "header" not in data:
             data["header"] = {"X-BAPI-TIMESTAMP": str(int(time.time() * 1000))}
 
+    @staticmethod
+    def hyperliquid(ws: aiohttp.ClientWebSocketResponse, data: object) -> None:
+        url = ws._response.url
+        private_key: str = ws._response._session.__dict__["_apis"][
+            MessageSignHosts.items[url.host].name
+        ][0]
+
+        if not isinstance(data, dict):
+            return
+
+        method = data.get("method")
+        request = data.get("request")
+        if not (method == "post" and isinstance(request, dict)):
+            return
+
+        type_ = request.get("type")
+        payload = request.get("payload")
+        if not (type_ == "action" and isinstance(payload, dict)):
+            return
+
+        _Auth._hyperliquid(payload, url, private_key)
+
 
 class MessageSignHosts:
     # NOTE: yarl.URL.host is also allowed to be None. So, for brevity, relax the type check on the `items` key.
@@ -899,4 +921,8 @@ class MessageSignHosts:
         "stream.bybit.com": Item("bybit", MessageSign.bybit),
         "stream-demo.bybit.com": Item("bybit_demo", MessageSign.bybit),
         "stream-testnet.bybit.com": Item("bybit_testnet", MessageSign.bybit),
+        "api.hyperliquid.xyz": Item("hyperliquid", MessageSign.hyperliquid),
+        "api.hyperliquid-testnet.xyz": Item(
+            "hyperliquid_testnet", MessageSign.hyperliquid
+        ),
     }

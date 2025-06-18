@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import functools
 import json
 import logging
 import zlib
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 from unittest.mock import ANY, AsyncMock, MagicMock, PropertyMock, call
 
 import aiohttp
+import freezegun
 import pytest
 import pytest_asyncio
 from aiohttp import web
@@ -1923,3 +1925,128 @@ def test_msgsign_bybit(mocker: pytest_mock.MockerFixture, test_input, expected):
     pybotters.ws.MessageSign.bybit(m_wsresp, test_input["data"])
 
     assert test_input["data"] == expected["data"]
+
+
+@pytest.mark.parametrize(
+    ("test_input", "expected"),
+    [
+        # signed - testnet
+        (
+            # test_input
+            URL("wss://api.hyperliquid-testnet.xyz/ws"),
+            # expected
+            {
+                "nonce": 0,
+                "signature": {
+                    "r": "0x82b2ba28e76b3d761093aaded1b1cdad4960b3af30212b343fb2e6cdfa4e3d54",
+                    "s": "0x6b53878fc99d26047f4d7e8c90eb98955a109f44209163f52d8dc4278cbbd9f5",
+                    "v": 27,
+                },
+            },
+        ),
+        # signed - mainnet
+        (
+            # test_input
+            URL("wss://api.hyperliquid.xyz/ws"),
+            # expected
+            {
+                "nonce": 0,
+                "signature": {
+                    "r": "0xd65369825a9df5d80099e513cce430311d7d26ddf477f5b3a33d2806b100d78e",
+                    "s": "0x2b54116ff64054968aa237c20ca9ff68000f977c93289157748a3162b6ea940e",
+                    "v": 28,
+                },
+            },
+        ),
+    ],
+)
+def test_msgsign_hyperliquid(test_input, expected):
+    m_wsresp = AsyncMock()
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "hyperliquid": (
+            "0x0123456789012345678901234567890123456789012345678901234567890123",
+        ),
+        "hyperliquid_testnet": (
+            "0x0123456789012345678901234567890123456789012345678901234567890123",
+        ),
+    }
+    m_wsresp._response.url = test_input
+    mutable_input = {
+        "method": "post",
+        "id": 256,
+        "request": {
+            "type": "action",
+            "payload": {
+                "action": {
+                    "type": "order",
+                    "orders": [
+                        {
+                            "a": 1,
+                            "b": True,
+                            "p": "100",
+                            "s": "100",
+                            "r": False,
+                            "t": {"limit": {"tif": "Gtc"}},
+                        }
+                    ],
+                    "grouping": "na",
+                }
+            },
+        },
+    }
+    full_expected = copy.deepcopy(mutable_input)
+    full_expected["request"]["payload"].update(expected)
+
+    with freezegun.freeze_time(datetime.fromtimestamp(0, tz=timezone.utc)):
+        pybotters.ws.MessageSignHosts.items[test_input.host].func(
+            m_wsresp, mutable_input
+        )
+
+    assert mutable_input == full_expected
+
+
+@pytest.mark.parametrize(
+    "test_input",
+    [
+        # not dict
+        42,
+        # method != "post"
+        {"method": "ping"},
+        # request not in dict
+        {"method": "post"},
+        # request.type != "action"
+        {
+            "method": "post",
+            "id": 123,
+            "request": {
+                "type": "info",
+                "payload": {
+                    "type": "l2Book",
+                    "coin": "ETH",
+                    "nSigFigs": 5,
+                    "mantissa": None,
+                },
+            },
+        },
+        # payload not in request
+        {
+            "method": "post",
+            "id": 256,
+            "request": {"type": "action"},
+        },
+    ],
+)
+def test_msgsign_hyperliquid_ignore(test_input):
+    m_wsresp = AsyncMock()
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "hyperliquid": (
+            "0x0123456789012345678901234567890123456789012345678901234567890123",
+        ),
+    }
+    url = URL("wss://api.hyperliquid.xyz/ws")
+    m_wsresp._response.url = url
+    expected = copy.deepcopy(test_input)
+
+    pybotters.ws.MessageSignHosts.items[url.host].func(m_wsresp, test_input)
+
+    assert test_input == expected
