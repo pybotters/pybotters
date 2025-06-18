@@ -36,6 +36,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_new_tab_link",
     "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -53,6 +54,12 @@ language = "ja"
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", ".venv"]
 
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3/", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
+    "aiohttp": ("https://docs.aiohttp.org/en/stable/", None),
+}
+intersphinx_disabled_domains = ["std"]
 
 # -- Options for HTML output -------------------------------------------------
 
