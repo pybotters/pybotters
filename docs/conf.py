@@ -37,6 +37,7 @@ extensions = [
     "sphinx_new_tab_link",
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
+    "sphinx_llms_txt",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -82,3 +83,18 @@ autoclass_content = "both"
 templates_path = ["_templates"]
 
 html_title = "pybotters Docs"
+
+# -- Options llms.txt --------------------------------------------------------
+
+llms_txt_summary = """`pybotters` is a Python library for crypto bot traders.
+This library is an **HTTP and WebSocket API client**.
+It has the following features, making it useful for developing a trading bot.
+
+Please note: The links below are in HTML format due to the documentation builder's
+requirements. However, you can access the original source files (reStructuredText)
+directly.
+For example, for `/index.html`, you can access the source at `/_sources/index.rst.txt`.
+For LLMs, using the source files is generally more efficient than parsing HTML."""
+llms_txt_exclude = [
+    "generated/*",
+]
