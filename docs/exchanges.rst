@@ -580,6 +580,7 @@ DataStore
 
 対応している WebSocket チャンネルはリファレンスの *ATTRIBUTES* をご覧ください。
 
+
 Hyperliquid
 -----------
 
@@ -607,6 +608,13 @@ Authentication
 
 手動で署名をする必要がある場合は、より低レベルな署名ヘルパー :mod:`pybotters.helpers.hyperliquid` を利用してください。
 
+WebSocket
+~~~~~~~~~
+
+* Ping-Pong
+    取引所が定める Ping-Pong メッセージが自動送信されます。
+
+    https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket
 
 DataStore
 ~~~~~~~~~

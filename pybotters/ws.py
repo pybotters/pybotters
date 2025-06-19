@@ -416,6 +416,12 @@ class Heartbeat:
                 await ws.send_json({"action": "pong", "data": {"ts": ts}})
                 await asyncio.sleep(20.0)
 
+    @staticmethod
+    async def hyperliquid(ws: ClientWebSocketResponse):
+        while not ws.closed:
+            await ws.send_str('{"method":"ping"}')
+            await asyncio.sleep(30.0)
+
 
 class Auth:
     @staticmethod
@@ -743,6 +749,8 @@ class HeartbeatHosts:
         "ws-api-futures.kucoin.com": Heartbeat.kucoin,
         "connect.okcoin.jp": Heartbeat.okj,
         "api-cloud.bittrade.co.jp": Heartbeat.bittrade,
+        "api.hyperliquid.xyz": Heartbeat.hyperliquid,
+        "api.hyperliquid-testnet.xyz": Heartbeat.hyperliquid,
     }
 
 
