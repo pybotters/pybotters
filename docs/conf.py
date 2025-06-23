@@ -98,6 +98,3 @@ directly.
 For example, for `https://pybotters.readthedocs.io/ja/stable/index.html`, you can access
 the source at `https://pybotters.readthedocs.io/ja/stable/_sources/index.rst.txt`. For
 LLMs, using the source files is generally more efficient than parsing HTML."""
-llms_txt_exclude = [
-    "generated/*",
-]
