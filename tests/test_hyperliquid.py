@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     [
         # Case 0: Mainnet; Ref: test_l1_action_signing_order_matches()
         (
-            # test_input: tuple[str, Mapping[str, object], int, bool, str | None]
+            # test_input: tuple[str, Mapping[str, object], int, bool, str | None, int | None]
             (
                 # private_key
                 "0x0123456789012345678901234567890123456789012345678901234567890123",
@@ -47,6 +47,8 @@ if TYPE_CHECKING:
                 True,
                 # vault_address
                 None,
+                # expires_after
+                None,
             ),
             # expected: Mapping[str, object]
             {
@@ -57,7 +59,7 @@ if TYPE_CHECKING:
         ),
         # Case 1: Testnet; Ref: test_l1_action_signing_order_matches()
         (
-            # test_input: tuple[str, Mapping[str, object], int, bool, str | None]
+            # test_input: tuple[str, Mapping[str, object], int, bool, str | None, int | None]
             (
                 # private_key
                 "0x0123456789012345678901234567890123456789012345678901234567890123",
@@ -82,6 +84,8 @@ if TYPE_CHECKING:
                 False,
                 # vault_address
                 None,
+                # expires_after
+                None,
             ),
             # expected: Mapping[str, object]
             {
@@ -92,7 +96,7 @@ if TYPE_CHECKING:
         ),
         # Case 2: Mainnet with vault_address; Ref: test_l1_action_signing_matches_with_vault()
         (
-            # test_input: tuple[str, Mapping[str, object], int, bool, str | None]
+            # test_input: tuple[str, Mapping[str, object], int, bool, str | None, int | None]
             (
                 # private_key
                 "0x0123456789012345678901234567890123456789012345678901234567890123",
@@ -104,6 +108,8 @@ if TYPE_CHECKING:
                 True,
                 # vault_address
                 "0x1719884eb866cb12b2287399b15f7db5e7d775ea",
+                # expires_after
+                None,
             ),
             # expected: Mapping[str, object]
             {
@@ -112,20 +118,48 @@ if TYPE_CHECKING:
                 "v": 28,
             },
         ),
+        # Case 3: Mainnet with expires_after; Original test case
+        (
+            # test_input: tuple[str, Mapping[str, object], int, bool, str | None, int | None]
+            (
+                # private_key
+                "0x0123456789012345678901234567890123456789012345678901234567890123",
+                # action
+                {"type": "dummy", "num": 100000000000},
+                # nonce
+                0,
+                # is_mainnet
+                True,
+                # vault_address
+                None,
+                # expires_after
+                1687816341423,
+            ),
+            # expected: Mapping[str, object]
+            {
+                "r": "0x628d5d8421597faa21750d3cb1cd70ef93ff8e9163b89a18939b2bba5e23541b",
+                "s": "0x611cc26b0f7bf2a13d2ad7e3e4b3554392e19da9bb7965bbb0e2da2495d8d1d0",
+                "v": 27,
+            },
+        ),
     ],
 )
 def test_sign_l1_action(
-    test_input: tuple[str, Mapping[str, object], int, bool, str | None],
+    test_input: tuple[str, Mapping[str, object], int, bool, str | None, int | None],
     expected: Mapping[str, object],
 ) -> None:
     """Test hyperliquid l1 action signature."""
 
     # Arrange
-    private_key, action, nonce, is_mainnet, vault_address = test_input
+    private_key, action, nonce, is_mainnet, vault_address, expires_after = test_input
 
     # Act
     domain_data, message_types, message_data = construct_l1_action(
-        action, nonce, is_mainnet, vault_address
+        action,
+        nonce,
+        is_mainnet,
+        vault_address=vault_address,
+        expires_after=expires_after,
     )
     signature = sign_typed_data(private_key, domain_data, message_types, message_data)
 

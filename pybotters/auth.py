@@ -490,6 +490,7 @@ class Auth:
         action: dict[str, Any] = data.get("action", {})
         nonce: int = data.setdefault("nonce", hyperliquid.get_timestamp_ms())
         vault_address: str | None = data.get("vaultAddress")
+        expires_after: int | None = data.get("expiresAfter")
 
         if "signature" not in data:
             eip712_typed_data: tuple[
@@ -501,7 +502,11 @@ class Auth:
             if "hyperliquidChain" not in action:
                 is_mainnet = isinstance(url.host, str) and "testnet" not in url.host
                 eip712_typed_data = hyperliquid.construct_l1_action(
-                    action, nonce, is_mainnet, vault_address
+                    action,
+                    nonce,
+                    is_mainnet,
+                    vault_address=vault_address,
+                    expires_after=expires_after,
                 )
             # sign_user_signed_action
             else:
