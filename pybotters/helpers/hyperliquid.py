@@ -102,7 +102,11 @@ class Signature(TypedDict):
 
 
 def construct_l1_action(
-    action: MessageData, nonce: int, is_mainnet: bool, vault_address: str | None = None
+    action: MessageData,
+    nonce: int,
+    is_mainnet: bool,
+    vault_address: str | None = None,
+    expires_after: int | None = None,
 ) -> tuple[EIP712Domain, MessageTypes, PhantomAgentMessage]:
     """Construct EIP-712 typed data for Hyperliquid L1 action.
 
@@ -124,6 +128,9 @@ def construct_l1_action(
     else:
         data += b"\x01"
         data += bytes.fromhex(f"{int(vault_address, 16):x}")  # address_to_bytes
+    if expires_after is not None:
+        data += b"\x00"
+        data += expires_after.to_bytes(8, "big")
     hash_val = keccak.SHA3(data)
 
     # Ref: hyperliquid.utils.signing.construct_phantom_agent
