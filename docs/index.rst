@@ -134,6 +134,8 @@ What's next
 
 まずは :doc:`user-guide` ページで pybotters の利用方法を学習しましょう。
 
+または AI でこのドキュメントを活用したい場合は `llms.txt <../llms.txt>`_ または `llms-full.txt <../llms-full.txt>`_ をご利用ください。 これらのファイルは AI が処理しやすい形式でドキュメント内容を提供しています。
+
 
 💖 Sponsor
 -----------
