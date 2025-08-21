@@ -712,6 +712,36 @@ class Auth:
                 else:
                     logger.warning(data)
 
+    @staticmethod
+    async def coincheck(ws: ClientWebSocketResponse) -> None:
+        key: str = ws._response._session.__dict__["_apis"][
+            AuthHosts.items[ws._response.url.host].name
+        ][0]
+        secret: bytes = ws._response._session.__dict__["_apis"][
+            AuthHosts.items[ws._response.url.host].name
+        ][1]
+
+        nonce = str(int(time.time()))
+        url = "wss://stream.coincheck.com/private"
+        message = f"{nonce}{url}".encode()
+        signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
+
+        msg_to_send: object = {
+            "type": "login",
+            "access_key": key,
+            "access_nonce": nonce,
+            "access_signature": signature,
+        }
+        await ws.send_json(msg_to_send)
+
+        async for msg in ws:
+            data: object = msg.json()
+            if isinstance(data, dict) and "success" in data:
+                if not data["success"]:
+                    logger.warning(data)
+
+                break
+
 
 @dataclass
 class Item:
@@ -774,6 +804,7 @@ class AuthHosts:
         "contract.mexc.com": Item("mexc", Auth.mexc),
         "connect.okcoin.jp": Item("okj", Auth.okj),
         "api-cloud.bittrade.co.jp": Item("bittrade", Auth.bittrade),
+        "stream.coincheck.com": Item("coincheck", Auth.coincheck),
     }
 
 

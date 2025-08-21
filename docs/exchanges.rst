@@ -166,7 +166,9 @@ Authentication
 
     https://coincheck.com/ja/documents/exchange/api#auth
 * WebSocket 認証
-    *現時点で Private WebSocket API はありません*
+    WebSocket 接続時に取引所が定める認証情報の WebSocket メッセージが自動送信されます。
+
+    https://coincheck.com/ja/documents/exchange/api#private-channels
 
 DataStore
 ~~~~~~~~~

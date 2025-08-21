@@ -1666,6 +1666,84 @@ async def test_auth_bittrade_ws(test_input, expected, caplog):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        # signed
+        (
+            {
+                "url": URL("wss://stream.coincheck.com"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "success": True,
+                                "available_channels": [
+                                    "order-events",
+                                    "execution-events",
+                                ],
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [],
+            },
+        ),
+        # invalid signature
+        (
+            {
+                "url": URL("wss://stream.coincheck.com"),
+                "messages": [
+                    aiohttp.WSMessage(
+                        aiohttp.WSMsgType.TEXT,
+                        json.dumps(
+                            {
+                                "success": False,
+                                "message": "Unauthorized",
+                            }
+                        ),
+                        None,
+                    ),
+                ],
+            },
+            {
+                "records": [("pybotters.ws", logging.WARNING, ANY)],
+            },
+        ),
+    ],
+)
+async def test_auth_coincheck_ws(test_input, expected, caplog) -> None:
+    m_wsresp = AsyncMock()
+    m_wsresp._response.url = test_input["url"]
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "coincheck": (
+            "FASfaGggPBYDtiIHu6XoJgK6",
+            b"NNT34iDK8Qr2P6nlAt4XTuw42nQUdqzHaj3337Qlz4i5l4zu",
+        ),
+    }
+    m_wsresp.__aiter__.return_value = test_input["messages"]
+
+    with freezegun.freeze_time(datetime(2036, 2, 6, 6, 28, 16, tzinfo=timezone.utc)):
+        await asyncio.wait_for(pybotters.ws.Auth.coincheck(m_wsresp), timeout=5.0)
+
+    assert m_wsresp.send_json.call_args == call(
+        {
+            "type": "login",
+            "access_key": "FASfaGggPBYDtiIHu6XoJgK6",
+            "access_nonce": "2085892096",
+            "access_signature": "1c0aa2e17981a4146e6db575c3205c6493fd07ea7989ac528618d02ff8b8724e",
+        }
+    )
+    assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
+        "records"
+    ]
+
+
+@pytest.mark.asyncio
 async def test_ratelimit_gmocoin(mocker: pytest_mock.MockerFixture):
     m_sleep = mocker.patch("asyncio.sleep")
 
