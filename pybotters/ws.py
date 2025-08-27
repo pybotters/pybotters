@@ -721,7 +721,8 @@ class Auth:
             AuthHosts.items[ws._response.url.host].name
         ][1]
 
-        nonce = str(int(time.time()))
+        # NOTE: Use milliseconds for nonce to maintain compatibility with ccxt (#135)
+        nonce = str(int(time.time() * 1000))
         url = "wss://stream.coincheck.com/private"
         message = f"{nonce}{url}".encode()
         signature = hmac.new(secret, message, hashlib.sha256).hexdigest()
