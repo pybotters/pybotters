@@ -1734,8 +1734,8 @@ async def test_auth_coincheck_ws(test_input, expected, caplog) -> None:
         {
             "type": "login",
             "access_key": "FASfaGggPBYDtiIHu6XoJgK6",
-            "access_nonce": "2085892096",
-            "access_signature": "1c0aa2e17981a4146e6db575c3205c6493fd07ea7989ac528618d02ff8b8724e",
+            "access_nonce": "2085892096000",
+            "access_signature": "8ea715c5402f78069b139e4b978b56280292aa616b2b771621b6a2e400956588",
         }
     )
     assert [x for x in caplog.record_tuples if x[0] == "pybotters.ws"] == expected[
