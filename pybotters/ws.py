@@ -746,6 +746,7 @@ class HeartbeatHosts:
         "testnetws.binanceops.com": Heartbeat.binance,
         "fstream.asterdex.com": Heartbeat.aster,
         "fstream5.asterdex.com": Heartbeat.aster,
+        "sstream.asterdex.com": Heartbeat.aster,
         "phemex.com": Heartbeat.phemex,
         "api.phemex.com": Heartbeat.phemex,
         "vapi.phemex.com": Heartbeat.phemex,

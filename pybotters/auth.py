@@ -578,6 +578,7 @@ class Hosts:
         "dapi.binance.com": Item("binance", Auth.binance),
         "testnet.binancefuture.com": Item("binancefuture_testnet", Auth.binance),
         "fapi.asterdex.com": Item("aster", Auth.aster),
+        "sapi.asterdex.com": Item("aster", Auth.aster),
         "api.bitflyer.com": Item("bitflyer", Auth.bitflyer),
         "api.coin.z.com": Item("gmocoin", Auth.gmocoin),
         "api.bitbank.cc": Item("bitbank", Auth.bitbank),
