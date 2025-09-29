@@ -1753,3 +1753,342 @@ def test_hyperliquid_active_orders() -> None:
 
     assert len(store.order_updates) == 0
     assert store.order_updates.get({"coin": "BTC", "oid": 91490942}) is None
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="execution-events",
+                    data={
+                        "channel": "execution-events",
+                        "id": 583710515,
+                        "order_id": 8047158658,
+                        "event_time": "2025-08-24T04:52:25.000Z",
+                        "funds": {"btc": "0.005", "jpy": "-84628.36"},
+                        "pair": "btc_jpy",
+                        "rate": "16925672.0",
+                        "fee_currency": None,
+                        "fee": "0.0",
+                        "liquidity": "T",
+                        "side": "buy",
+                    },
+                ),
+                expected=[
+                    {
+                        "channel": "execution-events",
+                        "id": 583710515,
+                        "order_id": 8047158658,
+                        "event_time": "2025-08-24T04:52:25.000Z",
+                        "funds": {"btc": "0.005", "jpy": "-84628.36"},
+                        "pair": "btc_jpy",
+                        "rate": "16925672.0",
+                        "fee_currency": None,
+                        "fee": "0.0",
+                        "liquidity": "T",
+                        "side": "buy",
+                    }
+                ],
+            ),
+            id="execution-events",
+        ),
+    ],
+)
+def test_coincheck_private(test_input: StoreArg, expected: object) -> None:
+    store = pybotters.CoincheckPrivateDataStore()
+
+    store.onmessage(test_input.data)
+
+    s = store[test_input.name]
+    assert s is not None
+    assert s.find() == expected
+
+
+@pytest_asyncio.fixture
+async def server_coincheck_private() -> AsyncGenerator[str]:
+    routes = web.RouteTableDef()
+
+    @routes.get("/api/exchange/orders/opens")
+    async def assets(request: web.Request) -> web.Response:
+        return web.json_response(
+            {
+                "success": True,
+                "orders": [
+                    {
+                        "id": 8169566829,
+                        "order_type": "buy",
+                        "rate": "16391712.0",
+                        "pair": "btc_jpy",
+                        "pending_amount": "0.001",
+                        "pending_market_buy_amount": None,
+                        "stop_loss_rate": None,
+                        "created_at": "2025-09-28T06:26:42.000Z",
+                    }
+                ],
+            }
+        )
+
+    app = web.Application()
+    app.add_routes(routes)
+
+    async with TestServer(app) as server:
+        yield str(server.make_url(URL()))
+
+
+@pytest.mark.asyncio
+async def test_coincheck_private_order_initialize(
+    server_coincheck_private: str,
+) -> None:
+    store = pybotters.CoincheckPrivateDataStore()
+
+    async with pybotters.Client(base_url=server_coincheck_private) as client:
+        await store.initialize(client.request("GET", "/api/exchange/orders/opens"))
+
+    assert store.order.find() == [
+        {
+            "id": 8169566829,
+            "order_type": "buy",
+            "rate": "16391712.0",
+            "pair": "btc_jpy",
+            "pending_amount": "0.001",
+            "pending_market_buy_amount": None,
+            "stop_loss_rate": None,
+            "created_at": "2025-09-28T06:26:42.000Z",
+        }
+    ]
+
+
+def test_coincheck_private_order() -> None:
+    store = pybotters.CoincheckPrivateDataStore()
+
+    # Step 1: Place a new order
+    store.order.feed_response(
+        {
+            "success": True,
+            "id": 8173686428,
+            "amount": "0.0064",
+            "rate": "16998705.0",
+            "order_type": "buy",
+            "pair": "btc_jpy",
+            "created_at": "2025-09-29T14:50:21.000Z",
+            "market_buy_amount": None,
+            "time_in_force": "good_til_cancelled",
+            "stop_loss_rate": None,
+        }
+    )
+
+    assert store.order.find() == [
+        {
+            "success": True,
+            "id": 8173686428,
+            "amount": "0.0064",
+            "rate": "16998705.0",
+            "order_type": "buy",
+            "pair": "btc_jpy",
+            "created_at": "2025-09-29T14:50:21.000Z",
+            "market_buy_amount": None,
+            "time_in_force": "good_til_cancelled",
+            "stop_loss_rate": None,
+            "pending_amount": "0.0064",
+            "pending_market_buy_amount": None,
+        }
+    ]
+
+    # Step 2: Receive a partial fill event
+    store.onmessage(
+        {
+            "channel": "order-events",
+            "id": 8173686428,
+            "pair": "btc_jpy",
+            "order_event": "PARTIALLY_FILL",
+            "order_type": "buy",
+            "rate": "16998705.0",
+            "stop_loss_rate": None,
+            "maker_fee_rate": "0.0",
+            "taker_fee_rate": "0.0",
+            "amount": "0.0064",
+            "market_buy_amount": None,
+            "latest_executed_amount": "0.001",
+            "latest_executed_market_buy_amount": None,
+            "expired_type": None,
+            "prevented_match_id": None,
+            "expired_amount": None,
+            "expired_market_buy_amount": None,
+            "time_in_force": "good_til_cancelled",
+            "event_time": "2025-09-29T14:50:24.000Z",
+        }
+    )
+
+    assert store.order.find() == [
+        {
+            "success": True,
+            "channel": "order-events",
+            "id": 8173686428,
+            "pair": "btc_jpy",
+            "order_event": "PARTIALLY_FILL",
+            "order_type": "buy",
+            "rate": "16998705.0",
+            "stop_loss_rate": None,
+            "maker_fee_rate": "0.0",
+            "taker_fee_rate": "0.0",
+            "amount": "0.0064",
+            "market_buy_amount": None,
+            "latest_executed_amount": "0.001",
+            "latest_executed_market_buy_amount": None,
+            "expired_type": None,
+            "prevented_match_id": None,
+            "expired_amount": None,
+            "expired_market_buy_amount": None,
+            "time_in_force": "good_til_cancelled",
+            "created_at": "2025-09-29T14:50:21.000Z",
+            "event_time": "2025-09-29T14:50:24.000Z",
+            "pending_amount": "0.0054",
+            "pending_market_buy_amount": None,
+        }
+    ]
+
+    # Step 3: Receive a fill event
+    store.onmessage(
+        {
+            "channel": "order-events",
+            "id": 8173686428,
+            "pair": "btc_jpy",
+            "order_event": "FILL",
+            "order_type": "buy",
+            "rate": "16998705.0",
+            "stop_loss_rate": None,
+            "maker_fee_rate": "0.0",
+            "taker_fee_rate": "0.0",
+            "amount": "0.0064",
+            "market_buy_amount": None,
+            "latest_executed_amount": "0.0054",
+            "latest_executed_market_buy_amount": None,
+            "expired_type": None,
+            "prevented_match_id": None,
+            "expired_amount": None,
+            "expired_market_buy_amount": None,
+            "time_in_force": "good_til_cancelled",
+            "event_time": "2025-09-29T14:50:27.000Z",
+        }
+    )
+
+    assert store.order.find() == []
+
+
+def test_coincheck_private_order_market() -> None:
+    store = pybotters.CoincheckPrivateDataStore()
+
+    # Step 1: Place a new order
+    store.order.feed_response(
+        {
+            "success": True,
+            "id": 8173686428,
+            "amount": None,
+            "rate": None,
+            "order_type": "market_buy",
+            "pair": "btc_jpy",
+            "created_at": "2025-09-29T14:50:21.000Z",
+            "market_buy_amount": "108792.0",
+            "time_in_force": "good_til_cancelled",
+            "stop_loss_rate": None,
+        }
+    )
+
+    assert store.order.find() == [
+        {
+            "success": True,
+            "id": 8173686428,
+            "amount": None,
+            "rate": None,
+            "order_type": "market_buy",
+            "pair": "btc_jpy",
+            "created_at": "2025-09-29T14:50:21.000Z",
+            "market_buy_amount": "108792.0",
+            "time_in_force": "good_til_cancelled",
+            "stop_loss_rate": None,
+            "pending_amount": None,
+            "pending_market_buy_amount": "108792.0",
+        }
+    ]
+
+    # Step 2: Receive a partial fill event
+    store.onmessage(
+        {
+            "channel": "order-events",
+            "id": 8173686428,
+            "pair": "btc_jpy",
+            "order_event": "PARTIALLY_FILL",
+            "order_type": "market_buy",
+            "rate": None,
+            "stop_loss_rate": None,
+            "maker_fee_rate": "0.0",
+            "taker_fee_rate": "0.0",
+            "amount": None,
+            "market_buy_amount": "108792.0",
+            "latest_executed_amount": None,
+            "latest_executed_market_buy_amount": "16999.0",
+            "expired_type": None,
+            "prevented_match_id": None,
+            "expired_amount": None,
+            "expired_market_buy_amount": None,
+            "time_in_force": "good_til_cancelled",
+            "event_time": "2025-09-29T14:50:24.000Z",
+        }
+    )
+
+    assert store.order.find() == [
+        {
+            "success": True,
+            "channel": "order-events",
+            "id": 8173686428,
+            "pair": "btc_jpy",
+            "order_event": "PARTIALLY_FILL",
+            "order_type": "market_buy",
+            "rate": None,
+            "stop_loss_rate": None,
+            "maker_fee_rate": "0.0",
+            "taker_fee_rate": "0.0",
+            "amount": None,
+            "market_buy_amount": "108792.0",
+            "latest_executed_amount": None,
+            "latest_executed_market_buy_amount": "16999.0",
+            "expired_type": None,
+            "prevented_match_id": None,
+            "expired_amount": None,
+            "expired_market_buy_amount": None,
+            "time_in_force": "good_til_cancelled",
+            "created_at": "2025-09-29T14:50:21.000Z",
+            "event_time": "2025-09-29T14:50:24.000Z",
+            "pending_amount": None,
+            "pending_market_buy_amount": "91793.0",
+        }
+    ]
+
+    # Step 3: Receive a fill event
+    store.onmessage(
+        {
+            "channel": "order-events",
+            "id": 8173686428,
+            "pair": "btc_jpy",
+            "order_event": "FILL",
+            "order_type": "market_buy",
+            "rate": None,
+            "stop_loss_rate": None,
+            "maker_fee_rate": "0.0",
+            "taker_fee_rate": "0.0",
+            "amount": None,
+            "market_buy_amount": None,
+            "latest_executed_amount": None,
+            "latest_executed_market_buy_amount": "91793",
+            "expired_type": None,
+            "prevented_match_id": None,
+            "expired_amount": None,
+            "expired_market_buy_amount": None,
+            "time_in_force": "good_til_cancelled",
+            "event_time": "2025-09-29T14:50:27.000Z",
+        }
+    )
+
+    assert store.order.find() == []
