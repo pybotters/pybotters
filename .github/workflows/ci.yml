@@ -32,7 +32,7 @@ jobs:
 
       - run: uv build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: dist
           path: dist
@@ -79,7 +79,7 @@ jobs:
         run: mv .coverage ".coverage.${{ matrix.python-version }}"
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage-${{ matrix.python-version }}
           path: .coverage.${{ matrix.python-version }}
@@ -134,7 +134,7 @@ jobs:
               coverage report -m
 
       - name: Upload HTML report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: ${{ always() }}
         with:
           name: htmlcov
