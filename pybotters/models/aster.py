@@ -30,10 +30,15 @@ class AsterFuturesDataStoreBase(BinanceFuturesDataStoreBase):
 class AsterSpotDataStore(BinanceSpotDataStore):
     """Aster Spot の DataStoreCollection クラス
 
-    Note: Aster APIはBinance API完全互換のため、BinanceSpotDataStoreを継承
+    Note: Aster APIはBinance API互換のため、BinanceSpotDataStoreを継承し、エンドポイントのみ上書き
     """
 
-    pass
+    _ORDERBOOK_INIT_ENDPOINT = "/api/v1/depth"
+    _ORDER_INIT_ENDPOINT = "/api/v1/openOrders"
+    _LISTENKEY_INIT_ENDPOINT = "/api/v1/listenKey"
+    _KLINE_INIT_ENDPOINT = "/api/v1/klines"
+    _ACCOUNT_INIT_ENDPOINT = "/api/v1/account"
+    _OCOORDER_INIT_ENDPOINT = "/api/v1/openOrderList"
 
 
 class AsterUSDSMDataStore(BinanceUSDSMDataStore):
