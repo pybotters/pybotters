@@ -485,6 +485,26 @@ class Auth:
         return (method, url)
 
     @staticmethod
+    def extended(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
+        url: URL = args[1]
+        data: dict[str, Any] = kwargs["data"] or {}
+        headers: CIMultiDict = kwargs["headers"]
+
+        session: aiohttp.ClientSession = kwargs["session"]
+        key: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
+
+        body = JsonPayload(data) if data else FormData(data)()
+        kwargs.update({"data": body})
+        headers.update(
+            {
+                "X-Api-Key": key,
+                "Content-Type": "application/json",
+            }
+        )
+
+        return args
+
+    @staticmethod
     def _hyperliquid(
         data: MutableMapping[str, Any], url: URL, private_key: str, /
     ) -> None:
@@ -591,6 +611,10 @@ class Hosts:
         "api-cloud.bittrade.co.jp": Item("bittrade", Auth.bittrade),
         "api.hyperliquid.xyz": Item("hyperliquid", Auth.hyperliquid),
         "api.hyperliquid-testnet.xyz": Item("hyperliquid_testnet", Auth.hyperliquid),
+        "api.starknet.extended.exchange": Item("extended", Auth.extended),
+        "api.starknet.sepolia.extended.exchange": Item(
+            "extended_testnet", Auth.extended
+        ),
     }
 
 
