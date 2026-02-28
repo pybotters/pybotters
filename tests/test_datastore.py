@@ -2092,3 +2092,181 @@ def test_coincheck_private_order_market() -> None:
     )
 
     assert store.order.find() == []
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="orderbook",
+                    data={
+                        "type": "SNAPSHOT",
+                        "data": {
+                            "m": "BTC-USD",
+                            "b": [
+                                {"p": "63000.0", "q": "1.5"},
+                                {"p": "62900.0", "q": "2.0"},
+                            ],
+                            "a": [
+                                {"p": "63100.0", "q": "1.0"},
+                                {"p": "63200.0", "q": "0.5"},
+                            ],
+                        },
+                        "ts": 1700000000000,
+                        "seq": 1,
+                    },
+                ),
+                expected=[
+                    {
+                        "market": "BTC-USD",
+                        "side": "bid",
+                        "price": "63000.0",
+                        "qty": "1.5",
+                    },
+                    {
+                        "market": "BTC-USD",
+                        "side": "bid",
+                        "price": "62900.0",
+                        "qty": "2.0",
+                    },
+                    {
+                        "market": "BTC-USD",
+                        "side": "ask",
+                        "price": "63100.0",
+                        "qty": "1.0",
+                    },
+                    {
+                        "market": "BTC-USD",
+                        "side": "ask",
+                        "price": "63200.0",
+                        "qty": "0.5",
+                    },
+                ],
+            ),
+            id="orderbook_snapshot",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="trades",
+                    data={
+                        "type": "TRADE",
+                        "data": [
+                            {
+                                "i": 1001,
+                                "m": "BTC-USD",
+                                "S": "BUY",
+                                "T": 1700000000000,
+                                "p": "63050.0",
+                                "q": "0.5",
+                            },
+                        ],
+                        "ts": 1700000000000,
+                        "seq": 2,
+                    },
+                ),
+                expected=[
+                    {
+                        "i": 1001,
+                        "m": "BTC-USD",
+                        "S": "BUY",
+                        "T": 1700000000000,
+                        "p": "63050.0",
+                        "q": "0.5",
+                    },
+                ],
+            ),
+            id="trades",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="balance",
+                    data={
+                        "type": "BALANCE",
+                        "data": {
+                            "equity": "10000.0",
+                            "available_balance": "8000.0",
+                        },
+                        "ts": 1700000000000,
+                        "seq": 3,
+                    },
+                ),
+                expected=[
+                    {
+                        "equity": "10000.0",
+                        "available_balance": "8000.0",
+                    },
+                ],
+            ),
+            id="balance",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="orders",
+                    data={
+                        "type": "ORDER",
+                        "data": {
+                            "id": 12345,
+                            "market": "BTC-USD",
+                            "side": "BUY",
+                            "price": "63000.0",
+                            "qty": "1.0",
+                            "status": "open",
+                        },
+                        "ts": 1700000000000,
+                        "seq": 4,
+                    },
+                ),
+                expected=[
+                    {
+                        "id": 12345,
+                        "market": "BTC-USD",
+                        "side": "BUY",
+                        "price": "63000.0",
+                        "qty": "1.0",
+                        "status": "open",
+                    },
+                ],
+            ),
+            id="orders",
+        ),
+        pytest.param(
+            *ParamArg(
+                test_input=StoreArg(
+                    name="positions",
+                    data={
+                        "type": "POSITION",
+                        "data": {
+                            "market": "BTC-USD",
+                            "side": "LONG",
+                            "size": "1.0",
+                            "value": "63000.0",
+                        },
+                        "ts": 1700000000000,
+                        "seq": 5,
+                    },
+                ),
+                expected=[
+                    {
+                        "market": "BTC-USD",
+                        "side": "LONG",
+                        "size": "1.0",
+                        "value": "63000.0",
+                    },
+                ],
+            ),
+            id="positions",
+        ),
+    ],
+)
+def test_extended(test_input: StoreArg, expected: object) -> None:
+    store = pybotters.ExtendedDataStore()
+    store.onmessage(test_input.data)
+
+    s = store[test_input.name]
+    assert s is not None
+    assert s.find() == expected

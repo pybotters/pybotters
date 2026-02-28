@@ -126,6 +126,12 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         "hyperliquid_testnet": (
             "0x0123456789012345678901234567890123456789012345678901234567890123",
         ),
+        "extended": (
+            "extended_api_key_1234567890abcdef",
+        ),
+        "extended_testnet": (
+            "extended_testnet_api_key_1234567890",
+        ),
     }
     assert set(apis.keys()) == set(
         item.name if isinstance(item.name, str) else item.name.__name__
@@ -1769,3 +1775,114 @@ def test_hyperliquid(mock_session, test_input, expected):
         kwargs["data"] = json.loads(kwargs["data"].decode())
 
     assert {"args": args, "kwargs": kwargs} == expected
+
+
+def test_extended_get(mock_session):
+    args = (
+        "GET",
+        URL("https://api.starknet.extended.exchange/api/v1/orderbook").with_query(
+            {"market": "BTC-USD"}
+        ),
+    )
+    kwargs = {
+        "data": None,
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = (
+        "GET",
+        URL(
+            "https://api.starknet.extended.exchange/api/v1/orderbook?market=BTC-USD"
+        ),
+    )
+    expected_kwargs = {
+        "data": aiohttp.formdata.FormData({})(),
+        "headers": CIMultiDict(
+            {
+                "X-Api-Key": "extended_api_key_1234567890abcdef",
+                "Content-Type": "application/json",
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.extended(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"]._value == expected_kwargs["data"]._value
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_extended_post(mock_session):
+    args = (
+        "POST",
+        URL("https://api.starknet.extended.exchange/api/v1/orders"),
+    )
+    kwargs = {
+        "data": {
+            "market": "BTC-USD",
+            "side": "BUY",
+            "price": "63000.1",
+            "amount": "1",
+        },
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = (
+        "POST",
+        URL("https://api.starknet.extended.exchange/api/v1/orders"),
+    )
+    expected_kwargs = {
+        "data": aiohttp.payload.JsonPayload(
+            {
+                "market": "BTC-USD",
+                "side": "BUY",
+                "price": "63000.1",
+                "amount": "1",
+            }
+        ),
+        "headers": CIMultiDict(
+            {
+                "X-Api-Key": "extended_api_key_1234567890abcdef",
+                "Content-Type": "application/json",
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.extended(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"]._value == expected_kwargs["data"]._value
+    assert kwargs["headers"] == expected_kwargs["headers"]
+
+
+def test_extended_testnet_get(mock_session):
+    args = (
+        "GET",
+        URL(
+            "https://api.starknet.sepolia.extended.exchange/api/v1/orderbook"
+        ).with_query({"market": "BTC-USD"}),
+    )
+    kwargs = {
+        "data": None,
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+    expected_args = (
+        "GET",
+        URL(
+            "https://api.starknet.sepolia.extended.exchange/api/v1/orderbook"
+            "?market=BTC-USD"
+        ),
+    )
+    expected_kwargs = {
+        "data": aiohttp.formdata.FormData({})(),
+        "headers": CIMultiDict(
+            {
+                "X-Api-Key": "extended_testnet_api_key_1234567890",
+                "Content-Type": "application/json",
+            }
+        ),
+        "session": mock_session,
+    }
+    args = pybotters.auth.Auth.extended(args, kwargs)
+    assert args == expected_args
+    assert kwargs["data"]._value == expected_kwargs["data"]._value
+    assert kwargs["headers"] == expected_kwargs["headers"]
