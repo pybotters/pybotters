@@ -126,12 +126,8 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         "hyperliquid_testnet": (
             "0x0123456789012345678901234567890123456789012345678901234567890123",
         ),
-        "extended": (
-            "extended_api_key_1234567890abcdef",
-        ),
-        "extended_testnet": (
-            "extended_testnet_api_key_1234567890",
-        ),
+        "extended": ("extended_api_key_1234567890abcdef",),
+        "extended_testnet": ("extended_testnet_api_key_1234567890",),
     }
     assert set(apis.keys()) == set(
         item.name if isinstance(item.name, str) else item.name.__name__
@@ -1791,9 +1787,7 @@ def test_extended_get(mock_session):
     }
     expected_args = (
         "GET",
-        URL(
-            "https://api.starknet.extended.exchange/api/v1/orderbook?market=BTC-USD"
-        ),
+        URL("https://api.starknet.extended.exchange/api/v1/orderbook?market=BTC-USD"),
     )
     expected_kwargs = {
         "data": aiohttp.formdata.FormData({})(),
