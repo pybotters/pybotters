@@ -92,15 +92,11 @@ class Orderbook(DataStore):
         for entry in data.get("b") or data.get("bid", []):
             price = entry.get("p") or entry.get("price")
             qty = entry.get("q") or entry.get("qty")
-            items.append(
-                {"market": market, "side": "bid", "price": price, "qty": qty}
-            )
+            items.append({"market": market, "side": "bid", "price": price, "qty": qty})
         for entry in data.get("a") or data.get("ask", []):
             price = entry.get("p") or entry.get("price")
             qty = entry.get("q") or entry.get("qty")
-            items.append(
-                {"market": market, "side": "ask", "price": price, "qty": qty}
-            )
+            items.append({"market": market, "side": "ask", "price": price, "qty": qty})
         self._find_and_delete({"market": market})
         self._insert(items)
 
