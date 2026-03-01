@@ -64,6 +64,7 @@ It has the following features, making it useful for developing a trading bot.
 | KuCoin | ✅ | ✅ | [Link](https://www.kucoin.com/docs/beginners/introduction) |
 | BitMEX | ✅ | ✅ | [Link](https://www.bitmex.com/app/apiOverview) |
 | Hyperliquid | ✅ | ✅ | [Link](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api) |
+| Extended | ✅ | ✅ | [Link](https://api.docs.extended.exchange/) |
 
 ## 🐍 Requires
 
