@@ -59,6 +59,7 @@ Exchange-specific Data Stores
    pybotters.GMOCoinDataStore
    pybotters.HyperliquidDataStore
    pybotters.KuCoinDataStore
+   pybotters.LighterDataStore
    pybotters.OKXDataStore
    pybotters.PhemexDataStore
    pybotters.bitFlyerDataStore

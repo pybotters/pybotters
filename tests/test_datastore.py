@@ -1755,6 +1755,244 @@ def test_hyperliquid_active_orders() -> None:
     assert store.order_updates.get({"coin": "BTC", "oid": 91490942}) is None
 
 
+def test_lighter_order_book() -> None:
+    store = pybotters.LighterDataStore()
+
+    store.onmessage(
+        {
+            "channel": "order_book:0",
+            "offset": 10,
+            "order_book": {
+                "code": 0,
+                "asks": [{"price": "101.0", "size": "3.0"}],
+                "bids": [{"price": "100.0", "size": "2.0"}],
+                "offset": 10,
+                "nonce": 100,
+                "begin_nonce": 0,
+            },
+            "timestamp": 1700000000000,
+            "type": "update/order_book",
+        }
+    )
+
+    assert store.order_book.sorted(market_id=0) == {
+        "asks": [
+            {
+                "market_id": 0,
+                "channel": "order_book:0",
+                "side": "asks",
+                "price": "101.0",
+                "size": "3.0",
+                "offset": 10,
+                "nonce": 100,
+                "begin_nonce": 0,
+                "timestamp": 1700000000000,
+            }
+        ],
+        "bids": [
+            {
+                "market_id": 0,
+                "channel": "order_book:0",
+                "side": "bids",
+                "price": "100.0",
+                "size": "2.0",
+                "offset": 10,
+                "nonce": 100,
+                "begin_nonce": 0,
+                "timestamp": 1700000000000,
+            }
+        ],
+    }
+
+    store.onmessage(
+        {
+            "channel": "order_book:0",
+            "offset": 11,
+            "order_book": {
+                "code": 0,
+                "asks": [{"price": "101.0", "size": "0"}],
+                "bids": [{"price": "100.0", "size": "4.0"}],
+                "offset": 11,
+                "nonce": 101,
+                "begin_nonce": 100,
+            },
+            "timestamp": 1700000001000,
+            "type": "update/order_book",
+        }
+    )
+
+    assert store.order_book.sorted(market_id=0) == {
+        "asks": [],
+        "bids": [
+            {
+                "market_id": 0,
+                "channel": "order_book:0",
+                "side": "bids",
+                "price": "100.0",
+                "size": "4.0",
+                "offset": 11,
+                "nonce": 101,
+                "begin_nonce": 100,
+                "timestamp": 1700000001000,
+            }
+        ],
+    }
+
+    # Mismatched begin_nonce is treated as a resync snapshot.
+    store.onmessage(
+        {
+            "channel": "order_book:0",
+            "offset": 20,
+            "order_book": {
+                "code": 0,
+                "asks": [{"price": "102.0", "size": "1.5"}],
+                "bids": [],
+                "offset": 20,
+                "nonce": 200,
+                "begin_nonce": 150,
+            },
+            "timestamp": 1700000002000,
+            "type": "update/order_book",
+        }
+    )
+
+    assert store.order_book.sorted(market_id=0) == {
+        "asks": [
+            {
+                "market_id": 0,
+                "channel": "order_book:0",
+                "side": "asks",
+                "price": "102.0",
+                "size": "1.5",
+                "offset": 20,
+                "nonce": 200,
+                "begin_nonce": 150,
+                "timestamp": 1700000002000,
+            }
+        ],
+        "bids": [],
+    }
+
+
+def test_lighter_public_channels() -> None:
+    store = pybotters.LighterDataStore()
+
+    store.onmessage(
+        {
+            "channel": "ticker:0",
+            "nonce": 123,
+            "ticker": {
+                "s": "ETH",
+                "a": {"price": "2150.10", "size": "4.6512"},
+                "b": {"price": "2149.99", "size": "17.4551"},
+            },
+            "type": "update/ticker",
+        }
+    )
+    store.onmessage(
+        {
+            "channel": "spot_market_stats:all",
+            "spot_market_stats": {
+                "2048": {
+                    "market_id": 2048,
+                    "mid_price": "3031.70",
+                    "last_trade_price": "3038.08",
+                }
+            },
+            "type": "update/spot_market_stats",
+        }
+    )
+    store.onmessage(
+        {
+            "channel": "market_stats:all",
+            "market_stats": {
+                "0": {
+                    "market_id": 0,
+                    "symbol": "ETH",
+                    "last_trade_price": "2963.67",
+                }
+            },
+            "type": "update/market_stats",
+        }
+    )
+    store.onmessage(
+        {
+            "channel": "trade:0",
+            "trades": {
+                "trade_id": 14035051,
+                "tx_hash": "hash",
+                "type": "trade",
+                "market_id": 0,
+                "size": "0.1187",
+                "price": "3335.65",
+            },
+            "type": "update/trade",
+        }
+    )
+
+    assert store.ticker.get({"market_id": 0}) == {
+        "market_id": 0,
+        "channel": "ticker:0",
+        "nonce": 123,
+        "s": "ETH",
+        "a": {"price": "2150.10", "size": "4.6512"},
+        "b": {"price": "2149.99", "size": "17.4551"},
+    }
+    assert store.market_stats.get({"market_id": 0}) == {
+        "market_id": 0,
+        "channel": "market_stats:all",
+        "symbol": "ETH",
+        "last_trade_price": "2963.67",
+    }
+    assert store.spot_market_stats.get({"market_id": 2048}) == {
+        "market_id": 2048,
+        "channel": "spot_market_stats:all",
+        "mid_price": "3031.70",
+        "last_trade_price": "3038.08",
+    }
+    assert store.trade.get({"market_id": 0, "trade_id": 14035051}) == {
+        "channel": "trade:0",
+        "trade_id": 14035051,
+        "tx_hash": "hash",
+        "type": "trade",
+        "market_id": 0,
+        "size": "0.1187",
+        "price": "3335.65",
+    }
+
+
+def test_lighter_private_channels() -> None:
+    store = pybotters.LighterDataStore()
+
+    account_orders = {
+        "account": 1234,
+        "channel": "account_orders:0",
+        "nonce": 100,
+        "orders": {"0": [{"order_index": 1, "market_index": 0}]},
+        "type": "update/account_orders",
+    }
+    account_all_assets = {
+        "assets": {
+            "1": {
+                "symbol": "ETH",
+                "asset_id": 1,
+                "balance": "7.1072",
+                "locked_balance": "0.0000",
+            }
+        },
+        "channel": "account_all_assets:1234",
+        "type": "update/account_all_assets",
+    }
+
+    store.onmessage(account_orders)
+    store.onmessage(account_all_assets)
+
+    assert store.account_orders.get(
+        {"account": 1234, "channel": "account_orders:0"}
+    ) == account_orders
+    assert store.account_all_assets.get({"channel": "account_all_assets:1234"}) == account_all_assets
+
+
 @pytest.mark.parametrize(
     "test_input,expected",
     [

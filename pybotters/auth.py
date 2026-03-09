@@ -543,6 +543,25 @@ class Auth:
 
         return args
 
+    @staticmethod
+    def lighter(args: tuple[str, URL], kwargs: dict[str, Any]) -> tuple[str, URL]:
+        url: URL = args[1]
+        headers: CIMultiDict = kwargs["headers"]
+
+        session: aiohttp.ClientSession = kwargs["session"]
+        token: str = session.__dict__["_apis"][Hosts.items[url.host].name][0]
+
+        # Private WebSocket subscriptions use the per-message ``auth`` field.
+        if headers.get("Upgrade") == "websocket":
+            return args
+
+        if not token.startswith("Bearer "):
+            token = f"Bearer {token}"
+
+        headers["Authorization"] = token
+
+        return args
+
 
 @dataclass
 class Item:
@@ -601,6 +620,8 @@ class Hosts:
         "api-cloud.bittrade.co.jp": Item("bittrade", Auth.bittrade),
         "api.hyperliquid.xyz": Item("hyperliquid", Auth.hyperliquid),
         "api.hyperliquid-testnet.xyz": Item("hyperliquid_testnet", Auth.hyperliquid),
+        "mainnet.zklighter.elliot.ai": Item("lighter", Auth.lighter),
+        "testnet.zklighter.elliot.ai": Item("lighter_testnet", Auth.lighter),
     }
 
 

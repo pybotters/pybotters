@@ -636,3 +636,32 @@ DataStore
 * :class:`.HyperliquidDataStore`
 
 対応している WebSocket チャンネルはリファレンスの *ATTRIBUTES* をご覧ください。
+
+
+Lighter
+-------
+
+https://apidocs.lighter.xyz/docs/get-started
+
+
+Authentication
+~~~~~~~~~~~~~~
+
+* API 認証情報
+    * ``{"lighter": ["AUTH_TOKEN"]}`` (Mainnet)
+    * ``{"lighter_testnet": ["AUTH_TOKEN"]}`` (Testnet)
+* HTTP 認証
+    ``mainnet.zklighter.elliot.ai`` / ``testnet.zklighter.elliot.ai`` への HTTP リクエスト時に ``Authorization: Bearer <AUTH_TOKEN>`` が自動設定されます。
+
+    `Authentication Tokens <https://apidocs.lighter.xyz/docs/get-started#authentication-tokens>`_
+* WebSocket 認証
+    Private WebSocket チャンネルへの ``subscribe`` メッセージ送信時に ``auth`` フィールドが自動設定されます。
+
+    `WebSocket <https://apidocs.lighter.xyz/docs/websocket-reference>`_
+
+DataStore
+~~~~~~~~~
+
+* :class:`.LighterDataStore`
+
+対応している WebSocket チャンネルはリファレンスの *ATTRIBUTES* をご覧ください。

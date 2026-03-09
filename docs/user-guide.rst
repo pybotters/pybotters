@@ -367,6 +367,8 @@ Coincheck                 ``coincheck``
 GMO Coin                  ``gmocoin``
 Hyperliquid               ``hyperliquid``
 Hyperliquid Testnet       ``hyperliquid_testnet``
+Lighter                   ``lighter``
+Lighter Testnet           ``lighter_testnet``
 KuCoin                    ``kucoin``
 MECX                      ``mexc``
 OKX                       ``okx``

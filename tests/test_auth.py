@@ -60,6 +60,10 @@ def mock_session(mocker: pytest_mock.MockerFixture):
             "EDYH5JVoHJlhroiQkDntBHn8",
             b"lMFc3hibQUEOzSeG6YEvx7lMRgNBUlF07PVEm9g9U6HEWtEZ",
         ),
+        "aster": (
+            "k1Jv7qfZ1Q9pLw8sAe4nDm2H",
+            b"n5Yv3QxkP7mHc2Rb9tLd4Ws6Fg1Jz8Ua0eKr5Np2Bx6Vh3Qc",
+        ),
         "bitflyer": (
             "Pcm1rbtSRqKxTvirZDDOct1k",
             b"AKHZlv3PoAXZ0KXIKIVKOmS4ji3rV7ZIVIJRstwyplaw0FQ4",
@@ -125,6 +129,12 @@ def mock_session(mocker: pytest_mock.MockerFixture):
         ),
         "hyperliquid_testnet": (
             "0x0123456789012345678901234567890123456789012345678901234567890123",
+        ),
+        "lighter": (
+            "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.mainnet-token",
+        ),
+        "lighter_testnet": (
+            "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.testnet-token",
         ),
     }
     assert set(apis.keys()) == set(
@@ -1769,3 +1779,62 @@ def test_hyperliquid(mock_session, test_input, expected):
         kwargs["data"] = json.loads(kwargs["data"].decode())
 
     assert {"args": args, "kwargs": kwargs} == expected
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        (
+            (
+                "GET",
+                URL("https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails"),
+            ),
+            CIMultiDict(
+                {
+                    "Authorization": (
+                        "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.mainnet-token"
+                    ),
+                }
+            ),
+        ),
+        (
+            (
+                "GET",
+                URL("https://testnet.zklighter.elliot.ai/api/v1/orderBookDetails"),
+            ),
+            CIMultiDict(
+                {
+                    "Authorization": (
+                        "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.testnet-token"
+                    ),
+                }
+            ),
+        ),
+    ],
+)
+def test_lighter(mock_session, test_input, expected):
+    args = test_input
+    kwargs = {
+        "data": None,
+        "headers": CIMultiDict(),
+        "session": mock_session,
+    }
+
+    args = pybotters.auth.Auth.lighter(args, kwargs)
+
+    assert kwargs["headers"] == expected
+    assert args == test_input
+
+
+def test_lighter_ignore_websocket_handshake(mock_session):
+    args = ("GET", URL("wss://mainnet.zklighter.elliot.ai/stream"))
+    kwargs = {
+        "data": None,
+        "headers": CIMultiDict({"Upgrade": "websocket"}),
+        "session": mock_session,
+    }
+
+    args = pybotters.auth.Auth.lighter(args, kwargs)
+
+    assert kwargs["headers"] == CIMultiDict({"Upgrade": "websocket"})
+    assert args == ("GET", URL("wss://mainnet.zklighter.elliot.ai/stream"))

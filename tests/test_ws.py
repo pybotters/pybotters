@@ -2129,3 +2129,65 @@ def test_msgsign_hyperliquid_ignore(test_input):
     pybotters.ws.MessageSignHosts.items[url.host].func(m_wsresp, test_input)
 
     assert test_input == expected
+
+
+@pytest.mark.parametrize(
+    ("test_input", "expected"),
+    [
+        (
+            URL("wss://mainnet.zklighter.elliot.ai/stream"),
+            "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.mainnet-token",
+        ),
+        (
+            URL("wss://testnet.zklighter.elliot.ai/stream"),
+            "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.testnet-token",
+        ),
+    ],
+)
+def test_msgsign_lighter(test_input, expected):
+    m_wsresp = AsyncMock()
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "lighter": ("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.mainnet-token",),
+        "lighter_testnet": ("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.testnet-token",),
+    }
+    m_wsresp._response.url = test_input
+
+    mutable_input = {
+        "type": "subscribe",
+        "channel": "account_orders/0/1234",
+    }
+
+    pybotters.ws.MessageSignHosts.items[test_input.host].func(m_wsresp, mutable_input)
+
+    assert mutable_input == {
+        "type": "subscribe",
+        "channel": "account_orders/0/1234",
+        "auth": expected,
+    }
+
+
+@pytest.mark.parametrize(
+    "test_input",
+    [
+        42,
+        {"type": "subscribe", "channel": "order_book/0"},
+        {"type": "unsubscribe", "channel": "account_orders/0/1234"},
+        {
+            "type": "subscribe",
+            "channel": "account_orders/0/1234",
+            "auth": "custom-token",
+        },
+    ],
+)
+def test_msgsign_lighter_ignore(test_input):
+    m_wsresp = AsyncMock()
+    m_wsresp._response._session.__dict__["_apis"] = {
+        "lighter": ("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.mainnet-token",),
+    }
+    url = URL("wss://mainnet.zklighter.elliot.ai/stream")
+    m_wsresp._response.url = url
+    expected = copy.deepcopy(test_input)
+
+    pybotters.ws.MessageSignHosts.items[url.host].func(m_wsresp, test_input)
+
+    assert test_input == expected

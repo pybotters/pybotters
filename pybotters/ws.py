@@ -920,6 +920,20 @@ class RequestLimitHosts:
 
 
 class MessageSign:
+    _LIGHTER_PRIVATE_CHANNELS: tuple[str, ...] = (
+        "account_market",
+        "account_tx",
+        "account_all_orders",
+        "pool_data",
+        "pool_info",
+        "notification",
+        "account_orders",
+        "account_all_trades",
+        "account_all_positions",
+        "account_all_assets",
+        "account_spot_avg_entry_prices",
+    )
+
     @staticmethod
     def binance(ws: ClientWebSocketResponse, data: dict[str, Any]):
         key: str = ws._response._session.__dict__["_apis"][
@@ -971,6 +985,28 @@ class MessageSign:
 
         _Auth._hyperliquid(payload, url, private_key)
 
+    @staticmethod
+    def lighter(ws: ClientWebSocketResponse, data: object) -> None:
+        url = ws._response.url
+        token: str = ws._response._session.__dict__["_apis"][
+            MessageSignHosts.items[url.host].name
+        ][0]
+
+        if not isinstance(data, dict):
+            return
+
+        if data.get("type") != "subscribe":
+            return
+
+        channel = data.get("channel")
+        if not isinstance(channel, str):
+            return
+
+        if not channel.startswith(MessageSign._LIGHTER_PRIVATE_CHANNELS):
+            return
+
+        data.setdefault("auth", token)
+
 
 class MessageSignHosts:
     # NOTE: yarl.URL.host is also allowed to be None. So, for brevity, relax the type check on the `items` key.
@@ -983,5 +1019,9 @@ class MessageSignHosts:
         "api.hyperliquid.xyz": Item("hyperliquid", MessageSign.hyperliquid),
         "api.hyperliquid-testnet.xyz": Item(
             "hyperliquid_testnet", MessageSign.hyperliquid
+        ),
+        "mainnet.zklighter.elliot.ai": Item("lighter", MessageSign.lighter),
+        "testnet.zklighter.elliot.ai": Item(
+            "lighter_testnet", MessageSign.lighter
         ),
     }

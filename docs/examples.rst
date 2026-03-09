@@ -152,6 +152,11 @@ Hyperliquid
 
 .. literalinclude:: ../examples/datastore/hyperliquid.py
 
+Lighter
+~~~~~~~
+
+.. literalinclude:: ../examples/datastore/lighter.py
+
 Open orders
 -----------
 
