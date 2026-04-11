@@ -4,7 +4,7 @@
 
 uv run \
     --with-editable . \
-    --with-requirements requirements/docs.txt \
+    --with-requirements requirements/dev-docs.txt \
     --isolated \
     --no-project \
     --python 3.14 \

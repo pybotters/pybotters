@@ -103,7 +103,7 @@ jobs:
         run: |
           uv run \
               --with-editable . \
-              --with-requirements requirements/test.txt \
+              --with-requirements requirements/dev-test.txt \
               --isolated \
               --no-project \
               coverage combine
@@ -112,14 +112,14 @@ jobs:
 
           uv run \
               --with-editable . \
-              --with-requirements requirements/test.txt \
+              --with-requirements requirements/dev-test.txt \
               --isolated \
               --no-project \
               coverage report --format=markdown -m | tee -a "$GITHUB_STEP_SUMMARY"
 
           uv run \
               --with-editable . \
-              --with-requirements requirements/test.txt \
+              --with-requirements requirements/dev-test.txt \
               --isolated \
               --no-project \
               coverage html
@@ -128,7 +128,7 @@ jobs:
 
           uv run \
               --with-editable . \
-              --with-requirements requirements/test.txt \
+              --with-requirements requirements/dev-test.txt \
               --isolated \
               --no-project \
               coverage report -m

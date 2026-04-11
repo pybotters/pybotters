@@ -5,7 +5,7 @@
 
 uv run \
     --with-editable . \
-    --with-requirements requirements/test.txt \
+    --with-requirements requirements/dev-test.txt \
     --isolated \
     --no-project \
     pytest --cov --cov-report=term-missing --cov-report=html tests
