@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "pybotters"
 dynamic = ["version", "readme"]
 description = "An advanced API client for python crypto bot traders"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 keywords = ["aiohttp", "crypto", "exchange", "trading"]
 authors = [
@@ -16,11 +16,11 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: MIT License",
     "Framework :: AsyncIO",
     "Framework :: aiohttp",
@@ -36,7 +36,6 @@ classifiers = [
 ]
 dependencies = [
     "aiohttp>=3.7",
-    "typing-extensions>=3.10 ; python_version < \"3.10\"",
 ]
 
 [project.urls]

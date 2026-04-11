@@ -1,5 +1,5 @@
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 import pytest_mock
@@ -110,7 +110,13 @@ def test_request_content_type(test_input: URL, expected: str):
     ):
         # Act
         req = ClientRequest(
-            "GET", test_input, params=None, headers=None, data={"foo": "bar"}, auth=None
+            "GET",
+            test_input,
+            params=None,
+            headers=None,
+            data={"foo": "bar"},
+            auth=None,
+            loop=Mock(),
         )
 
     # Assert
@@ -155,7 +161,15 @@ def test_request_content_type_hosts(test_input: tuple[str, URL, Any], expected: 
     method, url, data = test_input
 
     # Act
-    req = ClientRequest(method, url, params=None, headers=None, data=data, auth=None)
+    req = ClientRequest(
+        method,
+        url,
+        params=None,
+        headers=None,
+        data=data,
+        auth=None,
+        loop=Mock(),
+    )
 
     # Assert
     assert req.body.decode() == expected
