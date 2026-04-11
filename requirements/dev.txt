@@ -1,9 +1,9 @@
 -e .
 
--r dependencies.txt
--r test.txt
--r lint.txt
--r typing.txt
+-r runtime.txt
+-r dev-test.txt
+-r dev-lint.txt
+-r dev-typing.txt
 
 # For VS Code extension "reStructuredText" (`lextudio.restructuredtext`)
 doc8==1.1.2

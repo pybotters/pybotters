@@ -4,8 +4,8 @@
 
 uv run \
     --with-editable . \
-    --with-requirements requirements/typing.txt \
-    --with-requirements requirements/test.txt \
+    --with-requirements requirements/dev-typing.txt \
+    --with-requirements requirements/dev-test.txt \
     --isolated \
     --no-project \
     mypy

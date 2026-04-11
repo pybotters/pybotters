@@ -17,3 +17,8 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 256
+    groups:
+      production:
+        dependency-type: "production"
+      development:
+        dependency-type: "development"

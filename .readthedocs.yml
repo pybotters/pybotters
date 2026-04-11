@@ -11,7 +11,7 @@ build:
       - asdf global uv latest
       - uv venv --python 3.14
     install:
-      - uv pip install -r requirements/docs.txt
+      - uv pip install -r requirements/dev-docs.txt
     build:
       html:
         - ./scripts/docs
