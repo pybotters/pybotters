@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
@@ -19,21 +18,6 @@ class ClientRequest(aiohttp.ClientRequest):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         method: str = args[0]
         url: URL = args[1]
-        temp_loop: asyncio.AbstractEventLoop | None = None
-
-        if kwargs.get("loop") is None:
-            session = kwargs.get("session")
-            session_loop = (
-                getattr(session, "_loop", None) if session is not None else None
-            )
-            if session_loop is not None:
-                kwargs["loop"] = session_loop
-            else:
-                try:
-                    kwargs["loop"] = asyncio.get_running_loop()
-                except RuntimeError:
-                    temp_loop = asyncio.new_event_loop()
-                    kwargs["loop"] = temp_loop
 
         if kwargs["params"]:
             q = MultiDict(url.query)
@@ -60,11 +44,7 @@ class ClientRequest(aiohttp.ClientRequest):
         if url.host in ContentTypeHosts.items:
             ContentTypeHosts.items[url.host](args, kwargs)
 
-        try:
-            super().__init__(*args, **kwargs)
-        finally:
-            if temp_loop is not None:
-                temp_loop.close()
+        super().__init__(*args, **kwargs)
 
     async def send(self, *args, **kwargs) -> aiohttp.ClientResponse:
         resp = await super().send(*args, **kwargs)
