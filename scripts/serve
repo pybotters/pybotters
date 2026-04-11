@@ -7,5 +7,5 @@ uv run \
     --with-requirements requirements/docs.txt \
     --isolated \
     --no-project \
-    --python 3.13 \
+    --python 3.14 \
     sphinx-autobuild docs docs/_build/html
