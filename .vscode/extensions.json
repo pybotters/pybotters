@@ -3,6 +3,7 @@
         "ms-python.python",
         "ms-python.mypy-type-checker",
         "charliermarsh.ruff",
-        "lextudio.restructuredtext"
+        "lextudio.restructuredtext",
+        "be5invis.toml"
     ]
 }
