@@ -1,0 +1,28 @@
+{
+    "name": "Ubuntu",
+    "mounts": [
+        {
+            "source": "venv-${devcontainerId}",
+            "target": "${containerWorkspaceFolder}/.venv",
+            "type": "volume"
+        }
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.mypy-type-checker",
+                "charliermarsh.ruff",
+                "lextudio.restructuredtext",
+                "be5invis.toml"
+            ]
+        }
+    },
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "containerWorkspaceFolder": "${containerWorkspaceFolder}"
+        }
+    },
+    "postCreateCommand": "bash ${containerWorkspaceFolder}/.devcontainer/setup.sh"
+}
