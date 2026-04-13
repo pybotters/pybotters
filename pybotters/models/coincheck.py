@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections import defaultdict, deque
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Awaitable, cast
 
@@ -29,6 +30,7 @@ class CoincheckDataStore(DataStoreCollection):
         対応エンドポイント
 
         - GET /api/order_books (:attr:`.CoincheckDataStore.orderbook`)
+        - GET /api/order_books?version=1.0 (:attr:`.CoincheckDataStore.orderbook`)
         """
         for f in asyncio.as_completed(aws):
             resp = await f
@@ -55,6 +57,9 @@ class CoincheckDataStore(DataStoreCollection):
     @property
     def orderbook(self) -> "Orderbook":
         """orderbook channel.
+
+        * ``{"type":"subscribe","channel":"[pair]-orderbook"}``
+        * ``{"type":"subscribe","channel":"[pair]-limit-range-orderbook"}`` (undocumented)
 
         https://coincheck.com/ja/documents/exchange/api#websocket-order-book
         """
@@ -87,6 +92,11 @@ class Orderbook(DataStore):
 
     def _init(self) -> None:
         self.last_update_at: str | None = None
+        self.initialized: defaultdict[str, bool] = defaultdict(lambda: False)
+        self._buff: defaultdict[str, deque[dict[str, Any]]] = defaultdict(
+            lambda: deque(maxlen=8000)
+        )
+        self._sequence_number: dict[str, int] = {}
 
     def sorted(
         self, query: Item | None = None, limit: int | None = None
@@ -100,26 +110,107 @@ class Orderbook(DataStore):
             limit=limit,
         )
 
-    def _onresponse(self, pair: str | None, data: dict[str, list[list[str]]]) -> None:
+    def _onresponse(self, pair: str | None, data: dict[str, Any]) -> None:
         if pair is None:
-            pair = "btc_jpy"
+            pair = cast("str | None", data.get("pair")) or "btc_jpy"
+        if self._is_sequence_payload(data):
+            self._onresponse_sequence(pair, data)
+        else:
+            self._onresponse_legacy(pair, data)
+
+    def _onresponse_legacy(self, pair: str, data: dict[str, Any]) -> None:
         self._find_and_delete({"pair": pair})
-        for side in data:
-            for rate, amount in data[side]:
+        for side in ("asks", "bids"):
+            for rate, amount in cast("list[list[str]]", data.get(side, [])):
                 self._insert(
                     [{"pair": pair, "side": side, "rate": rate, "amount": amount}]
                 )
 
-    def _onmessage(self, pair: str, data: dict[str, list[list[str]] | str]) -> None:
-        self.last_update_at = cast("dict[str, str]", data).pop("last_update_at")
-        for side in cast("dict[str, list[list[str]]]", data):
-            for rate, amount in cast("list[list[str]]", data[side]):
-                if amount == "0":
+    def _onresponse_sequence(self, pair: str, data: dict[str, Any]) -> None:
+        self._find_and_delete({"pair": pair})
+        self._apply_sequence_rows(pair, data)
+        self._update_sequence_state(pair, data)
+        for msg in self._buff[pair]:
+            self._onmessage_sequence(pair, msg)
+        self._buff[pair].clear()
+        self.initialized[pair] = True
+
+    def _onmessage(self, pair: str, data: dict[str, Any]) -> None:
+        if self._is_sequence_payload(data):
+            if not self.initialized[pair]:
+                self._buff[pair].append(data)
+                return
+            self._onmessage_sequence(pair, data)
+            return
+
+        if "last_update_at" in data:
+            self.last_update_at = cast("str", data["last_update_at"])
+        for side in ("asks", "bids"):
+            for rate, amount in cast("list[list[str]]", data.get(side, [])):
+                if self._is_zero_amount(amount):
                     self._delete([{"pair": pair, "side": side, "rate": rate}])
                 else:
                     self._update(
                         [{"pair": pair, "side": side, "rate": rate, "amount": amount}]
                     )
+
+    def _onmessage_sequence(self, pair: str, data: dict[str, Any]) -> None:
+        sequence_number = self._get_sequence_number(data)
+        current_sequence_number = self._sequence_number.get(pair)
+        if (
+            sequence_number is not None
+            and current_sequence_number is not None
+            and sequence_number <= current_sequence_number
+        ):
+            return
+
+        self._apply_sequence_rows(pair, data)
+        self._update_sequence_state(pair, data)
+
+    def _apply_sequence_rows(self, pair: str, data: dict[str, Any]) -> None:
+        for book_side in ("upper", "lower"):
+            for row in cast("list[dict[str, str]]", data.get(book_side, [])):
+                self._apply_sequence_row(pair, row)
+
+    def _apply_sequence_row(self, pair: str, row: dict[str, str]) -> None:
+        for side, amount_key in (("asks", "ask_amount"), ("bids", "bid_amount")):
+            amount = row.get(amount_key)
+            if amount is None:
+                continue
+            if self._is_zero_amount(amount):
+                self._delete([{"pair": pair, "side": side, "rate": row["rate"]}])
+            else:
+                self._update(
+                    [
+                        {
+                            "pair": pair,
+                            "side": side,
+                            "rate": row["rate"],
+                            "amount": amount,
+                        }
+                    ]
+                )
+
+    def _update_sequence_state(self, pair: str, data: dict[str, Any]) -> None:
+        if "last_update_at" in data:
+            self.last_update_at = cast("str", data["last_update_at"])
+        sequence_number = self._get_sequence_number(data)
+        if sequence_number is not None:
+            self._sequence_number[pair] = sequence_number
+
+    @staticmethod
+    def _is_sequence_payload(data: dict[str, Any]) -> bool:
+        return "sequence_number" in data and ("upper" in data or "lower" in data)
+
+    @staticmethod
+    def _get_sequence_number(data: dict[str, Any]) -> int | None:
+        if "sequence_number" in data:
+            return int(data["sequence_number"])
+        return None
+
+    @staticmethod
+    def _is_zero_amount(amount: str) -> bool:
+        return Decimal(amount).is_zero()
 
 
 class CoincheckPrivateDataStore(DataStoreCollection):
