@@ -110,6 +110,12 @@ bitbank
 Coincheck
 ~~~~~~~~~
 
+Coincheck の orderbook example は、ドキュメントで説明されていない
+``GET /api/order_books?version=1.0`` と
+``{"type": "subscribe", "channel": "[pair]-limit-range-orderbook"}``
+を利用しています。これらの payload には ``sequence_number`` が含まれるため、
+REST snapshot と WebSocket 更新を整合させて扱えます。
+
 .. literalinclude:: ../examples/datastore/coincheck.py
 
 Bybit

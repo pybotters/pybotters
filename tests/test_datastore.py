@@ -1807,6 +1807,205 @@ def test_coincheck_private(test_input: StoreArg, expected: object) -> None:
 
 
 @pytest_asyncio.fixture
+async def server_coincheck() -> AsyncGenerator[str]:
+    routes = web.RouteTableDef()
+
+    @routes.get("/api/order_books")
+    async def order_books(request: web.Request) -> web.Response:
+        pair = request.query.get("pair", "btc_jpy")
+        if request.query.get("version") == "1.0":
+            return web.json_response(
+                {
+                    "pair": pair,
+                    "upper": [
+                        {
+                            "rate": "100.0",
+                            "ask_amount": "1.0",
+                            "bid_amount": "0.0",
+                        },
+                        {
+                            "rate": "101.0",
+                            "ask_amount": "2.0",
+                            "bid_amount": "0.0",
+                        },
+                    ],
+                    "lower": [
+                        {
+                            "rate": "99.0",
+                            "ask_amount": "0.0",
+                            "bid_amount": "3.0",
+                        }
+                    ],
+                    "sequence_number": "101",
+                    "last_update_at": "1010",
+                }
+            )
+
+        return web.json_response(
+            {
+                "asks": [["100.0", "0.5"]],
+                "bids": [["99.0", "1.5"]],
+            }
+        )
+
+    app = web.Application()
+    app.add_routes(routes)
+
+    async with TestServer(app) as server:
+        yield str(server.make_url(URL()))
+
+
+@pytest.mark.asyncio
+async def test_coincheck_orderbook_initialize_replays_buffered_messages(
+    server_coincheck: str,
+) -> None:
+    store = pybotters.CoincheckDataStore()
+
+    store.onmessage(
+        [
+            "btc_jpy",
+            {
+                "upper": [
+                    {
+                        "rate": "101.0",
+                        "ask_amount": "9.0",
+                        "bid_amount": "0.0",
+                    }
+                ],
+                "lower": [],
+                "sequence_number": "100",
+                "last_update_at": "1000",
+            },
+        ]
+    )
+    store.onmessage(
+        [
+            "btc_jpy",
+            {
+                "upper": [
+                    {
+                        "rate": "100.0",
+                        "ask_amount": "0.0",
+                        "bid_amount": "0.0",
+                    }
+                ],
+                "lower": [
+                    {
+                        "rate": "98.0",
+                        "ask_amount": "0.0",
+                        "bid_amount": "4.0",
+                    }
+                ],
+                "sequence_number": "102",
+                "last_update_at": "1020",
+            },
+        ]
+    )
+
+    async with pybotters.Client(base_url=server_coincheck) as client:
+        await store.initialize(
+            client.request(
+                "GET",
+                "/api/order_books",
+                params={"pair": "btc_jpy", "version": "1.0"},
+            )
+        )
+
+    assert store.orderbook.sorted({"pair": "btc_jpy"}) == {
+        "asks": [{"pair": "btc_jpy", "side": "asks", "rate": "101.0", "amount": "2.0"}],
+        "bids": [
+            {"pair": "btc_jpy", "side": "bids", "rate": "99.0", "amount": "3.0"},
+            {"pair": "btc_jpy", "side": "bids", "rate": "98.0", "amount": "4.0"},
+        ],
+    }
+
+
+@pytest.mark.asyncio
+async def test_coincheck_orderbook_ignores_stale_messages_after_initialize(
+    server_coincheck: str,
+) -> None:
+    store = pybotters.CoincheckDataStore()
+
+    async with pybotters.Client(base_url=server_coincheck) as client:
+        await store.initialize(
+            client.request(
+                "GET",
+                "/api/order_books",
+                params={"pair": "btc_jpy", "version": "1.0"},
+            )
+        )
+
+    store.onmessage(
+        [
+            "btc_jpy",
+            {
+                "upper": [
+                    {
+                        "rate": "100.0",
+                        "ask_amount": "0.0",
+                        "bid_amount": "0.0",
+                    }
+                ],
+                "lower": [],
+                "sequence_number": "102",
+                "last_update_at": "1020",
+            },
+        ]
+    )
+    store.onmessage(
+        [
+            "btc_jpy",
+            {
+                "upper": [
+                    {
+                        "rate": "100.0",
+                        "ask_amount": "5.0",
+                        "bid_amount": "0.0",
+                    }
+                ],
+                "lower": [],
+                "sequence_number": "101",
+                "last_update_at": "1015",
+            },
+        ]
+    )
+
+    assert store.orderbook.sorted({"pair": "btc_jpy"}) == {
+        "asks": [{"pair": "btc_jpy", "side": "asks", "rate": "101.0", "amount": "2.0"}],
+        "bids": [{"pair": "btc_jpy", "side": "bids", "rate": "99.0", "amount": "3.0"}],
+    }
+
+
+@pytest.mark.asyncio
+async def test_coincheck_orderbook_legacy_payloads(server_coincheck: str) -> None:
+    store = pybotters.CoincheckDataStore()
+
+    async with pybotters.Client(base_url=server_coincheck) as client:
+        await store.initialize(
+            client.request("GET", "/api/order_books", params={"pair": "btc_jpy"})
+        )
+
+    store.onmessage(
+        [
+            "btc_jpy",
+            {
+                "asks": [["100.0", "0"]],
+                "bids": [["98.0", "2.0"]],
+                "last_update_at": "2000",
+            },
+        ]
+    )
+
+    assert store.orderbook.sorted({"pair": "btc_jpy"}) == {
+        "asks": [],
+        "bids": [
+            {"pair": "btc_jpy", "side": "bids", "rate": "99.0", "amount": "1.5"},
+            {"pair": "btc_jpy", "side": "bids", "rate": "98.0", "amount": "2.0"},
+        ],
+    }
+
+
+@pytest_asyncio.fixture
 async def server_coincheck_private() -> AsyncGenerator[str]:
     routes = web.RouteTableDef()
 

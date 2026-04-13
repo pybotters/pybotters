@@ -21,12 +21,12 @@ async def main():
 
         await client.ws_connect(
             "wss://ws-api.coincheck.com/",
-            send_json={"type": "subscribe", "channel": "btc_jpy-orderbook"},
+            send_json={"type": "subscribe", "channel": "btc_jpy-limit-range-orderbook"},
             hdlr_json=store.onmessage,
         )
 
         await store.initialize(
-            client.get("/api/order_books", params={"pair": "btc_jpy"})
+            client.get("/api/order_books", params={"pair": "btc_jpy", "version": "1.0"})
         )
 
         while True:

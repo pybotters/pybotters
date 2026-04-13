@@ -176,6 +176,13 @@ DataStore
 * :class:`.CoincheckDataStore`
 * :class:`.CoincheckPrivateDataStore`
 
+.. note::
+
+    :class:`.CoincheckDataStore` の orderbook は、ドキュメントで説明されていない
+    ``[pair]-limit-range-orderbook`` / ``GET /api/order_books?version=1.0`` にも対応しています。
+    こちらの payload には ``sequence_number`` が含まれるため、REST snapshot と WebSocket 更新を
+    安全に同期したい場合はこちらの組み合わせを利用してください。
+
 .. warning::
 
     新規注文イベントは WebSocket からは送信されません。
