@@ -662,12 +662,14 @@ class Liquidation(DataStore):
 
 class OrderBook(DataStore):
     _KEYS = ["s", "S", "p"]
+    _BUFF_MAXLEN = 8000
 
     def _init(self) -> None:
         self.initialized: defaultdict[str, bool] = defaultdict(lambda: False)
         self._buff: defaultdict[str, deque[Item]] = defaultdict(
-            lambda: deque(maxlen=8000)
+            lambda: deque(maxlen=self._BUFF_MAXLEN)
         )
+        self._last_update_id: dict[str, int] = {}
 
     def sorted(
         self, query: Item | None = None, limit: int | None = None
@@ -682,26 +684,40 @@ class OrderBook(DataStore):
         )
 
     def _onmessage(self, item: Item) -> None:
-        if not self.initialized[item["s"]]:
-            self._buff[item["s"]].append(item)
+        symbol = item["s"]
+        self._buff[symbol].append(item)
+        if not self.initialized[symbol]:
+            return
+        self._onmessage_update(item)
+
+    def _onmessage_update(self, item: Item) -> None:
+        symbol = item["s"]
+        last_update_id = self._last_update_id.get(symbol)
+        if last_update_id is not None and item["u"] <= last_update_id:
+            return
+
         for side in ("a", "b"):
             for row in item[side]:
                 if float(row[1]) != 0.0:
-                    self._update(
-                        [{"s": item["s"], "S": side, "p": row[0], "q": row[1]}]
-                    )
+                    self._update([{"s": symbol, "S": side, "p": row[0], "q": row[1]}])
                 else:
-                    self._delete([{"s": item["s"], "S": side, "p": row[0]}])
+                    self._delete([{"s": symbol, "S": side, "p": row[0]}])
+
+        self._last_update_id[symbol] = item["u"]
 
     def _onresponse(self, symbol: str, item: Item) -> None:
+        snapshot_update_id = item["lastUpdateId"]
         self._delete(self._find_and_delete({"s": symbol}))
         for side_ws, side_http in (("a", "asks"), ("b", "bids")):
             for row in item[side_http]:
                 self._insert([{"s": symbol, "S": side_ws, "p": row[0], "q": row[1]}])
+        self._last_update_id[symbol] = snapshot_update_id
         for msg in self._buff[symbol]:
-            if msg["U"] <= item["lastUpdateId"] and msg["u"] >= item["lastUpdateId"]:
-                self._onmessage(msg)
-        self._buff[symbol].clear()
+            self._onmessage_update(msg)
+        self._buff[symbol] = deque(
+            (msg for msg in self._buff[symbol] if msg["u"] > snapshot_update_id),
+            maxlen=self._BUFF_MAXLEN,
+        )
         self.initialized[symbol] = True
 
 
