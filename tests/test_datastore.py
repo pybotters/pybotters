@@ -1814,9 +1814,9 @@ async def server_coincheck() -> AsyncGenerator[str]:
     async def order_books(request: web.Request) -> web.Response:
         pair = request.query.get("pair", "btc_jpy")
         if request.query.get("version") == "1.0":
-            return web.json_response(
-                {
-                    "pair": pair,
+            snapshot_sequence = request.query.get("snapshot_sequence", "101")
+            snapshots = {
+                "101": {
                     "upper": [
                         {
                             "rate": "100.0",
@@ -1836,8 +1836,42 @@ async def server_coincheck() -> AsyncGenerator[str]:
                             "bid_amount": "3.0",
                         }
                     ],
-                    "sequence_number": "101",
                     "last_update_at": "1010",
+                },
+                "104": {
+                    "upper": [
+                        {
+                            "rate": "101.0",
+                            "ask_amount": "2.0",
+                            "bid_amount": "0.0",
+                        },
+                        {
+                            "rate": "102.0",
+                            "ask_amount": "5.0",
+                            "bid_amount": "0.0",
+                        },
+                    ],
+                    "lower": [
+                        {
+                            "rate": "99.0",
+                            "ask_amount": "0.0",
+                            "bid_amount": "3.0",
+                        },
+                        {
+                            "rate": "98.0",
+                            "ask_amount": "0.0",
+                            "bid_amount": "4.0",
+                        },
+                    ],
+                    "last_update_at": "1040",
+                },
+            }
+            snapshot = snapshots[snapshot_sequence]
+            return web.json_response(
+                {
+                    "pair": pair,
+                    **snapshot,
+                    "sequence_number": snapshot_sequence,
                 }
             )
 
@@ -1973,6 +2007,182 @@ async def test_coincheck_orderbook_ignores_stale_messages_after_initialize(
     assert store.orderbook.sorted({"pair": "btc_jpy"}) == {
         "asks": [{"pair": "btc_jpy", "side": "asks", "rate": "101.0", "amount": "2.0"}],
         "bids": [{"pair": "btc_jpy", "side": "bids", "rate": "99.0", "amount": "3.0"}],
+    }
+
+
+@pytest.mark.asyncio
+async def test_coincheck_orderbook_reinitialize_replays_post_init_messages(
+    server_coincheck: str,
+) -> None:
+    store = pybotters.CoincheckDataStore()
+
+    for sequence_number, data in (
+        (
+            "100",
+            {
+                "upper": [
+                    {
+                        "rate": "102.0",
+                        "ask_amount": "9.0",
+                        "bid_amount": "0.0",
+                    }
+                ],
+                "lower": [],
+                "last_update_at": "1000",
+            },
+        ),
+        (
+            "101",
+            {
+                "upper": [
+                    {
+                        "rate": "100.0",
+                        "ask_amount": "1.0",
+                        "bid_amount": "0.0",
+                    },
+                    {
+                        "rate": "101.0",
+                        "ask_amount": "2.0",
+                        "bid_amount": "0.0",
+                    },
+                ],
+                "lower": [
+                    {
+                        "rate": "99.0",
+                        "ask_amount": "0.0",
+                        "bid_amount": "3.0",
+                    }
+                ],
+                "last_update_at": "1010",
+            },
+        ),
+        (
+            "102",
+            {
+                "upper": [],
+                "lower": [
+                    {
+                        "rate": "98.0",
+                        "ask_amount": "0.0",
+                        "bid_amount": "4.0",
+                    }
+                ],
+                "last_update_at": "1020",
+            },
+        ),
+    ):
+        store.onmessage(
+            [
+                "btc_jpy",
+                {**data, "sequence_number": sequence_number},
+            ]
+        )
+
+    async with pybotters.Client(base_url=server_coincheck) as client:
+        await store.initialize(
+            client.request(
+                "GET",
+                "/api/order_books",
+                params={
+                    "pair": "btc_jpy",
+                    "version": "1.0",
+                    "snapshot_sequence": "101",
+                },
+            )
+        )
+
+        for sequence_number, data in (
+            (
+                "103",
+                {
+                    "upper": [
+                        {
+                            "rate": "100.0",
+                            "ask_amount": "0.0",
+                            "bid_amount": "0.0",
+                        }
+                    ],
+                    "lower": [],
+                    "last_update_at": "1030",
+                },
+            ),
+            (
+                "104",
+                {
+                    "upper": [
+                        {
+                            "rate": "102.0",
+                            "ask_amount": "5.0",
+                            "bid_amount": "0.0",
+                        }
+                    ],
+                    "lower": [],
+                    "last_update_at": "1040",
+                },
+            ),
+            (
+                "105",
+                {
+                    "upper": [],
+                    "lower": [
+                        {
+                            "rate": "97.0",
+                            "ask_amount": "0.0",
+                            "bid_amount": "7.0",
+                        }
+                    ],
+                    "last_update_at": "1050",
+                },
+            ),
+        ):
+            store.onmessage(
+                [
+                    "btc_jpy",
+                    {**data, "sequence_number": sequence_number},
+                ]
+            )
+
+        await store.initialize(
+            client.request(
+                "GET",
+                "/api/order_books",
+                params={
+                    "pair": "btc_jpy",
+                    "version": "1.0",
+                    "snapshot_sequence": "104",
+                },
+            )
+        )
+
+    store.onmessage(
+        [
+            "btc_jpy",
+            {
+                "upper": [
+                    {
+                        "rate": "103.0",
+                        "ask_amount": "8.0",
+                        "bid_amount": "0.0",
+                    }
+                ],
+                "lower": [],
+                "sequence_number": "106",
+                "last_update_at": "1060",
+            },
+        ]
+    )
+
+    assert store.orderbook.sorted({"pair": "btc_jpy"}) == {
+        "asks": [
+            {"pair": "btc_jpy", "side": "asks", "rate": "101.0", "amount": "2.0"},
+            {"pair": "btc_jpy", "side": "asks", "rate": "102.0", "amount": "5.0"},
+            {"pair": "btc_jpy", "side": "asks", "rate": "103.0", "amount": "8.0"},
+        ],
+        "bids": [
+            {"pair": "btc_jpy", "side": "bids", "rate": "99.0", "amount": "3.0"},
+            {"pair": "btc_jpy", "side": "bids", "rate": "98.0", "amount": "4.0"},
+            {"pair": "btc_jpy", "side": "bids", "rate": "97.0", "amount": "7.0"},
+        ],
     }
 
 
