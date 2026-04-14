@@ -89,12 +89,13 @@ class Trades(DataStore):
 
 class Orderbook(DataStore):
     _KEYS = ["pair", "side", "rate"]
+    _BUFF_MAXLEN = 8000
 
     def _init(self) -> None:
         self.last_update_at: str | None = None
         self.initialized: defaultdict[str, bool] = defaultdict(lambda: False)
         self._buff: defaultdict[str, deque[dict[str, Any]]] = defaultdict(
-            lambda: deque(maxlen=8000)
+            lambda: deque(maxlen=Orderbook._BUFF_MAXLEN)
         )
         self._sequence_number: dict[str, int] = {}
 
@@ -142,7 +143,7 @@ class Orderbook(DataStore):
                     if (seq := self._get_sequence_number(msg)) is None
                     or seq > snapshot_seq
                 ),
-                maxlen=8000,
+                maxlen=self._BUFF_MAXLEN,
             )
         else:
             self._buff[pair].clear()
