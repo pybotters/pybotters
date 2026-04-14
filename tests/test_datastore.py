@@ -1889,6 +1889,137 @@ async def server_coincheck() -> AsyncGenerator[str]:
         yield str(server.make_url(URL()))
 
 
+@pytest_asyncio.fixture
+async def server_binance_orderbook() -> AsyncGenerator[str]:
+    routes = web.RouteTableDef()
+
+    snapshots = {
+        "102": {
+            "lastUpdateId": 102,
+            "asks": [["100.0", "1.0"], ["101.0", "2.0"], ["102.0", "9.0"]],
+            "bids": [["99.0", "3.0"], ["98.0", "4.0"]],
+        },
+        "104": {
+            "lastUpdateId": 104,
+            "asks": [["101.0", "2.0"], ["102.0", "5.0"]],
+            "bids": [["99.0", "3.0"], ["98.0", "4.0"]],
+        },
+    }
+
+    async def depth(request: web.Request) -> web.Response:
+        snapshot_update_id = request.query.get("snapshot_update_id", "102")
+        return web.json_response(snapshots[snapshot_update_id])
+
+    routes.get("/api/v3/depth")(depth)
+    routes.get("/fapi/v1/depth")(depth)
+    routes.get("/dapi/v1/depth")(depth)
+
+    app = web.Application()
+    app.add_routes(routes)
+
+    async with TestServer(app) as server:
+        yield str(server.make_url(URL()))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("store_cls", "endpoint"),
+    [
+        pytest.param(
+            pybotters.BinanceSpotDataStore,
+            "/api/v3/depth",
+            id="spot",
+        ),
+        pytest.param(
+            pybotters.BinanceUSDSMDataStore,
+            "/fapi/v1/depth",
+            id="usdsm",
+        ),
+        pytest.param(
+            pybotters.BinanceCOINMDataStore,
+            "/dapi/v1/depth",
+            id="coinm",
+        ),
+    ],
+)
+async def test_binance_orderbook_reinitialize_replays_post_init_messages(
+    server_binance_orderbook: str,
+    store_cls,
+    endpoint: str,
+) -> None:
+    store = store_cls()
+    symbol = "BTCUSDT"
+
+    async with pybotters.Client(base_url=server_binance_orderbook) as client:
+        await store.initialize(
+            client.request(
+                "GET",
+                endpoint,
+                params={"symbol": symbol, "snapshot_update_id": "102"},
+            )
+        )
+
+        for message in (
+            {
+                "e": "depthUpdate",
+                "s": symbol,
+                "U": 103,
+                "u": 103,
+                "a": [["100.0", "0.0"]],
+                "b": [],
+            },
+            {
+                "e": "depthUpdate",
+                "s": symbol,
+                "U": 104,
+                "u": 104,
+                "a": [["102.0", "5.0"]],
+                "b": [],
+            },
+            {
+                "e": "depthUpdate",
+                "s": symbol,
+                "U": 105,
+                "u": 105,
+                "a": [],
+                "b": [["97.0", "7.0"]],
+            },
+        ):
+            store.onmessage(message)
+
+        await store.initialize(
+            client.request(
+                "GET",
+                endpoint,
+                params={"symbol": symbol, "snapshot_update_id": "104"},
+            )
+        )
+
+    store.onmessage(
+        {
+            "e": "depthUpdate",
+            "s": symbol,
+            "U": 106,
+            "u": 106,
+            "a": [["103.0", "8.0"]],
+            "b": [],
+        }
+    )
+
+    assert store.orderbook.sorted({"s": symbol}) == {
+        "a": [
+            {"s": symbol, "S": "a", "p": "101.0", "q": "2.0"},
+            {"s": symbol, "S": "a", "p": "102.0", "q": "5.0"},
+            {"s": symbol, "S": "a", "p": "103.0", "q": "8.0"},
+        ],
+        "b": [
+            {"s": symbol, "S": "b", "p": "99.0", "q": "3.0"},
+            {"s": symbol, "S": "b", "p": "98.0", "q": "4.0"},
+            {"s": symbol, "S": "b", "p": "97.0", "q": "7.0"},
+        ],
+    }
+
+
 @pytest.mark.asyncio
 async def test_coincheck_orderbook_initialize_replays_buffered_messages(
     server_coincheck: str,
