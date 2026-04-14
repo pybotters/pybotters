@@ -127,18 +127,31 @@ class Orderbook(DataStore):
                 )
 
     def _onresponse_sequence(self, pair: str, data: dict[str, Any]) -> None:
+        snapshot_seq = self._get_sequence_number(data)
         self._find_and_delete({"pair": pair})
         self._apply_sequence_rows(pair, data)
         self._update_sequence_state(pair, data)
         for msg in self._buff[pair]:
             self._onmessage_sequence(pair, msg)
-        self._buff[pair].clear()
+        # Retain messages newer than the snapshot for future reinitializations.
+        if snapshot_seq is not None:
+            self._buff[pair] = deque(
+                (
+                    msg
+                    for msg in self._buff[pair]
+                    if (seq := self._get_sequence_number(msg)) is None
+                    or seq > snapshot_seq
+                ),
+                maxlen=8000,
+            )
+        else:
+            self._buff[pair].clear()
         self.initialized[pair] = True
 
     def _onmessage(self, pair: str, data: dict[str, Any]) -> None:
         if self._is_sequence_payload(data):
+            self._buff[pair].append(data)
             if not self.initialized[pair]:
-                self._buff[pair].append(data)
                 return
             self._onmessage_sequence(pair, data)
             return
