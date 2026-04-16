@@ -2632,3 +2632,165 @@ def test_coincheck_private_order_market() -> None:
     )
 
     assert store.order.find() == []
+
+
+def test_bitbank_depth_sequence_replay() -> None:
+    """Verify that depth_whole replays only buffered diffs with s > sequenceId.
+
+    Per bitbank docs, the correct algorithm is:
+      1. Buffer ALL depth_diff messages (each carries field ``s``).
+      2. When depth_diff arrives, apply it immediately AND keep in buffer.
+      3. When depth_whole arrives (carries ``sequenceId``):
+         - Replace the local book with the snapshot.
+         - Replay buffered diffs whose ``s > sequenceId`` in ascending order.
+         - Discard diffs with ``s <= sequenceId``.
+
+    Docs example:
+      diff{s=3}, diff{s=5}, diff{s=6}, diff{s=8}, whole{sequenceId=5}
+      → Apply whole, then diff{s=6}, then diff{s=8}; ignore diff{s=3},diff{s=5}.
+    """
+    import json
+
+    store = pybotters.bitbankDataStore()
+    pair = "btc_jpy"
+
+    def _whole_msg(
+        asks: list[list[str]],
+        bids: list[list[str]],
+        ts: int,
+        sequence_id: str,
+    ) -> str:
+        return "42" + json.dumps(
+            [
+                "message",
+                {
+                    "room_name": f"depth_whole_{pair}",
+                    "message": {
+                        "data": {
+                            "asks": asks,
+                            "bids": bids,
+                            "timestamp": ts,
+                            "sequenceId": sequence_id,
+                        }
+                    },
+                },
+            ]
+        )
+
+    def _diff_msg(
+        a: list[list[str]],
+        b: list[list[str]],
+        t: int,
+        s: str,
+    ) -> str:
+        return "42" + json.dumps(
+            [
+                "message",
+                {
+                    "room_name": f"depth_diff_{pair}",
+                    "message": {
+                        "data": {
+                            "a": a,
+                            "b": b,
+                            "t": t,
+                            "s": s,
+                        }
+                    },
+                },
+            ]
+        )
+
+    # ---------------------------------------------------------------
+    # Scenario 1:  docs example  diff{3,5,6,8} then whole{seqId=5}
+    # ---------------------------------------------------------------
+
+    # diff s=3: set ask 200.0 @ 10.0  (should be IGNORED after whole)
+    store.onmessage(_diff_msg(a=[["200.0", "10.0"]], b=[], t=1001, s="3"))
+    # diff s=5: set bid 50.0 @ 20.0   (should be IGNORED after whole)
+    store.onmessage(_diff_msg(a=[], b=[["50.0", "20.0"]], t=1002, s="5"))
+    # diff s=6: set ask 105.0 @ 6.0   (should be REPLAYED after whole)
+    store.onmessage(_diff_msg(a=[["105.0", "6.0"]], b=[], t=1003, s="6"))
+    # diff s=8: set bid 94.0 @ 8.0    (should be REPLAYED after whole)
+    store.onmessage(_diff_msg(a=[], b=[["94.0", "8.0"]], t=1004, s="8"))
+
+    # whole with sequenceId="5"  — the snapshot base
+    store.onmessage(
+        _whole_msg(
+            asks=[["100.0", "1.0"], ["101.0", "2.0"]],
+            bids=[["99.0", "3.0"], ["98.0", "4.0"]],
+            ts=2000,
+            sequence_id="5",
+        )
+    )
+
+    result = store.depth.sorted({"pair": pair})
+
+    # Expected: snapshot + diff{s=6} + diff{s=8}, NOT diff{s=3} or diff{s=5}.
+    #
+    # snapshot asks: 100.0@1.0, 101.0@2.0
+    # + diff s=6 adds ask 105.0@6.0
+    # → asks: 100.0@1.0, 101.0@2.0, 105.0@6.0
+    #
+    # snapshot bids: 99.0@3.0, 98.0@4.0
+    # + diff s=8 adds bid 94.0@8.0
+    # → bids: 99.0@3.0, 98.0@4.0, 94.0@8.0
+    #
+    # diff s=3 (ask 200.0@10.0) must NOT be present
+    # diff s=5 (bid 50.0@20.0) must NOT be present
+    assert result == {
+        "asks": [
+            {"pair": pair, "side": "asks", "price": "100.0", "amount": "1.0"},
+            {"pair": pair, "side": "asks", "price": "101.0", "amount": "2.0"},
+            {"pair": pair, "side": "asks", "price": "105.0", "amount": "6.0"},
+        ],
+        "bids": [
+            {"pair": pair, "side": "bids", "price": "99.0", "amount": "3.0"},
+            {"pair": pair, "side": "bids", "price": "98.0", "amount": "4.0"},
+            {"pair": pair, "side": "bids", "price": "94.0", "amount": "8.0"},
+        ],
+    }, "Scenario 1 failed: snapshot + replay of s>5 diffs only"
+
+    # ---------------------------------------------------------------
+    # Scenario 2: second snapshot (re-init) with new sequenceId
+    # ---------------------------------------------------------------
+
+    # diff s=9: update ask 100.0 → amount 9.0  (should be IGNORED by next whole)
+    store.onmessage(_diff_msg(a=[["100.0", "9.0"]], b=[], t=3001, s="9"))
+    # diff s=11: add ask 110.0 @ 11.0  (should be REPLAYED after next whole)
+    store.onmessage(_diff_msg(a=[["110.0", "11.0"]], b=[], t=3002, s="11"))
+    # diff s=12: remove bid 98.0  (should be REPLAYED after next whole)
+    store.onmessage(_diff_msg(a=[], b=[["98.0", "0"]], t=3003, s="12"))
+
+    # second whole with sequenceId="10"
+    store.onmessage(
+        _whole_msg(
+            asks=[["100.0", "1.5"], ["101.0", "2.5"]],
+            bids=[["99.0", "3.5"], ["98.0", "4.5"]],
+            ts=4000,
+            sequence_id="10",
+        )
+    )
+
+    result2 = store.depth.sorted({"pair": pair})
+
+    # Expected: second snapshot + diff{s=11} + diff{s=12}; NOT diff{s=9}.
+    #
+    # snapshot asks: 100.0@1.5, 101.0@2.5
+    # + diff s=11 adds ask 110.0@11.0
+    # → asks: 100.0@1.5, 101.0@2.5, 110.0@11.0
+    #
+    # snapshot bids: 99.0@3.5, 98.0@4.5
+    # + diff s=12 removes bid 98.0
+    # → bids: 99.0@3.5
+    #
+    # diff s=9 (ask 100.0→9.0) must NOT be applied (s <= 10)
+    assert result2 == {
+        "asks": [
+            {"pair": pair, "side": "asks", "price": "100.0", "amount": "1.5"},
+            {"pair": pair, "side": "asks", "price": "101.0", "amount": "2.5"},
+            {"pair": pair, "side": "asks", "price": "110.0", "amount": "11.0"},
+        ],
+        "bids": [
+            {"pair": pair, "side": "bids", "price": "99.0", "amount": "3.5"},
+        ],
+    }, "Scenario 2 failed: second snapshot re-init with replay of s>10 diffs only"
