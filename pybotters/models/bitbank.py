@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 from abc import ABC, abstractmethod
+from collections import defaultdict, deque
 from typing import TYPE_CHECKING, cast
 
 from ..store import DataStore, DataStoreCollection
@@ -76,9 +77,14 @@ class Transactions(DataStore):
 
 class Depth(DataStore):
     _KEYS = ["pair", "side", "price"]
+    _BUFF_MAXLEN = 8000
 
     def _init(self) -> None:
         self.timestamp: int | None = None
+        self._buff: defaultdict[str, deque[dict]] = defaultdict(
+            lambda: deque(maxlen=Depth._BUFF_MAXLEN)
+        )
+        self._sequence_id: dict[str, int] = {}
 
     def sorted(
         self, query: Item | None = None, limit: int | None = None
@@ -92,19 +98,8 @@ class Depth(DataStore):
             limit=limit,
         )
 
-    def _onmessage(self, room_name: str, data: dict[str, object]) -> None:
-        if "whole" in room_name:
-            pair = room_name.replace("depth_whole_", "")
-            result = self.find({"pair": pair})
-            self._delete(result)
-            tuples = (("bids", "bids"), ("asks", "asks"))
-            self.timestamp = cast("int", data["timestamp"])
-        else:
-            pair = room_name.replace("depth_diff_", "")
-            tuples = (("b", "bids"), ("a", "asks"))
-            self.timestamp = cast("int", data["t"])
-
-        for side_item, side in tuples:
+    def _apply_diff(self, pair: str, data: dict) -> None:
+        for side_item, side in (("b", "bids"), ("a", "asks")):
             for item in cast("list[list[str]]", data[side_item]):
                 if item[1] != "0":
                     self._update(
@@ -119,6 +114,47 @@ class Depth(DataStore):
                     )
                 else:
                     self._delete([{"pair": pair, "side": side, "price": item[0]}])
+
+    def _onmessage(self, room_name: str, data: dict[str, object]) -> None:
+        if "whole" in room_name:
+            pair = room_name.replace("depth_whole_", "")
+            snapshot_seq = int(cast("str", data["sequenceId"]))
+            result = self.find({"pair": pair})
+            self._delete(result)
+            for side_item, side in (("bids", "bids"), ("asks", "asks")):
+                for item in cast("list[list[str]]", data[side_item]):
+                    if item[1] != "0":
+                        self._update(
+                            [
+                                {
+                                    "pair": pair,
+                                    "side": side,
+                                    "price": item[0],
+                                    "amount": item[1],
+                                }
+                            ]
+                        )
+            for msg in self._buff[pair]:
+                if int(msg["s"]) > snapshot_seq:
+                    self._apply_diff(pair, msg)
+            self._buff[pair] = deque(
+                (m for m in self._buff[pair] if int(m["s"]) > snapshot_seq),
+                maxlen=Depth._BUFF_MAXLEN,
+            )
+            self._sequence_id[pair] = max(
+                snapshot_seq,
+                max((int(m["s"]) for m in self._buff[pair]), default=snapshot_seq),
+            )
+            self.timestamp = cast("int", data["timestamp"])
+        else:
+            pair = room_name.replace("depth_diff_", "")
+            self._buff[pair].append(cast("dict", data))
+            s = int(cast("str", data["s"]))
+            if pair in self._sequence_id and s <= self._sequence_id[pair]:
+                return
+            self._apply_diff(pair, cast("dict", data))
+            self._sequence_id[pair] = s
+            self.timestamp = cast("int", data["t"])
 
 
 class Ticker(DataStore):
