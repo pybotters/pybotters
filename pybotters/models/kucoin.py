@@ -612,7 +612,7 @@ class Orders(DataStore):
             elif tp in ("cancel", "canceled", "filled"):
                 self._delete([item])
             elif tp == "update":
-                self._update([item])
+                self._update([d])
             else:
                 raise RuntimeError(f"Unknown type: {tp} ({d})")
 

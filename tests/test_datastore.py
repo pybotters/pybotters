@@ -2794,3 +2794,86 @@ def test_bitbank_depth_sequence_replay() -> None:
             {"pair": pair, "side": "bids", "price": "99.0", "amount": "3.5"},
         ],
     }, "Scenario 2 failed: second snapshot re-init with replay of s>10 diffs only"
+
+
+def test_kucoin_orders_update() -> None:
+    """Test that KuCoin Orders store applies 'update' messages correctly.
+
+    Regression test: Orders._onmessage used ``self._update([item])`` instead of
+    ``self._update([d])`` for the "update" type, which is a no-op because
+    ``item`` is the already-stored record.
+
+    Message samples are from the official KuCoin WebSocket API documentation.
+    """
+    store = pybotters.KuCoinDataStore()
+    ws: Any = object()
+
+    # 1) Open a new order (size=0.00002 -- matches originSize/oldSize in the update)
+    open_msg: dict[str, Any] = {
+        "topic": "/spotMarket/tradeOrders",
+        "type": "message",
+        "subject": "orderChange",
+        "userId": "633559791e1cbc0001f319bc",
+        "channelType": "private",
+        "data": {
+            "canceledSize": "0",
+            "clientOid": "5c52e11203aa677f33e493fb",
+            "filledSize": "0",
+            "orderId": "6720df7640e6fe0007b57696",
+            "orderTime": 1730207606848,
+            "orderType": "limit",
+            "originSize": "0.00002",
+            "price": "50000",
+            "remainSize": "0.00002",
+            "side": "buy",
+            "size": "0.00002",
+            "status": "open",
+            "symbol": "BTC-USDT",
+            "ts": 1730207606878000000,
+            "type": "open",
+        },
+    }
+    store.onmessage(open_msg, ws)
+
+    order = store.orders.get({"orderId": "6720df7640e6fe0007b57696"})
+    assert order is not None, "Order should have been inserted"
+    assert order["size"] == "0.00002"
+
+    # 2) Receive an "update" message (size reduced from 0.00002 to 0.00001)
+    #    Sample from official KuCoin docs
+    update_msg: dict[str, Any] = {
+        "topic": "/spotMarket/tradeOrders",
+        "type": "message",
+        "subject": "orderChange",
+        "userId": "633559791e1cbc0001f319bc",
+        "channelType": "private",
+        "data": {
+            "canceledSize": "0.00001",
+            "clientOid": "5c52e11203aa677f33e493fb",
+            "filledSize": "0",
+            "oldSize": "0.00002",
+            "orderId": "6720df7640e6fe0007b57696",
+            "orderTime": 1730207606848,
+            "orderType": "limit",
+            "originSize": "0.00002",
+            "price": "50000",
+            "remainSize": "0.00001",
+            "side": "buy",
+            "size": "0.00001",
+            "status": "open",
+            "symbol": "BTC-USDT",
+            "ts": 1730207616617000000,
+            "type": "update",
+        },
+    }
+    store.onmessage(update_msg, ws)
+
+    # 3) Assert the size was updated (0.00002 -> 0.00001)
+    updated_order = store.orders.get({"orderId": "6720df7640e6fe0007b57696"})
+    assert updated_order is not None, "Order should still exist after update"
+    assert updated_order["size"] == "0.00001", (
+        f"Expected size='0.00001' after update, but got size='{updated_order['size']}'. "
+        "Bug: self._update([item]) is a no-op; should be self._update([d])."
+    )
+    assert updated_order["canceledSize"] == "0.00001"
+    assert updated_order["remainSize"] == "0.00001"
