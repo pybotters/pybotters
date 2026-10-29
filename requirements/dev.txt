@@ -7,4 +7,4 @@
 
 # For VS Code extension "reStructuredText" (`lextudio.restructuredtext`)
 doc8==2.0.0
-rstcheck==6.2.5
+rstcheck==6.3.0
