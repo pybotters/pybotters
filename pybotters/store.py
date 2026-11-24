@@ -261,7 +261,7 @@ class DataStore:
         result[item_asc_key].sort(key=lambda x: float(x[sort_key]))
         result[item_desc_key].sort(key=lambda x: float(x[sort_key]), reverse=True)
 
-        if limit:
+        if limit is not None:
             result[item_asc_key] = result[item_asc_key][:limit]
             result[item_desc_key] = result[item_desc_key][:limit]
 
