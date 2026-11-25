@@ -255,6 +255,95 @@ def test_sign_user_signed_action(
     assert signature == expected
 
 
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        # Case 0: approveAgent; Original test case
+        (
+            # test_input: tuple[str, Mapping[str, object]]
+            (
+                # private_key
+                "0x0123456789012345678901234567890123456789012345678901234567890123",
+                # action
+                {
+                    "type": "approveAgent",
+                    "hyperliquidChain": "Testnet",
+                    "agentAddress": "0x5e9ee1089755c3435139848e47e6635505d5a13a",
+                    "agentName": "pybotters",
+                    "nonce": 1687816341423,
+                },
+            ),
+            # expected: Mapping[str, object]
+            {
+                "r": "0x16ac80a78db63f1beb21b955c20ac58094d128ad624066a0bc1a2f800ceccfd7",
+                "s": "0xd0c037aeb9fec117657a86f95a618c80801b508b02a37d36ae012aff550eecb",
+                "v": 27,
+            },
+        ),
+        # Case 1: approveBuilderFee; Original test case
+        (
+            # test_input: tuple[str, Mapping[str, object]]
+            (
+                # private_key
+                "0x0123456789012345678901234567890123456789012345678901234567890123",
+                # action
+                {
+                    "type": "approveBuilderFee",
+                    "hyperliquidChain": "Testnet",
+                    "maxFeeRate": "0.001%",
+                    "builder": "0x5e9ee1089755c3435139848e47e6635505d5a13a",
+                    "nonce": 1687816341423,
+                },
+            ),
+            # expected: Mapping[str, object]
+            {
+                "r": "0xb6e55b83439b7a74dffccba04e2ee91e38ded2f155b7e2f062518ffbe0b279a5",
+                "s": "0x111d822d9d41817e44384c756641dfd7e5511a22392d89d71007d410142cfb4f",
+                "v": 27,
+            },
+        ),
+        # Case 2: tokenDelegate; Original test case
+        (
+            # test_input: tuple[str, Mapping[str, object]]
+            (
+                # private_key
+                "0x0123456789012345678901234567890123456789012345678901234567890123",
+                # action
+                {
+                    "type": "tokenDelegate",
+                    "hyperliquidChain": "Testnet",
+                    "validator": "0x5e9ee1089755c3435139848e47e6635505d5a13a",
+                    "wei": 100000000,
+                    "isUndelegate": False,
+                    "nonce": 1687816341423,
+                },
+            ),
+            # expected: Mapping[str, object]
+            {
+                "r": "0xb8d14088d2efd302e451d0a4766eaf20d3fc234f0ba41fad078015fabe7f1442",
+                "s": "0x32529593b2cc6e9e00a01f25a4ad3628a50d2c3d40a88888a4e5f7dd184aa0b",
+                "v": 27,
+            },
+        ),
+    ],
+)
+def test_sign_user_signed_action_with_address_fields(
+    test_input: tuple[str, Mapping[str, object]],
+    expected: Mapping[str, object],
+) -> None:
+    """Test hyperliquid user signed action signature with ``address`` fields."""
+
+    # Arrange
+    private_key, action = test_input
+
+    # Act
+    domain_data, message_types, message_data = construct_user_signed_action(action)
+    signature = sign_typed_data(private_key, domain_data, message_types, message_data)
+
+    # Assert
+    assert signature == expected
+
+
 def test_generate_message_types() -> None:
     """Test generate_message_types()."""
 
@@ -265,6 +354,7 @@ def test_generate_message_types() -> None:
         "nonce": 1687816341423,
         "hyperliquidChain": "Testnet",
         "multiSigActionHash": b"\x88O,2\xbbm\xbd\xd6_`3\xe3/\xb2\x8c\x0c\xb6\xf5\xb3E\xdb\x0fdq\xfd3f\xd8\\\x92R\xc1",
+        "agentAddress": "0x5e9ee1089755c3435139848e47e6635505d5a13a",
     }
 
     # Act
@@ -277,6 +367,7 @@ def test_generate_message_types() -> None:
             {"name": "nonce", "type": "uint64"},
             {"name": "hyperliquidChain", "type": "string"},
             {"name": "multiSigActionHash", "type": "bytes32"},
+            {"name": "agentAddress", "type": "address"},
         ]
     }
 
