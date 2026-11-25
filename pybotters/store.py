@@ -13,6 +13,16 @@ if TYPE_CHECKING:
     from .ws import ClientWebSocketResponse
 
 
+async def _wait_for_event(events: list[asyncio.Event]) -> None:
+    event = asyncio.Event()
+    events.append(event)
+    try:
+        await event.wait()
+    finally:
+        if not event.is_set():
+            events.remove(event)
+
+
 class DataStore:
     """Abstract DataStore class."""
 
@@ -277,9 +287,7 @@ class DataStore:
 
         Usage example: :ref:`wait`
         """
-        event = asyncio.Event()
-        self._events.append(event)
-        await event.wait()
+        await _wait_for_event(self._events)
 
     def _put(
         self,
@@ -419,6 +427,4 @@ class DataStoreCollection:
 
     async def wait(self) -> None:
         """DataStoreCollection の onmessage ハンドラが呼び出しされるまで待機します。"""
-        event = asyncio.Event()
-        self._events.append(event)
-        await event.wait()
+        await _wait_for_event(self._events)

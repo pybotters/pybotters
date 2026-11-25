@@ -108,6 +108,35 @@ async def test_dsc_wait() -> None:
     await asyncio.wait_for(wait_task, timeout=5.0)
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("cancel_index", [0, 1])
+@pytest.mark.parametrize(
+    "store_type", [pybotters.DataStore, pybotters.DataStoreCollection]
+)
+async def test_cancelled_wait_preserves_other_waiter(
+    store_type: type[pybotters.DataStore | pybotters.DataStoreCollection],
+    cancel_index: int,
+) -> None:
+    store = store_type()
+    tasks = [asyncio.create_task(store.wait()) for _ in range(2)]
+    await asyncio.sleep(0)  # Let both tasks enter wait() before cancelling one.
+    cancelled, remaining = tasks[cancel_index], tasks[1 - cancel_index]
+    try:
+        cancelled.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await cancelled
+        assert not remaining.done()
+        if isinstance(store, pybotters.DataStore):
+            store._insert([{"foo": "bar"}])
+        else:
+            store.onmessage({"foo": "bar"})
+        await asyncio.wait_for(remaining, timeout=5.0)
+    finally:
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+
 def test_ds_construct():
     ds1 = pybotters.store.DataStore()
     assert len(ds1._data) == 0
