@@ -29,6 +29,37 @@ class StoreArg:
     data: Any
 
 
+def test_bitgetv2_positions_snapshots_by_product() -> None:
+    stores = pybotters.BitgetV2DataStore()
+
+    def snapshot(product: str, rows: list[Item]) -> None:
+        stores.onmessage(
+            {
+                "action": "snapshot",
+                "arg": {
+                    "channel": "positions",
+                    "instType": product,
+                    "instId": "default",
+                },
+                "data": rows,
+            }
+        )
+
+    coin = {"instId": "BTCUSD", "posId": "101", "total": "2"}
+    usdt = {"instId": "BTCUSDT", "posId": "202", "total": "3"}
+    snapshot("COIN-FUTURES", [coin])
+    snapshot("USDT-FUTURES", [usdt])
+    assert stores.positions.find({"instType": "COIN-FUTURES"}) == [
+        {"instType": "COIN-FUTURES", **coin}
+    ]
+    assert stores.positions.find({"instType": "USDT-FUTURES"}) == [
+        {"instType": "USDT-FUTURES", **usdt}
+    ]
+
+    snapshot("COIN-FUTURES", [])
+    assert stores.positions.find() == [{"instType": "USDT-FUTURES", **usdt}]
+
+
 def test_bitgetv2_positions() -> None:
     """Check the behavior of BitgetV2DataStore.positions."""
     store = pybotters.BitgetV2DataStore()

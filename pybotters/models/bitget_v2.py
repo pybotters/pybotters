@@ -341,7 +341,10 @@ class Positions(DataStore):
         data_to_delete = []
         for item in self:
             existing_item_index = (item["instType"], item["instId"], item["posId"])
-            if existing_item_index not in snapshot_indexes:
+            if (
+                item["instType"] == inst_type
+                and existing_item_index not in snapshot_indexes
+            ):
                 data_to_delete.append(item)
 
         self._delete(data_to_delete)
