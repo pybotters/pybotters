@@ -18,6 +18,28 @@ if TYPE_CHECKING:
     from pybotters.ws import ClientWebSocketResponse
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "store_type", [pybotters.store.DataStore, pybotters.store.DataStoreCollection]
+)
+@pytest.mark.parametrize("cancel_index", [0, 1])
+async def test_cancelled_wait_releases_only_its_event(store_type, cancel_index):
+    store = store_type()
+    tasks = [asyncio.create_task(store.wait()) for _ in range(2)]
+    await asyncio.sleep(0)
+    cancelled, live = tasks[cancel_index], tasks[1 - cancel_index]
+    live_event = store._events[1 - cancel_index]
+    cancelled.cancel()
+    try:
+        with pytest.raises(asyncio.CancelledError):
+            await cancelled
+        assert store._events == [live_event]
+        assert not live.done()
+    finally:
+        store._set()
+        await asyncio.wait_for(live, timeout=1)
+
+
 def test_dsm_construct():
     dsm = pybotters.store.DataStoreCollection()
     dsm._create("example")
