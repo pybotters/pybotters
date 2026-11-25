@@ -186,6 +186,20 @@ def construct_user_signed_action(
     return (domain_data, message_types, action)
 
 
+# Ref: hyperliquid.utils.signing (*_SIGN_TYPES, sign_agent, sign_approve_builder_fee)
+# Fields of user signed actions that are typed as ``address`` instead of ``string``.
+_ADDRESS_FIELDS = frozenset(
+    {
+        "agentAddress",
+        "builder",
+        "outerSigner",
+        "payloadMultiSigUser",
+        "user",
+        "validator",
+    }
+)
+
+
 def generate_message_types(message_data: MessageData) -> MessageTypes:
     """Generate message types from message data.
 
@@ -220,7 +234,8 @@ def generate_message_types(message_data: MessageData) -> MessageTypes:
         elif isinstance(value, int):
             payload_types.append({"name": key, "type": "uint64"})
         elif isinstance(value, str):
-            payload_types.append({"name": key, "type": "string"})
+            solidity_type = "address" if key in _ADDRESS_FIELDS else "string"
+            payload_types.append({"name": key, "type": solidity_type})
         elif isinstance(value, (bytes, bytearray)):
             payload_types.append({"name": key, "type": "bytes32"})
         else:
