@@ -382,6 +382,15 @@ def test_ds_find_with_uuid():
             [
                 {"name": "foo", "id": "2", "sort_type": "desc"},
                 {"name": "foo", "id": "5", "sort_type": "asc"},
+            ],
+            None,
+            0,
+            {"asc": [], "desc": []},
+        ),
+        (
+            [
+                {"name": "foo", "id": "2", "sort_type": "desc"},
+                {"name": "foo", "id": "5", "sort_type": "asc"},
                 {"name": "foo", "id": "6", "sort_type": "asc"},
                 {"name": "foo", "id": "1", "sort_type": "desc"},
                 {"name": "foo", "id": "4", "sort_type": "asc"},
