@@ -29,6 +29,39 @@ class StoreArg:
     data: Any
 
 
+@pytest.mark.parametrize(
+    ("channel", "inst_id", "volume_fields"),
+    [
+        ("candle1m", "BTC-USDT", {"vol": "2", "volCcy": "3", "volCcyQuote": "4"}),
+        ("mark-price-candle1m", "BTC-USDT-SWAP", {}),
+        ("index-candle1m", "BTC-USDT", {}),
+    ],
+)
+def test_okx_candle_fields(
+    channel: str, inst_id: str, volume_fields: dict[str, str]
+) -> None:
+    stores = pybotters.OKXDataStore()
+    arg = {"channel": channel, "instId": inst_id}
+    store = stores[channel.removesuffix("1m")]
+    assert store is not None
+    for close, confirm in [("102", "0"), ("103", "1")]:
+        row = ["1700000040000", "100", "104", "99", close]
+        row.extend([*volume_fields.values(), confirm])
+        stores.onmessage({"arg": arg, "data": [row]})
+        assert store.find() == [
+            {
+                **arg,
+                "ts": "1700000040000",
+                "o": "100",
+                "h": "104",
+                "l": "99",
+                "c": close,
+                **volume_fields,
+                "confirm": confirm,
+            }
+        ]
+
+
 def test_bitgetv2_positions() -> None:
     """Check the behavior of BitgetV2DataStore.positions."""
     store = pybotters.BitgetV2DataStore()

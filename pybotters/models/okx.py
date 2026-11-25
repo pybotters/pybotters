@@ -274,7 +274,7 @@ class _UpdateStore(DataStore):
 
 class _CandleStore(DataStore):
     _KEYS = ["channel", "instId", "ts"]
-    _LIST_KEYS = ["ts", "o", "h", "l", "c"]
+    _LIST_KEYS = ["ts", "o", "h", "l", "c", "confirm"]
 
     def _onmessage(self, msg: dict[str, Any]) -> None:
         for item in msg["data"]:
@@ -293,7 +293,7 @@ class OpenInterest(_UpdateStore): ...
 
 
 class Candle(_CandleStore):
-    _LIST_KEYS = ["ts", "o", "h", "l", "c", "vol", "volCcy"]
+    _LIST_KEYS = ["ts", "o", "h", "l", "c", "vol", "volCcy", "volCcyQuote", "confirm"]
 
 
 class Trades(_InsertStore): ...
