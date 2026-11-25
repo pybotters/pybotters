@@ -392,6 +392,9 @@ class MarginPayable(DataStore):
     def _onmessage(self, params: list[Item]) -> None:
         # This store always updates only one item.
         for item in params:
+            if not self:
+                self._insert([item.copy()])
+                continue
             for orig_item in self:
                 orig_item.clear()
                 orig_item.update(item)

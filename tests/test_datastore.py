@@ -544,6 +544,19 @@ def test_bitbank_private_basic_stores(
     assert s.get(query) == expected
 
 
+def test_bitbank_private_margin_payable() -> None:
+    store = pybotters.bitbankPrivateDataStore()
+    first = {"amount": "12.50"}
+    store.onmessage({"method": "margin_payable_update", "params": [first]})
+    assert store.margin_payable.find() == [{"amount": "12.50"}]
+    payable = store.margin_payable.find()[0]
+
+    store.onmessage({"method": "margin_payable_update", "params": [{"amount": "0"}]})
+    assert store.margin_payable.find() == [{"amount": "0"}]
+    assert store.margin_payable.find()[0] is payable
+    assert first == {"amount": "12.50"}
+
+
 def test_bitbank_private_order() -> None:
     """Tests for bitbankPrivateDataStore spot_order only."""
     store = pybotters.bitbankPrivateDataStore()
