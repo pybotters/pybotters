@@ -43,6 +43,7 @@ def test_okx_candle_fields(
     stores = pybotters.OKXDataStore()
     arg = {"channel": channel, "instId": inst_id}
     store = stores[channel.removesuffix("1m")]
+    assert store is not None
     for close, confirm in [("102", "0"), ("103", "1")]:
         row = ["1700000040000", "100", "104", "99", close]
         row.extend([*volume_fields.values(), confirm])
