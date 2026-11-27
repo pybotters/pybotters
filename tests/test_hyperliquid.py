@@ -142,6 +142,54 @@ if TYPE_CHECKING:
                 "v": 27,
             },
         ),
+        # Case 4: Mainnet with vault_address starting with a zero nibble; Original test case
+        (
+            # test_input: tuple[str, Mapping[str, object], int, bool, str | None, int | None]
+            (
+                # private_key
+                "0x0123456789012345678901234567890123456789012345678901234567890123",
+                # action
+                {"type": "dummy", "num": 100000000000},
+                # nonce
+                0,
+                # is_mainnet
+                True,
+                # vault_address
+                "0x0719884eb866cb12b2287399b15f7db5e7d775ea",
+                # expires_after
+                None,
+            ),
+            # expected: Mapping[str, object]
+            {
+                "r": "0xcf0c625ab45a777a5207f710ae3ff3c64a73047a8972f3aebf3c539f01cb101",
+                "s": "0x6af5ea9d1f0b727a761850c3c4cd1ab7f88979357552ffa25d7b89e8b5784f5",
+                "v": 27,
+            },
+        ),
+        # Case 5: Mainnet with vault_address starting with a zero byte; Original test case
+        (
+            # test_input: tuple[str, Mapping[str, object], int, bool, str | None, int | None]
+            (
+                # private_key
+                "0x0123456789012345678901234567890123456789012345678901234567890123",
+                # action
+                {"type": "dummy", "num": 100000000000},
+                # nonce
+                0,
+                # is_mainnet
+                True,
+                # vault_address
+                "0x0019884eb866cb12b2287399b15f7db5e7d775ea",
+                # expires_after
+                None,
+            ),
+            # expected: Mapping[str, object]
+            {
+                "r": "0xf8063a4c6e76d5cae91465504496ccd923186e5e041cc2d35338fab83fb61f41",
+                "s": "0xdbb8c56447e270024174c0109f46a6f076fe5d16a76774aa24cbff11ae49f4a",
+                "v": 28,
+            },
+        ),
     ],
 )
 def test_sign_l1_action(
