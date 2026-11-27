@@ -127,7 +127,8 @@ def construct_l1_action(
         data += b"\x00"
     else:
         data += b"\x01"
-        data += bytes.fromhex(f"{int(vault_address, 16):x}")  # address_to_bytes
+        # Ref: hyperliquid.utils.signing.address_to_bytes
+        data += bytes.fromhex(vault_address.removeprefix("0x"))
     if expires_after is not None:
         data += b"\x00"
         data += expires_after.to_bytes(8, "big")
